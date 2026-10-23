@@ -1,5 +1,5 @@
 // Results page: everyone's scores and the easiest and hardest comparisons, from /api/stats.
-import { histogram, percentBelow, clipLabel, pageParams, pct } from "./stats-view-core.js";
+import { histogram, compareToOthers, clipLabel, pageParams, pct } from "./stats-view-core.js";
 import { MATCH_CONFIG } from "./match-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -98,9 +98,7 @@ function renderScores(scores, data) {
     kpi(finishedHere, `finished game${finishedHere === 1 ? "" : "s"}`) +
     kpi(finishedHere ? `${median(scores)}%` : "—", "median score") +
     kpi(data.players, `player${data.players === 1 ? "" : "s"}, both modes`);
-  const below = you === null ? null : percentBelow(scores, you);
-  $("you-line").innerHTML = you === null ? "" : below === null ? `You scored ${you}%.`
-    : `You scored <strong>${you}%</strong>, higher than ${below}% of finished games.`;
+  $("you-line").innerHTML = you === null ? "" : youLine(scores);
   if (finishedHere === 0) {
     $("score-chart").innerHTML = '<p class="muted">No finished games yet.</p>';
     $("score-table").innerHTML = "";
@@ -114,6 +112,20 @@ function renderScores(scores, data) {
       }
     });
   }
+}
+
+function youLine(scores) {
+  const { others, percentile } = compareToOthers(scores, you);
+  const score = `Your score: <strong>${you}%</strong> of the maximum points.`;
+  if (percentile === null) return `${score} No one else has finished a game yet, so there's nothing to compare it with.`;
+  return `${score} That puts you at the <strong>${ordinal(percentile)} percentile</strong> of the other ` +
+    `${others} finished game${others === 1 ? "" : "s"}.`;
+}
+
+function ordinal(n) {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" }[n % 10] ?? "th");
+  return `${n}${suffix}`;
 }
 
 function pairRow(p) {

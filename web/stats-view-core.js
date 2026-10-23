@@ -14,10 +14,21 @@ export function histogram(scores) {
   return bins;
 }
 
-/** Percentage of games that scored lower than `you`, or null with no games. */
-export function percentBelow(scores, you) {
-  if (scores.length === 0) return null;
-  return Math.round((100 * scores.filter((s) => s < you).length) / scores.length);
+/**
+ * Where `you` ranks among other players' games. Your own game is usually in
+ * `scores` already, so one copy of your score is left out; ties count half,
+ * so matching everyone else is the 50th percentile.
+ *
+ * @returns {{others: number, percentile: number | null}} null when there's no one to compare with.
+ */
+export function compareToOthers(scores, you) {
+  const others = [...scores];
+  const own = others.indexOf(you);
+  if (own !== -1) others.splice(own, 1);
+  if (others.length === 0) return { others: 0, percentile: null };
+  const below = others.filter((s) => s < you).length;
+  const ties = others.filter((s) => s === you).length;
+  return { others: others.length, percentile: Math.round((100 * (below + ties / 2)) / others.length) };
 }
 
 /** "Walter Cronkite (CBS, 1978)"; falls back to the decade, or to the id for a clip no longer in the game. */

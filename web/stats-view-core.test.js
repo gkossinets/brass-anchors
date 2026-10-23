@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { histogram, percentBelow, clipLabel, pageParams, pct } from "./stats-view-core.js";
+import { histogram, compareToOthers, clipLabel, pageParams, pct } from "./stats-view-core.js";
 
 test("histogram: ten 10-point bins, with 100% in the top bin", () => {
   const bins = histogram([0, 9, 10, 55, 99, 100]);
@@ -10,11 +10,19 @@ test("histogram: ten 10-point bins, with 100% in the top bin", () => {
   assert.deepEqual([bins[5].from, bins[5].to], [50, 59]);
 });
 
-test("percentBelow: share of games that scored lower than you", () => {
-  assert.equal(percentBelow([10, 20, 30, 40], 35), 75);
-  assert.equal(percentBelow([10, 20, 30, 40], 10), 0);
-  assert.equal(percentBelow([50, 50], 50), 0);
-  assert.equal(percentBelow([], 50), null);
+test("compareToOthers leaves out your own game, then ranks you among the rest", () => {
+  // Your 65 is in the list (your game was counted): compare with the other three.
+  assert.deepEqual(compareToOthers([40, 65, 70, 90], 65), { others: 3, percentile: 33 });
+  // Ties count half: equal to everyone else puts you at the 50th percentile.
+  assert.deepEqual(compareToOthers([50, 50, 50], 50), { others: 2, percentile: 50 });
+  assert.deepEqual(compareToOthers([10, 20, 30, 40, 55], 55), { others: 4, percentile: 100 });
+});
+
+test("compareToOthers: nobody else yet, or your game not counted yet", () => {
+  assert.deepEqual(compareToOthers([65], 65), { others: 0, percentile: null });
+  assert.deepEqual(compareToOthers([], 65), { others: 0, percentile: null });
+  // Your game hasn't arrived yet: everyone in the list is someone else.
+  assert.deepEqual(compareToOthers([40, 80], 65), { others: 2, percentile: 50 });
 });
 
 test("clip labels name the speaker, station, and year", () => {
