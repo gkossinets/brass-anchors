@@ -8,4 +8,4 @@ compatibility_date = "2026-10-01"
 binding = "DB"
 database_name = "brass-anchors"
 # From `npx wrangler d1 create brass-anchors`. An id is not a secret; it only works with your login.
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "8673bc27-2abe-4e64-b58c-bcfd0e5c8b21"

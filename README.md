@@ -92,7 +92,7 @@ Put a screenshot of each speaker in `thumbnails/`, named as in the `speaker` col
 
 ## Deploying
 
-The site runs on Cloudflare Pages (free tier). The game is static files; `functions/api/log.js` stores anonymous play data in a D1 database.
+The site runs on Cloudflare Pages (free tier) at <https://brass-anchors.pages.dev>. The game is static files; `functions/api/log.js` stores anonymous play data in a D1 database.
 
 First time:
 
@@ -112,7 +112,7 @@ Then:
 - `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses, about 8 MB) and uploads it. Run `make audio` first if clips changed.
 - `make stats` reports players and games; Match accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair; Guess-the-clip accuracy per question and per clip; and players' notes.
 - `make site-dev` runs the deployable site locally with a local database at <http://localhost:8788/?collect=1>; `make stats LOCAL=1` reports on it.
-- Safari needs HTTP Range support to play audio. After the first deploy, `curl -sI -H 'Range: bytes=0-99' https://<site>/audio/trombone/<id>.mp3` should answer `206`.
+- Pages answers HTTP Range requests with the whole file, and Safari may not play audio from a server that does, so `functions/audio/[[path]].js` serves `/audio/*` with proper `206` responses. To check a deploy: `curl -sI -H 'Range: bytes=0-1' https://<site>/audio/trombone/<id>.mp3` should say `206`.
 
 ### What the deployed site records
 
@@ -126,7 +126,7 @@ Anyone can post to `/api/log`, so the results are only as trustworthy as an open
 pipeline/    Python pipeline, review server, and site builder
 web/         the game (and the local review page)
 server/      validation, schema, and stats for collected play data
-functions/   Cloudflare Pages function: POST /api/log
+functions/   Cloudflare Pages functions: /api/log, /api/stats, and ranged /audio/*
 tools/       check-pairs and stats command-line reports
 tests/       pytest suite (JavaScript tests sit beside their modules as *.test.js)
 ```

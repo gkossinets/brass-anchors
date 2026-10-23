@@ -4,7 +4,7 @@ Why things are the way they are, what's known to be weak, and what could come ne
 
 ## Status
 
-The pipeline and both game modes work end to end with 20 reviewed clips. The site is ready to deploy to Cloudflare Pages with anonymous play data in D1. Tests: 105 pytest and 81 `node --test`, all passing (`make test`).
+The pipeline and both game modes work end to end with 20 reviewed clips. Live at <https://brass-anchors.pages.dev> (Cloudflare Pages, deployed 2026-10-23) with anonymous play data in D1. Tests: 105 pytest and 86 `node --test`, all passing (`make test`).
 
 ## Corpus
 
@@ -92,9 +92,10 @@ Shared by both modes (`format: 2`). A game record has `mode`, `settings`, `round
 - **Privacy**: a random player id per browser; no names, accounts, or IP addresses.
 - **Stats**: `server/stats-core.js` de-duplicates rounds per game and round, takes each game's latest record (sent when it finishes, and again on Save with notes), and treats pairs as unordered.
 - **Fake results**: the endpoint is open and the repo documents the format, so anyone could post made-up games. Cheap defences are in place: `collect-core.js` rejects impossible rounds (unknown difficulty, points that don't match it, a clip id outside `[a-z0-9_]`, answers under a second), and a final score enters the distribution only when rounds 1 to N all arrived and their points add up to it, so a single forged record can't move it (`make stats` counts those it left out). A script that posts consistent rounds still gets through. Cloudflare's rate-limiting binding isn't available to Pages Functions (Workers only), so a real per-sender limit would mean moving the API to a Worker, possibly with Turnstile (an invisible bot check) at game start.
-- **`/api/stats`** reads the whole events table per request and asks for a minute of caching; under `wrangler pages dev` the response carried Pages' default `max-age=0` instead, so check the header once deployed.
+- **`/api/stats`** reads the whole events table per request. It asks for a minute of caching, but Pages replaces the header with `max-age=0, must-revalidate` (seen locally and live), so every page view queries D1. Fine at this scale; cache in KV or aggregate in SQL if it grows.
+- **Late rounds**: rounds go out by `sendBeacon`, which a browser may delay; in the live check, round 2 of 3 arrived 4 s after the game's finish record. A player who opens the results page at once can find their game not yet counted (its rounds don't all add up yet); it counts on reload.
 - **Caching**: Pages serves files with `max-age=0, must-revalidate`, and the local server sends `no-cache`, so a browser never mixes a new page with old scripts.
-- **Range requests**: browsers need HTTP Range to seek in audio, and Safari needs it to play at all. `pipeline/static_server.py` adds it to Python's server for `make serve` and `make review`. Wrangler's dev server lacks it, which the game tolerates since it always plays from the start.
+- **Range requests**: browsers need HTTP Range to seek in audio, and Safari opens `<audio>` with a `bytes=0-1` probe and may not play from a server that ignores it. Pages answers Range with a full `200` (its docs say `206` support is in progress), so `functions/audio/[[path]].js` fetches the file from the static assets and slices it (`server/range.js`, tested): live, a `bytes=0-1` request gets a 2-byte `206`. It costs one function invocation per audio request (free tier: 100,000 a day). `pipeline/static_server.py` does the same for `make serve` and `make review`.
 
 ## Known limitations
 
