@@ -110,7 +110,7 @@ make deploy                                    # prints the site's URL
 Then:
 
 - `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses, about 8 MB) and uploads it. Run `make audio` first if clips changed.
-- `make stats` reports players and games; Match accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair; Guess-the-clip accuracy per question and per clip; and players' notes.
+- `make stats` reports players and games, counting only each player's first game, since later games replay familiar clips (`make stats ALL=1` includes replays); Match accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair; Guess-the-clip accuracy per question and per clip; and players' notes.
 - `make site-dev` runs the deployable site locally with a local database at <http://localhost:8788/?collect=1>; `make stats LOCAL=1` reports on it.
 - Pages answers HTTP Range requests with the whole file, and Safari may not play audio from a server that does, so `functions/audio/[[path]].js` serves `/audio/*` with proper `206` responses. To check a deploy: `curl -sI -H 'Range: bytes=0-1' https://<site>/audio/trombone/<id>.mp3` should say `206`.
 

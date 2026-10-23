@@ -67,6 +67,7 @@ deploy: site
 	  echo "Set database_id in wrangler.toml first (see README.md, Deploying)." >&2; exit 2; fi
 	$(WRANGLER) pages deploy dist --branch main --commit-dirty=true
 
-# Accuracy, answer times, and notes from the live database; LOCAL=1 reads the site-dev one
+# Accuracy, answer times, and notes from the live database, counting each player's first game
+# only (later games replay familiar clips); ALL=1 includes replays, LOCAL=1 reads the site-dev database
 stats:
-	@$(WRANGLER) d1 execute $(DB) $(if $(LOCAL),--local,--remote) --json --command "SELECT * FROM events" | node tools/stats.mjs
+	@$(WRANGLER) d1 execute $(DB) $(if $(LOCAL),--local,--remote) --json --command "SELECT * FROM events" | node tools/stats.mjs $(if $(ALL),--all,)

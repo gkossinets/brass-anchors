@@ -95,7 +95,7 @@ function wireTooltip(figure) {
 function renderScores(scores, data) {
   const finishedHere = scores.length;
   $("kpis").innerHTML =
-    kpi(finishedHere, `finished game${finishedHere === 1 ? "" : "s"}`) +
+    kpi(finishedHere, `first game${finishedHere === 1 ? "" : "s"} finished`) +
     kpi(finishedHere ? `${median(scores)}%` : "—", "median score") +
     kpi(data.players, `player${data.players === 1 ? "" : "s"}, both modes`);
   $("you-line").innerHTML = you === null ? "" : youLine(scores);
@@ -174,7 +174,8 @@ Promise.all([
   renderScores(data.scores[mode] ?? [], data);
   if (mode === "match") renderMatch(data.match, data.minAttempts);
   else renderClassic(data.classic, data.minAttempts);
-  $("footnote").textContent = "Times run from the first Play to the answer. Right = share of rounds answered correctly; " +
+  $("footnote").textContent = "Only each player's first game counts: later games replay clips they've already heard. " +
+    "Times run from the first Play to the answer. Right = share of rounds answered correctly; " +
     "\"exactly right\" for Guess the clip counts full marks only. Anonymous: no names or notes are shown.";
   $("stats-status").hidden = true;
   $("stats-body").hidden = false;

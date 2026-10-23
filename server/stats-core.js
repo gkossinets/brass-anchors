@@ -78,20 +78,42 @@ function scorePct(record) {
 }
 
 /**
+ * Each player's first game: the one whose earliest event came first. Later games,
+ * in either mode, replay clips the player has already heard (a 10-round Match game
+ * plays all 20), so they'd make comparisons look easier than they are.
+ */
+function firstGames(events) {
+  const startOf = {};
+  for (const e of events) {
+    const s = startOf[e.game];
+    if (!s || e.received_at < s.at) startOf[e.game] = { player: e.player, at: e.received_at };
+  }
+  const first = {};
+  for (const [game, { player, at }] of Object.entries(startOf)) {
+    if (!first[player] || at < first[player].at) first[player] = { game, at };
+  }
+  return new Set(Object.values(first).map((f) => f.game));
+}
+
+/**
  * Summarize event rows ({kind, player, game, mode, round, received_at, payload}).
  * A round sent twice counts once. Each game sends its record when it finishes and
- * again when the player saves notes; the latest record per game counts.
+ * again when the player saves notes; the latest record per game counts. By default
+ * only each player's first game counts (see firstGames); players and games still
+ * count everything, and `replays` says how many games were left out.
  */
-export function summarize(rows) {
+export function summarize(rows, { firstGamesOnly = true } = {}) {
   let skipped = 0;
-  const events = [];
+  const all = [];
   for (const row of rows) {
     try {
-      events.push({ ...row, record: JSON.parse(row.payload) });
+      all.push({ ...row, record: JSON.parse(row.payload) });
     } catch {
       skipped += 1;
     }
   }
+  const counted = firstGamesOnly ? firstGames(all) : new Set(all.map((e) => e.game));
+  const events = all.filter((e) => counted.has(e.game));
   const seenRounds = new Set();
   const rounds = events.filter((e) => {
     if (e.kind !== "round") return false;
@@ -121,8 +143,10 @@ export function summarize(rows) {
     .map((e) => ({ at: e.received_at, mode: e.mode, text: e.record.cues.trim() }));
 
   return {
-    players: new Set(events.map((e) => e.player)).size,
-    games: new Set(events.map((e) => e.game)).size,
+    players: new Set(all.map((e) => e.player)).size,
+    games: new Set(all.map((e) => e.game)).size,
+    counted: counted.size,
+    replays: new Set(all.map((e) => e.game)).size - counted.size,
     finished: finishedGames.length,
     scores,
     unbacked,
@@ -141,6 +165,7 @@ const row = (label, t) => `  ${label.padEnd(10)} ${`${t.right}/${t.n}`.padStart(
 /** Plain-text report for the terminal. Times are median ms from first Play to answer. */
 export function formatReport(s, { topPairs = 10 } = {}) {
   const lines = [`${plural(s.players, "player")}, ${plural(s.games, "game")}, ${s.finished} finished` +
+    (s.replays ? `; ${plural(s.replays, "replay")} left out (only each player's first game counts)` : "") +
     (s.unbacked ? ` (${s.unbacked} with scores their rounds don't support, left out of the distribution)` : "") +
     (s.skipped ? ` (${s.skipped} unreadable rows skipped)` : "")];
 
@@ -180,7 +205,7 @@ export function formatReport(s, { topPairs = 10 } = {}) {
  * share an entry.
  */
 export function publicSummary(rows, { minAttempts = 3, top = 5 } = {}) {
-  const s = summarize(rows);
+  const s = summarize(rows, { firstGamesOnly: true });
   const ranked = (list) => {
     const enough = list.filter((x) => x.n >= minAttempts);
     const hardest = enough.slice(0, Math.min(top, Math.ceil(enough.length / 2)));
@@ -192,6 +217,8 @@ export function publicSummary(rows, { minAttempts = 3, top = 5 } = {}) {
   return {
     players: s.players,
     games: s.games,
+    counted: s.counted,
+    replays: s.replays,
     finished: s.finished,
     scores: s.scores,
     minAttempts,

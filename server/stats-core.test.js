@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import { summarize, formatReport, median, publicSummary } from "./stats-core.js";
 
 let nextId = 0;
-const row = (kind, game, payload, { player = "p1", mode = payload.mode, at = `2026-10-23T10:00:${String(nextId).padStart(2, "0")}Z` } = {}) =>
+// One player per game unless a test says otherwise; rows arrive a second apart.
+const row = (kind, game, payload, { player = `p_${game}`, mode = payload.mode, at = new Date(Date.UTC(2026, 9, 23, 10) + nextId * 1000).toISOString() } = {}) =>
   ({ id: ++nextId, kind, player, game, mode, round: payload.round ?? null, received_at: at, payload: JSON.stringify(payload) });
 
 const LEVEL_POINTS = { easy: 1, medium: 2, hard: 3 };
@@ -22,12 +23,62 @@ test("median ignores missing times and averages the middle pair", () => {
 
 test("counts players, games started, and games finished", () => {
   const s = summarize([
-    matchRound("g1", 1, "easy", true, 1000),
-    matchRound("g2", 1, "easy", true, 1000, { }),
-    row("game", "g1", { mode: "match", cues: "" }),
-    { ...matchRound("g3", 1, "easy", true, 1000), player: "p2" },
+    { ...matchRound("g1", 1, "easy", true, 1000), player: "p1" },
+    { ...matchRound("g2", 1, "easy", true, 1000), player: "p2" },
+    { ...row("game", "g1", { mode: "match", cues: "" }), player: "p1" },
+    { ...matchRound("g3", 1, "easy", true, 1000), player: "p3" },
   ]);
-  assert.deepEqual([s.players, s.games, s.finished], [2, 3, 1]);
+  assert.deepEqual([s.players, s.games, s.finished], [3, 3, 1]);
+});
+
+// ---------- first games only ----------
+
+const asPlayer = (player, ...rows) => rows.map((r) => ({ ...r, player }));
+
+test("only each player's first game counts: later games replay clips they've heard", () => {
+  const rows = [
+    ...asPlayer("ann", matchRound("ann1", 1, "hard", false, 9000), finished("ann1", "match", 0, 3),
+      matchRound("ann2", 1, "hard", true, 2000), finished("ann2", "match", 3, 3)),
+    ...asPlayer("bob", matchRound("bob1", 1, "hard", true, 8000), finished("bob1", "match", 3, 3)),
+  ];
+  const s = summarize(rows);
+  assert.deepEqual(s.match.byLevel.hard, { n: 2, right: 1, medianMs: 8500 }, "ann's replay is left out");
+  assert.deepEqual(s.scores.match, [0, 100]);
+  assert.deepEqual([s.players, s.games, s.counted, s.replays], [2, 3, 2, 1]);
+});
+
+test("first means first overall: a Guess the clip game after a Match game is a replay too", () => {
+  // Both modes use the same clips, so the second game is familiar whichever mode it is.
+  const s = summarize(asPlayer("ann",
+    matchRound("m1", 1, "easy", true, 3000),
+    classicRound("c1", 1, "x", { decade: "1970s" }, { decade: 2, total: 2 }, 5000)));
+  assert.equal(s.match.byLevel.easy.n, 1);
+  assert.deepEqual(s.classic.byClip, []);
+});
+
+test("the first game is the one that started earliest, whatever order the rows come in", () => {
+  const early = { ...matchRound("g-early", 1, "easy", false, 3000), player: "ann", received_at: "2026-10-23T09:00:00.000Z" };
+  const late = { ...matchRound("g-late", 1, "easy", true, 3000), player: "ann", received_at: "2026-10-23T11:00:00.000Z" };
+  assert.equal(summarize([late, early]).match.byLevel.easy.right, 0);
+});
+
+test("replays can be included on request", () => {
+  const rows = asPlayer("ann", matchRound("a1", 1, "easy", false, 3000), matchRound("a2", 1, "easy", true, 3000));
+  assert.equal(summarize(rows, { firstGamesOnly: false }).match.byLevel.easy.n, 2);
+  assert.equal(summarize(rows, { firstGamesOnly: false }).replays, 0);
+});
+
+test("the report says how many replays it left out", () => {
+  const rows = asPlayer("ann", matchRound("a1", 1, "easy", false, 3000), matchRound("a2", 1, "easy", true, 3000));
+  assert.match(formatReport(summarize(rows)), /1 replay left out/);
+});
+
+test("the public summary counts first games only and says so", () => {
+  const rows = asPlayer("ann", matchRound("a1", 1, "easy", false, 3000), finished("a1", "match", 0, 1),
+    matchRound("a2", 1, "easy", true, 3000), finished("a2", "match", 1, 1));
+  const p = publicSummary(rows);
+  assert.deepEqual(p.scores.match, [0]);
+  assert.deepEqual([p.counted, p.replays], [1, 1]);
 });
 
 test("match accuracy and median time by difficulty, and by attribute for hard rounds", () => {
@@ -121,7 +172,7 @@ test("the public summary has no notes and no player ids", () => {
   ]);
   const text = JSON.stringify(p);
   assert.ok(!text.includes("private thoughts"));
-  assert.ok(!text.includes("p1"));
+  assert.ok(!text.includes("p_g1"));
   assert.deepEqual([p.players, p.games, p.finished], [1, 1, 1]);
   assert.deepEqual(p.scores.match, [100]);
 });
