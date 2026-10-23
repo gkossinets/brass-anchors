@@ -20,18 +20,14 @@ test("median ignores missing times and averages the middle pair", () => {
   assert.equal(median([null]), null);
 });
 
-test("counts games started, games finished, and rounds answered per mode; not players", () => {
-  // Player ids are fresh per game (nothing links one person's games), so a player count would mislead.
+test("counts players, games started, and games finished", () => {
   const s = summarize([
     matchRound("g1", 1, "easy", true, 1000),
-    matchRound("g1", 2, "easy", true, 1000),
     matchRound("g2", 1, "easy", true, 1000, { }),
     row("game", "g1", { mode: "match", cues: "" }),
-    classicRound("g3", 1, "c1", {}, { total: 1 }, 4000),
+    { ...matchRound("g3", 1, "easy", true, 1000), player: "p2" },
   ]);
-  assert.deepEqual([s.games, s.finished], [3, 1]);
-  assert.deepEqual(s.rounds, { match: 3, classic: 1 });
-  assert.equal(s.players, undefined);
+  assert.deepEqual([s.players, s.games, s.finished], [2, 3, 1]);
 });
 
 test("match accuracy and median time by difficulty, and by attribute for hard rounds", () => {
@@ -93,8 +89,7 @@ test("the report is plain text with the headline numbers", () => {
     matchRound("g1", 1, "easy", true, 4000),
     row("game", "g1", { mode: "match", cues: "loved it" }),
   ]));
-  assert.match(text, /1 game, 1 finished/);
-  assert.doesNotMatch(text, /player/);
+  assert.match(text, /1 player, 1 game, 1 finished/);
   assert.match(text, /easy\s+1\/1\s+100%\s+4\.0 s/);
   assert.match(text, /loved it/);
 });
@@ -127,9 +122,7 @@ test("the public summary has no notes and no player ids", () => {
   const text = JSON.stringify(p);
   assert.ok(!text.includes("private thoughts"));
   assert.ok(!text.includes("p1"));
-  assert.deepEqual([p.games, p.finished], [1, 1]);
-  assert.deepEqual(p.rounds, { match: 1, classic: 0 });
-  assert.equal(p.players, undefined);
+  assert.deepEqual([p.players, p.games, p.finished], [1, 1, 1]);
   assert.deepEqual(p.scores.match, [100]);
 });
 

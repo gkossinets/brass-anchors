@@ -120,10 +120,9 @@ export function summarize(rows) {
     .sort((a, b) => a.received_at.localeCompare(b.received_at))
     .map((e) => ({ at: e.received_at, mode: e.mode, text: e.record.cues.trim() }));
 
-  // No player count: player ids are fresh per game, so nothing links one person's games.
   return {
+    players: new Set(events.map((e) => e.player)).size,
     games: new Set(events.map((e) => e.game)).size,
-    rounds: { match: rounds.filter((e) => e.mode === "match").length, classic: rounds.filter((e) => e.mode === "classic").length },
     finished: finishedGames.length,
     scores,
     unbacked,
@@ -141,7 +140,7 @@ const row = (label, t) => `  ${label.padEnd(10)} ${`${t.right}/${t.n}`.padStart(
 
 /** Plain-text report for the terminal. Times are median ms from first Play to answer. */
 export function formatReport(s, { topPairs = 10 } = {}) {
-  const lines = [`${plural(s.games, "game")}, ${s.finished} finished` +
+  const lines = [`${plural(s.players, "player")}, ${plural(s.games, "game")}, ${s.finished} finished` +
     (s.unbacked ? ` (${s.unbacked} with scores their rounds don't support, left out of the distribution)` : "") +
     (s.skipped ? ` (${s.skipped} unreadable rows skipped)` : "")];
 
@@ -191,8 +190,8 @@ export function publicSummary(rows, { minAttempts = 3, top = 5 } = {}) {
   const pairs = ranked(s.match.pairs);
   const clips = ranked(s.classic.byClip);
   return {
+    players: s.players,
     games: s.games,
-    rounds: s.rounds,
     finished: s.finished,
     scores: s.scores,
     minAttempts,

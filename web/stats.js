@@ -97,7 +97,7 @@ function renderScores(scores, data) {
   $("kpis").innerHTML =
     kpi(finishedHere, `finished game${finishedHere === 1 ? "" : "s"}`) +
     kpi(finishedHere ? `${median(scores)}%` : "—", "median score") +
-    kpi(data.rounds?.[mode] ?? 0, "rounds answered");
+    kpi(data.players, `player${data.players === 1 ? "" : "s"}, both modes`);
   $("you-line").innerHTML = you === null ? "" : youLine(scores);
   if (finishedHere === 0) {
     $("score-chart").innerHTML = '<p class="muted">No finished games yet.</p>';
