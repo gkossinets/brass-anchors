@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clip Review</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <div class="review">
+    <header class="review-head">
+      <h1>Clip review</h1>
+      <span id="counts" class="muted"></span>
+      <label class="muted">Show
+        <select id="filter">
+          <option value="all">all</option>
+          <option value="unreviewed">unreviewed</option>
+          <option value="approved">approved</option>
+          <option value="needs_fix">needs fix</option>
+          <option value="rejected">rejected</option>
+        </select>
+      </label>
+      <a href="index.html">Game</a>
+    </header>
+    <p id="load-error" class="error" hidden></p>
+
+    <div class="review-body">
+      <nav><ul id="clip-list"></ul></nav>
+
+      <main id="detail" hidden>
+        <h2 id="title"></h2>
+        <p class="muted"><span id="clip-id"></span> · <a id="source" target="_blank" rel="noopener">source at cut</a></p>
+        <p id="stats" class="muted"></p>
+
+        <section class="players">
+          <label>Original <audio id="audio-original" controls preload="none"></audio></label>
+          <label>Trombone <audio id="audio-trombone" controls preload="none"></audio></label>
+        </section>
+
+        <a id="diag-link" target="_blank" rel="noopener"><img id="diagnostic" alt="Spectrogram with pitch track"></a>
+
+        <section class="context">
+          <button id="load-context" type="button">Load context (±5 s around the cut)</button>
+          <div id="context-box" hidden>
+            <audio id="audio-context" controls preload="auto"></audio>
+            <p class="muted" id="context-note"></p>
+            <button id="set-start" type="button">Set start here</button>
+            <button id="set-end" type="button">Set end here</button>
+            <span id="context-pos" class="muted"></span>
+          </div>
+        </section>
+
+        <form id="form" autocomplete="off">
+          <fieldset class="status">
+            <legend>Review</legend>
+            <label><input type="radio" name="review_status" value="approved"> approved</label>
+            <label><input type="radio" name="review_status" value="needs_fix"> needs fix</label>
+            <label><input type="radio" name="review_status" value="rejected"> rejected (left out of the game)</label>
+            <label><input type="radio" name="review_status" value=""> unreviewed</label>
+            <textarea name="review_notes" rows="2" placeholder="Review notes"></textarea>
+          </fieldset>
+
+          <div class="grid">
+            <label>Start <input name="start"></label>
+            <label>End <input name="end"></label>
+            <label>Speaker <input name="speaker"></label>
+            <label>Sex
+              <select name="sex"><option value="m">m</option><option value="f">f</option><option value="">?</option></select>
+            </label>
+            <label>News or opinion
+              <select name="genre"><option value="news">news</option><option value="opinion">opinion</option></select>
+            </label>
+            <label>Country <input name="country"></label>
+            <label>Decade <input name="decade"></label>
+            <label>Year <input name="year"></label>
+            <label>Station <input name="station"></label>
+            <label>Program <input name="program"></label>
+            <label>Recognizable
+              <select name="recognizable"><option>unlikely</option><option>maybe</option><option>likely</option><option value="">?</option></select>
+            </label>
+            <label>Date confidence
+              <select name="date_confidence"><option>high</option><option>medium</option><option>low</option><option value="">?</option></select>
+            </label>
+          </div>
+          <label class="wide">Notes <textarea name="notes" rows="3"></textarea></label>
+
+          <div class="row">
+            <button type="submit" class="primary" id="save">Save</button>
+            <button type="button" id="save-next">Save &amp; next unreviewed</button>
+            <span id="save-status" class="muted"></span>
+          </div>
+          <details id="log-box" hidden><summary>Pipeline log</summary><pre id="log"></pre></details>
+        </form>
+      </main>
+    </div>
+  </div>
+  <script type="module" src="review.js"></script>
+</body>
+</html>

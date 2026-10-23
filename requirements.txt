@@ -1,0 +1,9 @@
+numpy
+scipy
+soundfile
+librosa
+praat-parselmouth
+pyloudnorm
+matplotlib
+pillow
+pytest

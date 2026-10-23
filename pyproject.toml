@@ -1,0 +1,15 @@
+[project]
+name = "brass-anchors"
+version = "0.1.0"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+  "numpy", "scipy", "soundfile", "librosa", "praat-parselmouth", "pyloudnorm", "matplotlib", "pillow",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

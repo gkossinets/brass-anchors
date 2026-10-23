@@ -1,0 +1,11 @@
+# Cloudflare Pages: the game (dist/, from `make site`) plus functions/api/log.js writing to D1.
+# Set-up and deploy steps are in README.md ("Deploying").
+name = "brass-anchors"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "brass-anchors"
+# From `npx wrangler d1 create brass-anchors`. An id is not a secret; it only works with your login.
+database_id = "00000000-0000-0000-0000-000000000000"

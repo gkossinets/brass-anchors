@@ -1,0 +1,10 @@
+{
+  "name": "brass-anchors",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Deploy tooling for the Brass Anchors game (Cloudflare Pages + D1). The game itself needs no build.",
+  "devDependencies": {
+    "wrangler": "4.149.0"
+  }
+}

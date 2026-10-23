@@ -1,0 +1,136 @@
+// Summaries of the events table for `make stats`: what players get right and how long they take.
+// Pure, so it runs under `node --test`; tools/stats.mjs feeds it rows from D1.
+
+const LEVELS = ["easy", "medium", "hard"];
+const QUESTIONS = ["decade", "country", "genre", "station"];
+const FULL_POINTS = { decade: 2, country: 1, genre: 1, station: 1 }; // web/quiz-core.js POINTS
+
+/** Median of the numbers present (null and undefined skipped), or null if none. */
+export function median(values) {
+  const xs = values.filter((v) => typeof v === "number").sort((a, b) => a - b);
+  if (xs.length === 0) return null;
+  const mid = Math.floor(xs.length / 2);
+  return xs.length % 2 ? xs[mid] : (xs[mid - 1] + xs[mid]) / 2;
+}
+
+function tally(groups) {
+  return Object.fromEntries(Object.entries(groups).map(([key, rounds]) => [key, {
+    n: rounds.length,
+    right: rounds.filter((r) => r.right).length,
+    medianMs: median(rounds.map((r) => r.ms_first_play_to_answer)),
+  }]));
+}
+
+function groupBy(items, keyOf) {
+  const out = {};
+  for (const item of items) (out[keyOf(item)] ??= []).push(item);
+  return out;
+}
+
+function summarizeMatch(rounds) {
+  const byLevel = tally(groupBy(rounds, (r) => r.difficulty));
+  const ordered = Object.fromEntries(LEVELS.filter((l) => byLevel[l]).map((l) => [l, byLevel[l]]));
+  const hardByAttribute = tally(groupBy(rounds.filter((r) => r.difficulty === "hard"), (r) => r.differs?.[0]));
+  // Unordered: telling x from y is one comparison whichever of them fit the description.
+  const pairs = Object.entries(tally(groupBy(rounds.filter((r) => r.correct_id && r.distractor_id), (r) => [r.correct_id, r.distractor_id].sort().join(" | "))))
+    .map(([key, t]) => ({ clips: key.split(" | "), ...t }))
+    .sort((a, b) => a.right / a.n - b.right / b.n || (b.medianMs ?? 0) - (a.medianMs ?? 0));
+  return { byLevel: ordered, hardByAttribute, pairs };
+}
+
+function summarizeClassic(rounds) {
+  const byQuestion = {};
+  for (const q of QUESTIONS) {
+    const asked = rounds.filter((r) => r.guess?.[q] !== undefined);
+    if (asked.length) byQuestion[q] = { n: asked.length, exact: asked.filter((r) => r.score?.[q] === FULL_POINTS[q]).length };
+  }
+  const byClip = Object.entries(groupBy(rounds, (r) => r.clip_id)).map(([clip, rs]) => ({
+    clip,
+    n: rs.length,
+    meanPoints: rs.reduce((sum, r) => sum + (r.score?.total ?? 0), 0) / rs.length,
+    medianMs: median(rs.map((r) => r.ms_first_play_to_answer)),
+  })).sort((a, b) => a.meanPoints - b.meanPoints);
+  return { byQuestion, byClip };
+}
+
+/**
+ * Summarize event rows ({kind, player, game, mode, round, received_at, payload}).
+ * A round sent twice counts once; a game saved twice keeps its latest notes.
+ */
+export function summarize(rows) {
+  let skipped = 0;
+  const events = [];
+  for (const row of rows) {
+    try {
+      events.push({ ...row, record: JSON.parse(row.payload) });
+    } catch {
+      skipped += 1;
+    }
+  }
+  const seenRounds = new Set();
+  const rounds = events.filter((e) => {
+    if (e.kind !== "round") return false;
+    const key = `${e.game}#${e.round}`;
+    if (seenRounds.has(key)) return false;
+    seenRounds.add(key);
+    return true;
+  });
+  const latestSave = {};
+  for (const e of events.filter((ev) => ev.kind === "game")) {
+    if (!latestSave[e.game] || e.received_at > latestSave[e.game].received_at) latestSave[e.game] = e;
+  }
+  const notes = Object.values(latestSave)
+    .filter((e) => typeof e.record.cues === "string" && e.record.cues.trim())
+    .sort((a, b) => a.received_at.localeCompare(b.received_at))
+    .map((e) => ({ at: e.received_at, mode: e.mode, text: e.record.cues.trim() }));
+
+  return {
+    players: new Set(events.map((e) => e.player)).size,
+    games: new Set(events.map((e) => e.game)).size,
+    saved: Object.keys(latestSave).length,
+    skipped,
+    match: summarizeMatch(rounds.filter((e) => e.mode === "match").map((e) => e.record)),
+    classic: summarizeClassic(rounds.filter((e) => e.mode === "classic").map((e) => e.record)),
+    notes,
+  };
+}
+
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+const pct = (part, whole) => `${Math.round((100 * part) / whole)}%`;
+const secs = (ms) => (ms === null ? "—" : `${(ms / 1000).toFixed(1)} s`);
+const row = (label, t) => `  ${label.padEnd(10)} ${`${t.right}/${t.n}`.padStart(7)}  ${pct(t.right, t.n).padStart(4)}  ${secs(t.medianMs).padStart(7)}`;
+
+/** Plain-text report for the terminal. Times are median ms from first Play to answer. */
+export function formatReport(s, { topPairs = 10 } = {}) {
+  const lines = [`${plural(s.players, "player")}, ${plural(s.games, "game")}, ${s.saved} saved` +
+    (s.skipped ? ` (${s.skipped} unreadable rows skipped)` : "")];
+
+  const levels = Object.entries(s.match.byLevel);
+  if (levels.length) {
+    lines.push("", "Match the description      right   acc  median time");
+    for (const [level, t] of levels) lines.push(row(level, t));
+    const attrs = Object.entries(s.match.hardByAttribute);
+    if (attrs.length) {
+      lines.push("", "Hard rounds, by what differed");
+      for (const [attr, t] of attrs) lines.push(row(attr, t));
+    }
+    lines.push("", `Hardest pairs (of ${s.match.pairs.length})`);
+    for (const p of s.match.pairs.slice(0, topPairs)) {
+      lines.push(`  ${`${p.right}/${p.n}`.padStart(5)}  ${pct(p.right, p.n).padStart(4)}  ${secs(p.medianMs).padStart(7)}  ${p.clips.join("  vs  ")}`);
+    }
+  }
+
+  const questions = Object.entries(s.classic.byQuestion);
+  if (questions.length) {
+    lines.push("", "Guess the clip: exact answers");
+    for (const [q, t] of questions) lines.push(`  ${q.padEnd(10)} ${`${t.exact}/${t.n}`.padStart(7)}  ${pct(t.exact, t.n).padStart(4)}`);
+    lines.push("", "Clips, lowest score first   rounds  points  median time");
+    for (const c of s.classic.byClip) lines.push(`  ${c.clip.padEnd(26)} ${String(c.n).padStart(5)}  ${c.meanPoints.toFixed(1).padStart(6)}  ${secs(c.medianMs).padStart(7)}`);
+  }
+
+  if (s.notes.length) {
+    lines.push("", "Notes");
+    for (const n of s.notes) lines.push(`  ${n.at.slice(0, 16).replace("T", " ")}  ${n.mode}: ${n.text.replace(/\s+/g, " ")}`);
+  }
+  return lines.join("\n");
+}

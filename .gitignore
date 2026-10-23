@@ -1,0 +1,31 @@
+# Source and derived audio stay out of git (large; the deployed site gets its own copy via `make site`)
+raw/
+sources/
+# Speaker screenshots (broadcast frames), local like the audio
+thumbnails/
+processed/
+web/audio
+web/quiz.json
+# Scratch downloads while scouting clips
+candidates/
+# Deploy build and tooling
+dist/
+node_modules/
+.wrangler/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+*.egg-info/
+
+# macOS / IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Backburner: clips set aside from the game; rows in backburner/clips.csv are committed
+backburner/raw/
+backburner/processed/
+backburner/sources/

@@ -1,0 +1,154 @@
+:root {
+  --bg: #f6f4ef;
+  --fg: #1d1c1a;
+  --muted: #6d6a63;
+  --line: #d8d4ca;
+  --accent: #a4561c;
+  --good: #2f7a3e;
+  --part: #a07a12;
+  --bad: #a3322a;
+  --card: #fffdf8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161513;
+    --fg: #ece8df;
+    --muted: #9b968b;
+    --line: #34322d;
+    --accent: #e08a45;
+    --good: #6cc07c;
+    --part: #d9b44a;
+    --bad: #e2766d;
+    --card: #1f1e1b;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 16px/1.5 system-ui, -apple-system, sans-serif;
+}
+
+main { max-width: 760px; margin: 0 auto; padding: 24px 16px 64px; }
+
+h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.01em; }
+.tagline { margin: 4px 0 24px; color: var(--muted); }
+
+fieldset { border: 1px solid var(--line); border-radius: 6px; margin: 0 0 16px; padding: 12px 16px; }
+legend { color: var(--muted); font-size: 0.85rem; padding: 0 4px; }
+fieldset label { display: block; margin: 6px 0; }
+select, input[type="number"] { font: inherit; margin-left: 6px; }
+input[type="number"] { width: 4.5em; }
+
+button {
+  font: inherit;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--fg);
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.45; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.chosen { outline: 2px solid var(--accent); outline-offset: 1px; font-weight: 600; }
+
+.round-label { color: var(--muted); margin: 0 0 12px; font-variant-numeric: tabular-nums; }
+
+.player { display: flex; align-items: center; gap: 12px; margin: 0 0 24px; }
+.progress { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.progress > div { height: 100%; width: 0; background: var(--accent); }
+
+.spectro {
+  position: relative;
+  height: 160px;
+  margin: -12px 0 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #000004; /* palette[0]: matches the canvas before anything is drawn */
+}
+.spectro canvas { display: block; width: 100%; height: 100%; }
+.spectro .tick {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  padding-left: 4px;
+  font-size: 10px;
+  line-height: 1.2;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+}
+
+.timbre-switch { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 24px; }
+.timbre-switch button { padding: 3px 10px; font-size: 0.85rem; }
+
+.question { margin: 0 0 20px; }
+.question h3 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 600; }
+.options { display: flex; flex-wrap: wrap; gap: 8px; }
+
+table { border-collapse: collapse; width: 100%; margin: 0 0 16px; }
+td, th { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: normal; font-size: 0.85rem; }
+td.pts { text-align: right; font-variant-numeric: tabular-nums; }
+.good { color: var(--good); }
+.part { color: var(--part); }
+.bad { color: var(--bad); }
+
+.who { font-size: 1.05rem; }
+.who-row { display: flex; align-items: center; gap: 12px; margin: 0 0 16px; }
+.who-row .who { margin: 0; }
+/* Screenshots come in 4:3 and 16:9; crop to one shape so the row never jumps. */
+#reveal-thumb { width: 96px; height: 64px; object-fit: cover; border-radius: 4px; flex: none; background: var(--line); }
+.muted { color: var(--muted); }
+.error { color: var(--bad); }
+
+textarea { width: 100%; font: inherit; padding: 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); color: var(--fg); margin: 6px 0 12px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+a { color: var(--accent); }
+
+/* ---------- front page ---------- */
+.modes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 16px; }
+.mode-card { border: 1px solid var(--line); border-radius: 8px; padding: 16px; background: var(--card); display: flex; flex-direction: column; gap: 6px; }
+.mode-card h2 { margin: 0; font-size: 1.1rem; }
+.mode-card p { margin: 0 0 6px; }
+.mode-card label { font-size: 0.9rem; }
+.mode-card button { margin-top: auto; align-self: flex-start; }
+
+/* ---------- match mode ---------- */
+.prompt { font-size: 1.2rem; font-weight: 500; margin: 0 0 16px; line-height: 1.4; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 0 0 16px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--card); min-width: 0; }
+.card .player { margin-bottom: 12px; }
+.card .spectro { margin: -4px 0 12px; height: 110px; }
+.card-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.side { font-weight: 700; font-size: 1.1rem; }
+.pick { width: 100%; }
+.card.is-match { border-color: var(--good); }
+.card table { margin: 8px 0; }
+.card .who-row { margin: 0 0 4px; }
+.card .who { font-size: 0.95rem; }
+img.thumb { width: 96px; height: 64px; object-fit: cover; border-radius: 4px; flex: none; background: var(--line); }
+
+/* Reveal cards share one row grid (subgrid), so each section lines up across A and B
+   even when one card's speaker or programme name wraps onto two lines. */
+.reveal-cards { grid-auto-rows: auto; }
+.reveal-cards .card { display: grid; grid-row: span 7; grid-template-rows: subgrid; row-gap: 0; align-content: start; }
+.reveal-cards .card > * { min-width: 0; }
+
+@media (max-width: 600px) {
+  .modes, .cards { grid-template-columns: 1fr; }
+}
+
+.geeks { margin: 4px 0 10px; font-size: 0.9rem; }
+.geeks table { table-layout: fixed; }
+.geeks td { white-space: nowrap; }
+.geeks td:first-child { width: 62%; }
+.geeks h3 { margin: 12px 0 2px; font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.geeks td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.geeks .term { cursor: help; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }

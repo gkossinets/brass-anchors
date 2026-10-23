@@ -1,0 +1,109 @@
+# Design notes
+
+Why things are the way they are, what's known to be weak, and what could come next. Usage is in `README.md`.
+
+## Status
+
+The pipeline and both game modes work end to end with 20 reviewed clips. The site is ready to deploy to Cloudflare Pages with anonymous play data in D1. Tests: 105 pytest and 67 `node --test`, all passing (`make test`).
+
+## Corpus
+
+20 clips: 5 men and 5 women each for the US and UK. US and UK only for now: the country question is a two-way choice, worth 1 point. Clips from other countries are set aside in `backburner/clips.csv`.
+
+| | Men | Women |
+|---|---|---|
+| US | Cronkite (news, 1978), Rather (news, 1995), Rooney (opinion, 1994), Olbermann (opinion, 2009), Carlson (opinion, 2019) | Walters (news, 1977), Chung (news, 1994), Couric (news, 2007), Maddow (opinion, 2010), Ingraham (opinion, 2024) |
+| UK | Dougall (news, 1967), Baker (news, 1981), Paxman (news, 1990), Morgan (opinion, 2023), Myrie (news, 2024) | Rippon (news, 1979), Stuart (news, 1992), Wark (news, 1993), Bruce (news, 2017), Maitlis (news, 2019) |
+
+| | 1960s | 1970s | 1980s | 1990s | 2000s | 2010s | 2020s |
+|---|---|---|---|---|---|---|---|
+| news | 1 | 3 | 1 | 5 | 1 | 2 | 1 |
+| opinion | – | – | – | 1 | 1 | 2 | 2 |
+
+Skew: opinion is 6 of 20 and none is older than 1994, so "opinion" hints "recent". Older opinion candidates: Eric Sevareid's CBS commentaries (1970s) and the openings of Buckley's *Firing Line* (1960s-70s).
+
+### Curation method
+
+Download the first few minutes of a candidate, transcribe it (faster-whisper), and annotate each transcript line with its median pitch: that separates anchor from reporter, and men from women, at a glance. Pick a solo stretch, snap its edges to the quietest moment within ±0.35 s, build it, then re-transcribe the finished clip and check its diagnostic PNG for music beds, jingles, and hum. Whisper's segment times can drift by seconds; use word timestamps on the cut clip.
+
+Problems found this way, worth watching for:
+- A censor bleep (Maddow): becomes a long steady trombone note. The steady-tone warning catches it.
+- Music under the voice (Rooney, and a third-party re-upload of Morgan): the pitch tracker latches onto it. Official uploads are cleaner.
+- Mains hum at 60 Hz (Rooney): raise `pitch_floor` above it.
+- An ad jingle hidden by transcript timestamps (Chung): visible in the diagnostic plot.
+- Clipped first or last words: re-snap boundaries to pauses.
+- Median pitch alone is a poor guide to sex: Fiona Bruce's voice sits around 145-150 Hz and was first taken for a man's.
+
+## Audio
+
+- **Loudness**: originals and every render at -23 LUFS, so loudness can't distinguish clips.
+- **Precise cuts**: `yt-dlp --force-keyframes-at-cuts` is required; without it a section starts at the previous keyframe and gains 5-9 s of theme music. `trim_normalize` warns when a cut's length differs from its section by more than 0.5 s.
+- **Source cache**: each clip keeps its video's audio for the section ±60 s in `sources/` (the original WebM/Opus or M4A stream, about 30 MB for 22 clips), with a JSON note of where the block sits in the video. Cuts come from the block; a download happens only when a cut falls outside it, into a temporary folder that replaces the old block only on success. So a vanished upload never loses a clip, and a re-cut takes about 4 s.
+- **Re-cut detection**: `raw/<id>.json` records the URL and times of each cut; `fetch` re-cuts any clip whose record disagrees with `clips.csv` and clears its processed files so later stages rebuild it.
+- **Pitch tracking**: Praat via parselmouth, 10 ms hop, range by sex unless overridden per clip. Contours store the range they were tracked with and are re-extracted when it changes (deleting that clip's renders). f0 is median-smoothed over 5 frames within voiced runs, never across pauses.
+- **Steady-tone warning**: pitch held within 10 cents for 0.3 s or more, which speech never does.
+- **Synthesis** (`TIMBRES` in `pipeline/synth.py`; the first entry is the game's default, and a test pins the order):
+  - *trombone* (default): brass source with a wide dark-to-bright swing, broad peaks at 500 and 1100 Hz, at the speaker's pitch.
+  - *brass* (shown as "Trumpet (octave up)"): +12 semitones, 12 harmonics, no resonances. Harder to hear as speech; possibly better for higher voices.
+  - *hum*: neutral vowel with cascaded formants at 500/1500/2500/3500 Hz (Klatt model); its average spectrum tracks real speech up to about 3 kHz.
+  - Voices use cascaded formants, which roll off above the top formant; instruments use peaks on a flat baseline, since cascading instrument resonances sounded muffled (a regression test guards the trombone).
+  - Harmonic n has amplitude n^-slope, the slope moving from dark to bright as frame RMS rises from -45 to -15 dBFS. Silence wherever a frame is unvoiced or below -50 dBFS, with 8 ms ramps. No vibrato (pitch movement the speaker didn't make) and no reverb.
+  - Re-tracking each render against its source contour: median error 5-9 cents, 91-96% of frames within 50 cents.
+- **MP3 for the browser**: `pipeline/encode.py` writes an MP3 beside every WAV; the WAVs stay the working files for synthesis, stats, and review. 48 kbit/s constant bitrate (exact seeking; VBR can drift), about 100 KB per clip, 8 MB for the site against 56 MB of WAV. MP3 rather than WebM/Opus because older iPhones and iPads don't play Opus reliably. An MP3 older than its WAV is stale: the encoder redoes it, and the manifest leaves the clip out until then, so a re-render never plays old audio.
+- **`USSR/Russia`** is a single country label: separate labels would leak the decade (before or after 1991). Descriptions still say "Soviet" up to 1991 and "Russian" after.
+
+## Game
+
+- **Static front end**: vanilla ES modules, no build. Rules live in pure modules tested with `node --test` (`quiz-core.js`, `match-core.js`, `log-core.js`, `spectrogram-math.js`, `collect-core.js`); the DOM modules are thin.
+- **Routing**: the URL is the only source of truth for the mode. The front page's Play buttons set `?mode=`, so Back returns to the front page.
+- **One audio element**: starting any clip stops the others.
+- **Spectrogram**: Web Audio `AnalyserNode` (fftSize 4096) drawn on a canvas, log axis 60 Hz to 3 kHz, -95 to -25 dB. Each clip fills the width left to right, so the whole contour stays visible and synth and original can be compared. It shows only what the clip carries, so it gives nothing away. Once routed through the AudioContext, the audio element is only audible through it.
+- **Sound memory**: the switch on each round screen remembers the choice (localStorage) for the next game.
+- **Defaults**: 5 rounds; Match the description is listed first and its Play button has focus.
+
+### Match the description
+
+- A distractor differs from the correct clip in at least one of country, decade, and news vs opinion, so it never fits the description.
+- Difficulty counts weighted differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (`decadeFarGap`), since 1967 vs 2024 is far easier to hear than 1995 vs 2007. Easy is 3 or more, medium 2, hard 1. Points: easy 1, medium 2, hard 3.
+- The ramp: 30% easy, 30% hard, the rest medium (5 rounds: 2/2/1).
+- A same-speaker distractor is allowed only at hard, and other speakers are preferred even then. A correct clip is never reused in a game, and a distractor never repeats in consecutive rounds. The correct side is random. Picking unlocks once both clips have been started.
+- If no pair is left at the scheduled level, the round falls back to an easier level first, then a harder one, and the fallback is recorded.
+- `MATCH_CONFIG` in `web/match-core.js` holds the wording and scoring knobs. `make check-pairs` uses the same module, so the report and the game can't disagree. With 20 clips: 142 easy, 136 medium, and 88 hard ordered pairs, and every clip has a partner at every level.
+
+### Stats for geeks
+
+Computed from each clip's contour by `pipeline/stats.py`, rounded into the manifest, and formatted by `geekStatsRows`. Thresholds are relative to each clip's own speech level, since noise floors range from -36 to -43 dB across recordings. Definitions are hover tooltips (`title` attributes, so not on touch screens). The two reveal cards share a CSS subgrid so their sections line up.
+
+- Average pitch (median Hz), pitch range (5th-95th percentile in semitones), and pitch variation (SD in semitones).
+- Pauses: unvoiced stretches at least 15 dB below speech level, 0.2 s or longer, excluding the clip's edges. Shown per minute, because clips run 12-24 s, plus the average pause length.
+- Speaking rate (rough): voiced loudness peaks per second of speaking time, scaled by `SYLLABLE_CALIBRATION` (1.25). Against syllable counts from transcripts of the 20 clips: r = 0.57, median error 6%. It's tuned on those same clips, so treat small differences between two clips as noise. Transcript-based words per minute would be the reliable upgrade.
+
+### Log format
+
+Shared by both modes (`format: 2`). A game record has `mode`, `settings`, `rounds`, and `cues` (the player's notes). Each round has `mode`, `round`, `clip_ids`, `plays` (per clip), `ms_first_play_to_answer`, and `timbre`; classic adds `guess`, `score`, and `timbres_heard`; match adds `difficulty`, `requested_difficulty`, `differs`, `decade_gap`, `correct_id`, `distractor_id`, `correct_side`, `pick`, `right`, and `points`.
+
+## Deployment and play data
+
+- **Cloudflare Pages + D1**: one deploy covers the site and the endpoint, the free tier is far beyond a game shared among friends, and the stats are SQL.
+- **Site build**: `pipeline/build_site.py` copies the game (minus the review page and tests) and real copies of just the media `quiz.json` refers to into `dist/`, failing if any is missing.
+- **Collection**: `web/collect.js` sends each round as it's answered, via `sendBeacon` so the last one survives a closed tab, because many players won't finish or save. Save sends the whole game with notes. Sending is best-effort and never blocks play. Off on localhost unless `?collect=1`.
+- **Validation**: `server/collect-core.js` checks every event (kind, mode, UUID ids, round range, 64 KB body, 4000-character notes) before `functions/api/log.js` inserts it.
+- **Privacy**: a random player id per browser; no names, accounts, or IP addresses.
+- **Stats**: `server/stats-core.js` de-duplicates rounds per game and round, takes notes from each game's latest save, and treats pairs as unordered.
+- **Caching**: Pages serves files with `max-age=0, must-revalidate`, and the local server sends `no-cache`, so a browser never mixes a new page with old scripts.
+- **Range requests**: browsers need HTTP Range to seek in audio, and Safari needs it to play at all. `pipeline/static_server.py` adds it to Python's server for `make serve` and `make review`. Wrangler's dev server lacks it, which the game tolerates since it always plays from the start.
+
+## Known limitations
+
+- Hard rounds are mostly "which decade?" (70% of hard pairs), so the hard-round breakdown says little about country or news vs opinion. More opinion clips across decades, and same-decade US/UK pairs, would balance it.
+- 14 of 20 clips are news, so most prompts say "news report".
+- No speaker has two clips in the game, so same-speaker hard pairs are untested on real data.
+- Tooltips don't show on touch screens.
+
+## Ideas
+
+1. Compare trumpet and trombone on the women's clips; if trumpet works better, choose the default sound per clip from the `sex` column.
+2. Older opinion clips, keeping the 5/5/5/5 balance.
+3. Transcript-based speaking rate.
+4. Other countries (the backburner has Soviet and Russian clips).
+5. A MIDI-rendered "hard mode" (the manifest's `audio` dict can take a new key).

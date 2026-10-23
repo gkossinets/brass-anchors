@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brass Anchors</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Brass Anchors</h1>
+      <p class="tagline">News voices replaced by a trombone, following their pitch and loudness. Can you still tell them apart?</p>
+    </header>
+
+    <section id="screen-start" class="screen">
+      <div class="modes">
+        <div class="mode-card">
+          <h2>Match the description</h2>
+          <p class="muted">Read a description, hear two clips, and pick the one that fits. Starts easy, ends hard.</p>
+          <button id="start-match" class="primary" autofocus>Play</button>
+        </div>
+        <div class="mode-card">
+          <h2>Guess the clip</h2>
+          <p class="muted">Hear one clip. Guess when, where, and whether it's news or opinion.</p>
+          <label><input type="radio" name="variant" value="classic" checked> Decade, country, news or opinion, plus a station bonus</label>
+          <label><input type="radio" name="variant" value="news-or-opinion"> News or opinion? That question only</label>
+          <label><input type="radio" name="variant" value="same-chair"> Same chair, different decade: one country, decade only
+            <select id="chair-country" aria-label="Country"></select>
+          </label>
+          <button id="start">Play</button>
+        </div>
+      </div>
+      <fieldset>
+        <legend>Options</legend>
+        <label><input type="checkbox" id="pure"> Pure mode: leave out speakers you might recognize by voice alone</label>
+        <label>Rounds <input type="number" id="rounds" value="5" min="1" max="50"></label>
+      </fieldset>
+      <p id="clip-count" class="muted"></p>
+      <p id="collect-note" class="muted" hidden>To learn which comparisons are hard, this site records your answers, how long they take, and any notes you save. Anonymous: no names, accounts, or IP addresses.</p>
+      <p id="load-error" class="error" hidden></p>
+    </section>
+
+    <section id="screen-round" class="screen" hidden>
+      <p class="round-label" id="round-label"></p>
+      <div class="player">
+        <button id="play" class="primary">Play</button>
+        <div class="progress"><div id="progress-bar"></div></div>
+      </div>
+      <div class="spectro"><canvas id="spectrogram" aria-label="Spectrogram of the clip"></canvas></div>
+      <div class="timbre-switch" id="timbre-switch" aria-label="Sound"></div>
+      <div id="questions"></div>
+      <div id="bonus" hidden></div>
+      <button id="reveal" class="primary" disabled>Reveal</button>
+    </section>
+
+    <section id="screen-reveal" class="screen" hidden>
+      <p class="round-label" id="reveal-label"></p>
+      <table id="reveal-table"></table>
+      <div class="who-row">
+        <img id="reveal-thumb" alt="" hidden>
+        <p id="reveal-who" class="who"></p>
+      </div>
+      <div class="player">
+        <button id="play-original">Hear the original</button>
+        <div class="progress"><div id="progress-bar-original"></div></div>
+      </div>
+      <div class="spectro"><canvas id="spectrogram-original" aria-label="Spectrogram of the original"></canvas></div>
+      <p><a id="youtube-link" target="_blank" rel="noopener">Source on YouTube</a></p>
+      <button id="next" class="primary">Next</button>
+    </section>
+
+    <section id="screen-match" class="screen" hidden>
+      <p class="round-label" id="match-label"></p>
+      <h2 class="prompt" id="match-prompt"></h2>
+      <div class="cards" id="match-cards"></div>
+      <div class="timbre-switch" id="match-timbre-switch" aria-label="Sound"></div>
+      <p class="muted" id="match-hint">Play both clips, then pick one.</p>
+    </section>
+
+    <section id="screen-match-reveal" class="screen" hidden>
+      <p class="round-label" id="match-reveal-label"></p>
+      <h2 class="prompt" id="match-reveal-prompt"></h2>
+      <div class="cards reveal-cards" id="match-reveal-cards"></div>
+      <button id="match-next" class="primary">Next</button>
+    </section>
+
+    <section id="screen-end" class="screen" hidden>
+      <h2 id="final-score"></h2>
+      <table id="summary-table"></table>
+      <label for="cues">What gave it away?</label>
+      <textarea id="cues" rows="5" placeholder="Pauses, pitch resets, speed, emphasis, the shape of sentence endings..."></textarea>
+      <div class="row">
+        <button id="save" class="primary">Save</button>
+        <button id="export">Export all saved games (JSON)</button>
+        <button id="again">New game</button>
+      </div>
+      <p id="save-status" class="muted"></p>
+    </section>
+  </main>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
