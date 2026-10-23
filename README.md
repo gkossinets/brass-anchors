@@ -4,9 +4,15 @@ Can you tell a 1970s newsreader from a 2020s cable host by the melody of their v
 
 Brass Anchors is a browser game built from 10 to 20 second clips of news anchors and commentators. Each voice is replaced by a synthesized instrument (a trombone by default, or an octave-up trumpet or a voice-like hum) that follows the speaker's pitch and loudness but carries no words. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
 
-## Why it might be possible
+## What the game tests
 
-Prosody is the music of speech: pitch, rhythm, tempo, loudness, and pauses, independent of the words. The game strips the words and keeps the music, and asks whether that's enough. There are reasons to think it might be. Broadcast delivery has changed over the decades: mid-century newsreaders tend to sound measured and declamatory, while today's presenters sound faster and more conversational. American and British English use different intonation tunes, so the rises, falls, and pitch range of a sentence carry an accent even without vowels and consonants. And reading the news has a recognizable cadence, with regular stress, a pitch reset at each new sentence, and evenly spaced pauses, while arguing an opinion sounds more varied and emphatic, with sudden pitch excursions and pauses for effect. These are hunches, not established findings for every clip. The game, and the play data it collects, is a way to test them.
+Prosody is the suprasegmental layer of speech: fundamental frequency (pitch), intensity, timing, and pausing. The resynthesis keeps each speaker's pitch contour, loudness envelope, and timing, and discards the segmental content (vowels, consonants, words) along with channel cues such as recording bandwidth and noise. If players beat chance, they are using prosody. Three hypotheses:
+
+- **Decade**: broadcast delivery has shifted over time in speaking rate, pitch level and range, and pause structure.
+- **Country**: American and British English differ in intonation: which pitch patterns (rises, falls, fall-rises) speakers use and how often, and how wide their pitch range is.
+- **News vs opinion**: reading news is a distinct register, with steady tempo, regular pitch declination within sentences, and pitch resets at sentence boundaries. Argued opinion should vary more in rate and pitch and pause less regularly.
+
+The "Stats for geeks" panel shows several of these measures for each clip. The corpus is small (20 clips) and confounds speaker identity with each attribute, so results are suggestive at best. The play data the deployed site collects is meant to show which contrasts listeners can actually hear.
 
 ## Game modes
 
