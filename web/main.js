@@ -5,7 +5,7 @@ import { modeFromSearch } from "./log-core.js";
 import { $, show, stopAudio, startingTimbre } from "./shared.js";
 import { setupClassic, classicPoolSize, startClassic } from "./quiz.js";
 import { startMatch } from "./match.js";
-import { matchPoolSize } from "./match-core.js";
+import { matchPoolSize, matchMaxRounds } from "./match-core.js";
 import { collecting } from "./collect.js";
 
 let corpus = [];
@@ -31,6 +31,7 @@ function setupFrontPage() {
     const m = matchPoolSize(corpus, s);
     $("clip-count").textContent =
       `${corpus.length} clips in the corpus. With these options, "Match the description" can use ${m} ` +
+      `(up to ${matchMaxRounds(corpus, s)} rounds, as no clip plays twice) ` +
       `and "Guess the clip" (the variant ticked) ${n}.`;
     $("start").disabled = n === 0;
     $("start-match").disabled = m < 2;
