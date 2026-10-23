@@ -58,7 +58,7 @@ export function parseEvent(text) {
 const plausibleMs = (ms) => typeof ms === "number" && ms >= MIN_ANSWER_MS && ms <= MAX_ANSWER_MS;
 
 // These checks can't stop a determined script, only sloppy or impossible records;
-// see PROJECT.md (Deployment and play data) for what else limits fake results.
+// see PROJECT.md (Key decisions: Site and data) for what else limits fake results.
 function matchRoundProblem(r) {
   if (!Object.hasOwn(LEVEL_POINTS, r.difficulty ?? "")) return "unknown difficulty";
   if (typeof r.right !== "boolean") return "right is not true or false";

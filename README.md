@@ -132,7 +132,7 @@ tools/       check-pairs and stats command-line reports
 tests/       pytest suite (JavaScript tests sit beside their modules as *.test.js)
 ```
 
-`PROJECT.md` has the design notes: why things are the way they are, known limitations, and ideas for what's next.
+`PROJECT.md` has the project notes: status, architecture, the reasons behind non-obvious choices, known limitations, and next steps.
 
 ## Tests
 
