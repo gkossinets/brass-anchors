@@ -189,7 +189,8 @@ function geeksHtml(clip) {
 
 function showReveal(round, picked, right, points) {
   $("match-reveal-label").textContent = `Round ${game.index + 1} of ${game.rounds.length} · ${capitalized(round.level)}`;
-  $("match-result").textContent = right ? `Right, +${points}` : "Not this time";
+  // "Correct", not "Right": the two clips sit left and right.
+  $("match-result").textContent = right ? `Correct, +${points}` : "Not this time";
   $("match-result").className = `result-tag ${right ? "right" : "wrong"}`;
   header(true);
   $("match-reveal-prompt").innerHTML = promptHtml(round.correct);
