@@ -1,5 +1,5 @@
 /* Broadcast brass: a 1970s newsroom at night (dark, the default) and by day (light).
-   Spec: design/broadcast-brass.md. Every colour is a token, so the light block is
+   Mocks: design/broadcast-brass/. Every colour is a token, so the light block is
    the only place light values live. */
 /* Fonts are served from this site, not a font service, so no visitor's browser
    contacts a third party. Latin subsets from Google Fonts, SIL Open Font License
