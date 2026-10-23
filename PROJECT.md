@@ -59,7 +59,7 @@ Problems found this way, worth watching for:
 - **One audio element**: starting any clip stops the others.
 - **Spectrogram**: Web Audio `AnalyserNode` (fftSize 4096) drawn on a canvas, log axis 60 Hz to 3 kHz, -95 to -25 dB. Each clip fills the width left to right, so the whole contour stays visible and synth and original can be compared. It shows only what the clip carries, so it gives nothing away. Once routed through the AudioContext, the audio element is only audible through it.
 - **Sound memory**: the switch on each round screen remembers the choice (localStorage) for the next game.
-- **Visual design (2026-10-23)**: Broadcast brass, chosen from three directions (Broadcast brass, Newsprint, Test card): dark navy, one brass accent, Oswald / Source Sans 3 / IBM Plex Mono, TV lower-third captions. Build instructions in `design/broadcast-brass.md`, static mocks in `design/broadcast-brass/`. Stats for geeks stays open on both match reveal cards so they can be compared. Not yet implemented.
+- **Visual design (2026-10-23)**: Broadcast brass, chosen from three directions (Broadcast brass, Newsprint, Test card): dark navy by default with a light scheme that follows the system setting, one brass accent, Oswald / Source Sans 3 / IBM Plex Mono, TV lower-third captions. Build instructions in `design/broadcast-brass.md`, static mocks in `design/broadcast-brass/`. Stats for geeks stays open on both match reveal cards so they can be compared. Not yet implemented.
 - **Defaults**: 5 rounds; Match the description is listed first and its Play button has focus.
 
 ### Match the description
