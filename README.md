@@ -6,13 +6,13 @@ Brass Anchors is a browser game built from 10 to 20 second clips of news anchors
 
 ## What the game tests
 
-Prosody is the suprasegmental layer of speech: fundamental frequency (pitch), intensity, timing, and pausing. The resynthesis keeps each speaker's pitch contour, loudness envelope, and timing, and discards the segmental content (vowels, consonants, words) along with channel cues such as recording bandwidth and noise. If players beat chance, they are using prosody. Three hypotheses:
+Prosody is how something is said rather than what is said: the rise and fall of pitch, loudness, speed, rhythm, and pauses. The game keeps a speaker's pitch, loudness, and timing and removes everything else: the words, the sounds of vowels and consonants, and the quality of the recording. If players still do better than chance, prosody alone is giving the answer away. The game tests three ideas:
 
-- **Decade**: broadcast delivery has shifted over time in speaking rate, pitch level and range, and pause structure.
-- **Country**: American and British English differ in intonation: which pitch patterns (rises, falls, fall-rises) speakers use and how often, and how wide their pitch range is.
-- **News vs opinion**: reading news is a distinct register, with steady tempo, regular pitch declination within sentences, and pitch resets at sentence boundaries. Argued opinion should vary more in rate and pitch and pause less regularly.
+- **Decade**: news delivery has changed over time in how fast presenters speak, how high and how varied their pitch is, and how they pause.
+- **Country**: American and British English have different intonation, the patterns of rising and falling pitch across a sentence.
+- **News vs opinion**: reading the news has a steady rhythm, with pitch drifting down through each sentence and resetting at the next. Arguing an opinion is less regular in speed, pitch, and pauses.
 
-The "Stats for geeks" panel shows several of these measures for each clip. The corpus is small (20 clips) and confounds speaker identity with each attribute, so results are suggestive at best. The play data the deployed site collects is meant to show which contrasts listeners can actually hear.
+"Stats for geeks" shows some of these measurements for each clip. With 20 clips, and only one speaker behind each clip, the results are a hint rather than proof; the play data from the deployed site will show which differences people can actually hear.
 
 ## Game modes
 
