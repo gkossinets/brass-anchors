@@ -510,6 +510,15 @@ button.link {
 }
 button.link:hover:not(:disabled) { color: var(--accent-hover); border: 0; }
 .footer-links a:not(.button) { font-size: 15px; }
+/* Three links: left, true centre, right (space-between only centres the middle one if the outer two match). */
+.footer-links.three { display: grid; grid-template-columns: 1fr auto 1fr; }
+.footer-links.three > :first-child { justify-self: start; }
+.footer-links.three > :nth-child(2) { justify-self: center; }
+.footer-links.three > :last-child { justify-self: end; }
+@media (max-width: 600px) {
+  .footer-links.three { grid-template-columns: 1fr; justify-items: start; }
+  .footer-links.three > :nth-child(2), .footer-links.three > :last-child { justify-self: start; }
+}
 
 .feedback-dialog {
   width: min(560px, calc(100vw - 32px));
