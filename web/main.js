@@ -34,7 +34,11 @@ function setupFrontPage() {
       `${corpus.length} clips · ${m} for Match (up to ${maxRounds} rounds) · ${n} for this Guess the clip variant`;
     // A Match game never repeats a clip, so it can't run longer than maxRounds.
     const matchRounds = Math.min(s.rounds, maxRounds);
-    $("match-strip").textContent = `Recommended · ${matchRounds} round${matchRounds === 1 ? "" : "s"}`;
+    // A Guess the clip game plays each clip once too, so it can't outrun its pool either.
+    const classicRounds = Math.min(s.rounds, n);
+    const rounds = (k) => `${k} round${k === 1 ? "" : "s"}`;
+    $("match-strip").textContent = `Two clips a round · ${rounds(matchRounds)}`;
+    $("classic-strip").textContent = `One clip a round · ${rounds(classicRounds)}`;
     $("start").disabled = n === 0;
     $("start-match").disabled = m < 2;
   };
