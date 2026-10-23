@@ -149,14 +149,17 @@ function pick(side, round, plays, heard) {
 function revealCardHtml(round, side, picked) {
   const clip = clipOn(round, side);
   const matches = side === round.correctSide;
-  const rows = [
+  const facts = [
     ["Country", "country", clip.answer.country],
     ["Year", "decade", clip.year ?? clip.answer.decade],
     ["News or opinion", "genre", displayAnswer("genre", clip.answer.genre)],
-  ].map(([label, key, value]) => {
-    const differs = round.differs.includes(key) && !matches;
-    return `<tr><th scope="row">${label}</th><td class="${differs ? "bad" : ""}">${differs ? "✕ " : ""}${escape(value)}</td></tr>`;
-  }).join("");
+  ];
+  // One row of three values under small labels: a third of the height of three stacked rows.
+  const rows = `<thead><tr>${facts.map(([label]) => `<th scope="col">${label}</th>`).join("")}</tr></thead>` +
+    `<tbody><tr>${facts.map(([, key, value]) => {
+      const differs = round.differs.includes(key) && !matches;
+      return `<td class="${differs ? "bad" : ""}">${differs ? "✕ " : ""}${escape(value)}</td>`;
+    }).join("")}</tr></tbody>`;
   return `<div class="card ${matches ? "is-match" : "not-match"}" data-side="${side}">
     <div class="card-head">
       <span class="side">Clip ${side}</span>
@@ -206,6 +209,8 @@ function showReveal(round, picked, right, points) {
   $("match-next").textContent = game.index < game.rounds.length ? "Next" : "Finish";
   $("match-next").onclick = () => (game.index < game.rounds.length ? showRound() : finish());
   show("match-reveal");
+  // Enter or Space moves on; preventScroll keeps the page at the top.
+  $("match-next").focus({ preventScroll: true });
   for (const canvas of box.querySelectorAll("canvas")) clearSpectrogram(canvas);
 }
 

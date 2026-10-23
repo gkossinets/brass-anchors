@@ -95,7 +95,10 @@
             </div>
           </div>
         </div>
-        <span class="meta" id="reveal-possible"></span>
+        <div class="reveal-corner">
+          <span class="meta" id="reveal-possible"></span>
+          <button id="next" class="primary big">Next</button>
+        </div>
       </div>
       <table id="reveal-table" class="answer-table"></table>
       <div class="panel">
@@ -107,7 +110,6 @@
           <a id="youtube-link" target="_blank" rel="noopener">Source on YouTube</a>
         </div>
       </div>
-      <button id="next" class="primary big push-right">Next</button>
     </section>
 
     <section id="screen-match" class="screen" hidden>
@@ -130,6 +132,7 @@
         <div class="eyebrow-row">
           <p class="eyebrow" id="match-reveal-label"></p>
           <span class="result-tag" id="match-result"></span>
+          <button id="match-next" class="primary big push-end">Next</button>
         </div>
         <div class="lower-third">
           <span class="lt-tag">Find</span>
@@ -137,7 +140,6 @@
         </div>
       </div>
       <div class="cards reveal-cards" id="match-reveal-cards"></div>
-      <button id="match-next" class="primary big push-right">Next</button>
     </section>
 
     <section id="screen-end" class="screen" hidden>

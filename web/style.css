@@ -93,7 +93,7 @@ a:hover { color: var(--accent-hover); }
 :focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); }
 
-.screen { display: flex; flex-direction: column; gap: 32px; padding-top: 40px; }
+.screen { display: flex; flex-direction: column; gap: 24px; padding-top: 28px; }
 
 /* ---------- type helpers ---------- */
 
@@ -170,6 +170,7 @@ button.primary:hover:not(:disabled) { background: var(--accent-hover); border-co
 .brass { border-color: var(--accent); }
 button.big { min-height: 52px; padding: 0 40px; font-size: 19px; letter-spacing: 0.08em; }
 .push-right { align-self: flex-end; }
+.push-end { margin-left: auto; }
 .button-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
 
 /* Segmented control: the Sound switch. */
@@ -199,7 +200,7 @@ button.big { min-height: 52px; padding: 0 40px; font-size: 19px; letter-spacing:
 
 .well { background: var(--well); border-radius: 3px; padding: 12px; }
 .spectro { position: relative; height: 120px; overflow: hidden; background: #000004; /* palette[0]: the canvas before anything is drawn */ }
-.spectro.tall { height: 160px; }
+.spectro.tall { height: 130px; }
 .spectro canvas { display: block; width: 100%; height: 100%; }
 .spectro .tick {
   position: absolute;
@@ -364,14 +365,15 @@ input[type="number"] { width: 72px; }
 .who { margin: 0; font: 600 22px/1.15 var(--display); }
 .who-meta { margin: 2px 0 0; font-size: 15px; color: var(--muted); }
 .thumb { width: 72px; height: 72px; object-fit: cover; border-radius: 3px; flex: none; background: var(--strip); }
-.facts { font-size: 16px; }
-.facts th[scope="row"] { padding: 8px 0; font: 400 16px var(--body); text-transform: none; color: var(--muted); }
-.facts td { padding: 8px 0; text-align: right; }
+.facts { table-layout: fixed; font-size: 16px; }
+.facts th, .facts td { padding: 4px 8px 4px 0; border: 0; }
+.facts thead th { padding-bottom: 0; font: 400 12px/1.4 var(--mono); letter-spacing: 0.06em; }
+.facts tbody tr:last-child td { border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 .facts td.bad { font-weight: 600; }
 
-.geeks { display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; background: var(--inset); border-radius: 3px; }
+.geeks { display: flex; flex-direction: column; gap: 4px; padding: 8px 14px; background: var(--inset); border-radius: 3px; }
 .geeks table { table-layout: fixed; font: 13px/1.4 var(--mono); color: var(--fg-soft); }
-.geeks td { padding: 2px 0; border: 0; white-space: nowrap; }
+.geeks td { padding: 1px 0; border: 0; white-space: nowrap; }
 .geeks tbody tr:last-child td { border: 0; }
 .geeks td:first-child { width: 58%; }
 .geeks td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
@@ -380,7 +382,15 @@ input[type="number"] { width: 72px; }
 /* Reveal cards share one row grid (subgrid), so each section lines up across A and B
    even when one card's speaker or programme name wraps onto two lines. */
 .reveal-cards { grid-auto-rows: auto; row-gap: 0; }
-.reveal-cards .card { display: grid; grid-row: span 6; grid-template-rows: subgrid; row-gap: 18px; align-content: start; }
+.reveal-cards .card { display: grid; grid-row: span 6; grid-template-rows: subgrid; row-gap: 12px; align-content: start; padding: 20px; }
+.reveal-cards .thumb { width: 56px; height: 56px; }
+.reveal-cards .who { font-size: 20px; }
+.reveal-cards .well { padding: 8px; }
+.reveal-cards .spectro { height: 72px; }
+/* Reveal screens: a smaller caption, so the cards and their stats sit higher. */
+#screen-match-reveal .lt-tag, #screen-reveal .lt-tag { padding: 10px 16px; }
+#screen-match-reveal .lt-prompt { padding: 8px 20px; font-size: clamp(22px, 2.6vw, 30px); }
+.reveal-corner { display: flex; align-items: center; gap: 20px; }
 .reveal-cards .card > * { min-width: 0; }
 .reveal-cards .card-actions .progress { flex: 1 1 80px; }
 

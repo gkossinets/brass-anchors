@@ -176,6 +176,8 @@ function showReveal(clip, guess, heard, plays) {
   $("next").textContent = game.index < game.clips.length ? "Next" : "Finish";
   $("next").onclick = () => (game.index < game.clips.length ? showRound() : finish());
   show("reveal");
+  // Enter or Space moves on; preventScroll keeps the page at the top.
+  $("next").focus({ preventScroll: true });
   clearSpectrogram($("spectrogram-original"));
 }
 
