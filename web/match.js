@@ -1,8 +1,9 @@
 // "Match the description" screens. Rules live in match-core.js.
 import { displayAnswer } from "./quiz-core.js";
-import { MATCH_CONFIG, buildMatchGame, describe, scoreMatch, summarizeMatch, LEVELS, geekStatsRows } from "./match-core.js";
+import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch, LEVELS, geekStatsRows } from "./match-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
-import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd } from "./shared.js";
+import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
+import { formatClock } from "./display-core.js";
 import { newGameIds, send } from "./collect.js";
 
 const SIDES = ["A", "B"];
@@ -11,9 +12,16 @@ let game = null;
 
 const escape = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
 
+// The text after the FIND tag in the caption bar.
 function promptHtml(clip) {
-  const d = describe(clip);
-  return `Which of these is a <strong>${escape(d.country)} ${escape(d.genre)}</strong> from the <strong>${escape(d.decade)}</strong>?`;
+  return escape(findPhrase(clip));
+}
+
+const capitalized = (s) => s[0].toUpperCase() + s.slice(1);
+const runningScore = () => game.results.reduce((sum, r) => sum + r.points, 0);
+
+function header(answered) {
+  setHeader({ kind: "game", total: game.rounds.length, current: game.index + 1, answered, score: runningScore() });
 }
 
 function clipOn(round, side) {
@@ -47,12 +55,25 @@ export function startMatch(corpus, timbreList, settings) {
 // ---------- round ----------
 
 function cardHtml(side) {
-  return `<div class="card" data-side="${side}">
-    <div class="card-head"><span class="side">${side}</span></div>
-    <div class="player"><button class="play primary">Play</button><div class="progress"><div></div></div></div>
-    <div class="spectro"><canvas aria-label="Spectrogram of clip ${side}"></canvas></div>
-    <button class="pick" disabled>This one is ${side}</button>
+  return `<div class="card clip-card" data-side="${side}">
+    <div class="card-head"><span class="side">Clip ${side}</span><span class="clip-status meta"></span></div>
+    <div class="well"><div class="spectro"><canvas aria-label="Spectrogram of clip ${side}"></canvas></div></div>
+    <div class="progress"><div></div></div>
+    <div class="card-actions">
+      <button class="play secondary">Play</button>
+      <button class="pick secondary brass" disabled aria-label="This one: clip ${side}">This one</button>
+    </div>
   </div>`;
+}
+
+// "● Playing · 0:07" while it plays, "Played · 0:14" once it has stopped.
+function cardStatus(card) {
+  const el = card.querySelector(".clip-status");
+  return (seconds, duration, playing) => {
+    card.classList.toggle("playing", playing);
+    el.classList.toggle("live", playing);
+    el.textContent = playing ? `● Playing · ${formatClock(seconds)}` : `Played · ${formatClock(duration)}`;
+  };
 }
 
 function showRound() {
@@ -62,7 +83,8 @@ function showRound() {
   const heard = new Set();
   const ids = SIDES.map((s) => clipOn(round, s).id);
 
-  $("match-label").textContent = `Round ${game.index + 1} of ${game.rounds.length} · ${round.level}`;
+  $("match-label").textContent = `Round ${game.index + 1} of ${game.rounds.length} · ${capitalized(round.level)}`;
+  header(false);
   $("match-prompt").innerHTML = promptHtml(round.correct);
   const box = $("match-cards");
   box.innerHTML = SIDES.map(cardHtml).join("");
@@ -73,7 +95,7 @@ function showRound() {
     const clip = clipOn(round, side);
     const button = card.querySelector(".play");
     button.onclick = () => {
-      if (!play(clip.audio[game.timbre], button, card.querySelector(".progress > div"), "Play", card.querySelector("canvas"))) return;
+      if (!play(clip.audio[game.timbre], button, card.querySelector(".progress > div"), "Play", card.querySelector("canvas"), cardStatus(card))) return;
       plays.played(clip.id);
       heard.add(game.timbre);
       // Both clips must have been started before a pick counts: no blind guessing.
@@ -123,6 +145,7 @@ function pick(side, round, plays, heard) {
 
 // ---------- reveal ----------
 
+// Exactly 6 children: the reveal cards share a subgrid, one row per section (see style.css).
 function revealCardHtml(round, side, picked) {
   const clip = clipOn(round, side);
   const matches = side === round.correctSide;
@@ -132,23 +155,26 @@ function revealCardHtml(round, side, picked) {
     ["News or opinion", "genre", displayAnswer("genre", clip.answer.genre)],
   ].map(([label, key, value]) => {
     const differs = round.differs.includes(key) && !matches;
-    return `<tr><td>${label}</td><td class="${differs ? "bad" : ""}">${escape(value)}</td></tr>`;
+    return `<tr><th scope="row">${label}</th><td class="${differs ? "bad" : ""}">${differs ? "✕ " : ""}${escape(value)}</td></tr>`;
   }).join("");
   return `<div class="card ${matches ? "is-match" : "not-match"}" data-side="${side}">
     <div class="card-head">
-      <span class="side">${side}</span>
-      <span class="${matches ? "good" : "bad"}">${matches ? "Matches" : "Doesn't match"}</span>
-      ${picked ? '<span class="muted">your pick</span>' : ""}
+      <span class="side">Clip ${side}</span>
+      <span class="verdict ${matches ? "good" : "bad"}">${matches ? "Matches" : "Doesn't match"}</span>
+      ${picked ? '<span class="chip">Your pick</span>' : ""}
     </div>
     <div class="who-row">
-      ${clip.thumbnail ? `<img class="thumb" src="${clip.thumbnail}" alt="${escape(clip.speaker)}">` : ""}
-      <p class="who">${escape(clip.speaker)}<br><span class="muted">${escape(clip.program)} (${escape(clip.answer.station)})</span></p>
+      ${clip.thumbnail ? `<img class="thumb" src="${clip.thumbnail}" alt="${escape(clip.speaker)}">` : '<span class="thumb"></span>'}
+      <div><p class="who">${escape(clip.speaker)}</p><p class="who-meta">${escape(clip.program)} (${escape(clip.answer.station)})</p></div>
     </div>
-    <table>${rows}</table>
+    <table class="facts">${rows}</table>
     ${geeksHtml(clip)}
-    <div class="player"><button class="play">Hear the original</button><div class="progress"><div></div></div></div>
-    <div class="spectro"><canvas aria-label="Spectrogram of the original ${side}"></canvas></div>
-    <p><a href="${clip.link}" target="_blank" rel="noopener">Source on YouTube</a></p>
+    <div class="well"><div class="spectro"><canvas aria-label="Spectrogram of the original ${side}"></canvas></div></div>
+    <div class="card-actions">
+      <button class="play secondary">Hear the original</button>
+      <div class="progress"><div></div></div>
+      <a href="${clip.link}" target="_blank" rel="noopener">Source on YouTube</a>
+    </div>
   </div>`;
 }
 
@@ -157,13 +183,15 @@ function geeksHtml(clip) {
   // Always emit the block: both reveal cards need the same sections to line up on the shared grid.
   if (rows.length === 0) return '<div class="geeks"></div>';
   // Definitions live in tooltips (hover a label) to keep the table compact.
-  return `<div class="geeks"><h3>Stats for geeks</h3><table>${rows.map((r) =>
+  return `<div class="geeks"><p class="eyebrow accent">Stats for geeks</p><table>${rows.map((r) =>
     `<tr><td><span class="term" title="${escape(r.hint)}">${r.label}</span></td><td>${escape(r.value)}</td></tr>`).join("")}</table></div>`;
 }
 
 function showReveal(round, picked, right, points) {
-  const label = `Round ${game.index + 1} of ${game.rounds.length} · ${round.level}`;
-  $("match-reveal-label").innerHTML = `${label}: <span class="${right ? "good" : "bad"}">${right ? `right, +${points}` : "not this time"}</span>`;
+  $("match-reveal-label").textContent = `Round ${game.index + 1} of ${game.rounds.length} · ${capitalized(round.level)}`;
+  $("match-result").textContent = right ? `Right, +${points}` : "Not this time";
+  $("match-result").className = `result-tag ${right ? "right" : "wrong"}`;
+  header(true);
   $("match-reveal-prompt").innerHTML = promptHtml(round.correct);
   const box = $("match-reveal-cards");
   box.innerHTML = SIDES.map((s) => revealCardHtml(round, s, s === picked)).join("");
@@ -196,6 +224,7 @@ function finish() {
     ids: game.ids,
     mode: "match",
     scorePct: Math.round((100 * s.total) / s.max),
+    meta: `Match the description · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
     tableHtml: `<tr><th>Accuracy</th><th></th></tr>${levelRows}` +
       (hardRows ? `<tr><th>Hard rounds</th><th></th></tr>${hardRows}` : "") + note,
     buildRecord: (cues) => ({

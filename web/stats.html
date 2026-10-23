@@ -4,14 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Brass Anchors results</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&amp;family=Source+Sans+3:wght@400;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <main class="stats-page">
-    <header>
-      <h1><a class="home" href="./">Brass Anchors</a></h1>
-      <p class="tagline">Everyone's results so far</p>
+    <header class="topbar">
+      <a class="wordmark home" href="./">
+        <svg class="logo" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="14" cy="14" r="12"></circle><path d="M14 4v20M6 10c3 2 13 2 16 0M6 18c3-2 13-2 16 0"></path></svg>
+        Brass Anchors
+      </a>
+      <div class="topbar-status"><span class="dot live"></span><span>The ratings</span></div>
     </header>
+    <div class="hero stats-hero">
+      <p class="eyebrow accent">Everyone's results so far</p>
+    </div>
 
     <nav class="tabs" aria-label="Game mode">
       <a id="tab-match" href="?mode=match">Match the description</a>
@@ -56,7 +65,7 @@
       <p class="muted" id="footnote"></p>
     </div>
 
-    <p><a class="button" href="./">Play a game</a></p>
+    <p><a class="button brass" href="./">Play a game</a></p>
   </main>
   <script type="module" src="stats.js"></script>
 </body>

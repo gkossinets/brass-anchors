@@ -41,6 +41,12 @@ export function describe(clip) {
   return { country, genre, decade, text: `${country} ${genre} from the ${decade}` };
 }
 
+/** The description after the FIND tag: "a UK news report from the 1970s". */
+export function findPhrase(clip) {
+  // Every country adjective in use (US, UK, Soviet, Russian) takes "a".
+  return `a ${describe(clip).text}`;
+}
+
 /** Which of country, decade, genre differ between two clips. */
 export function differingAttributes(a, b) {
   return ATTRIBUTES.filter((k) => a.answer[k] !== b.answer[k]);

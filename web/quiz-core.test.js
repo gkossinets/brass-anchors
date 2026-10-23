@@ -2,8 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
-  scoreRound, filterClips, questionsFor, pickRounds, maxScorePerRound, initialTimbre, displayAnswer,
-} from "./quiz-core.js";
+  scoreRound, filterClips, questionsFor, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark } from "./quiz-core.js";
 
 const clip = (id, country, decade, genre, station, recognizable = "unlikely") =>
   ({ id, answer: { country, decade, genre, station }, recognizable });
@@ -125,4 +124,19 @@ test("initial timbre: remembered choice if still offered, else the manifest's fi
   assert.equal(initialTimbre("kazoo", offered), "hum");
   assert.equal(initialTimbre(null, offered), "hum");
   assert.equal(initialTimbre(null, []), "brass", "old manifests without a timbre list");
+});
+
+test("points notes for question titles come from POINTS, with the decade's one-off rule", () => {
+  assert.equal(pointsNote("decade"), "2 pts, 1 if a decade off");
+  assert.equal(pointsNote("country"), "1 pt");
+  assert.equal(pointsNote("station"), "1 pt");
+});
+
+test("guessMark: right, one off (decade only), wrong, or unanswered, never colour alone", () => {
+  assert.deepEqual(guessMark("decade", undefined, 0), { kind: "none", mark: "—" });
+  assert.deepEqual(guessMark("decade", "1970s", 2), { kind: "good", mark: "✓" });
+  assert.deepEqual(guessMark("decade", "1970s", 1), { kind: "near", mark: "◐", note: "one off" });
+  assert.deepEqual(guessMark("decade", "1950s", 0), { kind: "bad", mark: "✕" });
+  assert.deepEqual(guessMark("country", "US", 1), { kind: "good", mark: "✓" });
+  assert.deepEqual(guessMark("country", "UK", 0), { kind: "bad", mark: "✕" });
 });

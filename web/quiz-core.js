@@ -123,3 +123,21 @@ export function initialTimbre(remembered, offered) {
 export function displayAnswer(question, value) {
   return question === "genre" ? (GENRE_LABELS[value] ?? value) : value;
 }
+
+/** The points note beside a question's title ("2 pts, 1 if a decade off"). */
+export function pointsNote(question) {
+  const pts = POINTS[question];
+  const base = `${pts} pt${pts === 1 ? "" : "s"}`;
+  return question === "decade" ? `${base}, 1 if a decade off` : base;
+}
+
+/**
+ * How a guess reads on the reveal: a kind for colour and a mark so colour is
+ * never the only signal. Only the decade can be partly right (one off).
+ */
+export function guessMark(question, guess, points) {
+  if (guess === undefined) return { kind: "none", mark: "—" };
+  if (points === POINTS[question]) return { kind: "good", mark: "✓" };
+  if (points > 0) return { kind: "near", mark: "◐", note: "one off" };
+  return { kind: "bad", mark: "✕" };
+}

@@ -1,10 +1,11 @@
 // "Guess the clip" (classic mode) screens. Game rules live in quiz-core.js.
 import {
   GENRES, decadeOptions, countryOptions, stationOptions, scoreRound,
-  filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, POINTS, displayAnswer,
+  filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, pointsNote, guessMark,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
-import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd } from "./shared.js";
+import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
+import { formatClock } from "./display-core.js";
 import { newGameIds, send } from "./collect.js";
 
 const LABELS = { decade: "Decade", country: "Country", genre: "News or opinion?", station: "Station (bonus)" };
@@ -12,6 +13,13 @@ const LABELS = { decade: "Decade", country: "Country", genre: "News or opinion?"
 let corpus = [];
 let timbres = [];
 let game = null;
+
+const escape = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
+
+function header(answered) {
+  const score = game.results.reduce((sum, r) => sum + r.score.total, 0);
+  setHeader({ kind: "game", total: game.clips.length, current: game.index + 1, answered, score });
+}
 
 /** Fill the classic-only parts of the front page (same-chair country list). */
 export function setupClassic(clips, timbreList) {
@@ -49,20 +57,21 @@ function optionsFor(question, clip) {
 }
 
 function renderQuestion(container, question, clip, guess, onChange) {
-  const div = document.createElement("div");
-  div.className = "question";
-  div.innerHTML = `<h3>${LABELS[question]}</h3><div class="options"></div>`;
+  const set = document.createElement("fieldset");
+  set.className = `question${question === "station" ? " bonus" : ""}`;
+  set.innerHTML = `<legend>${LABELS[question]} <span class="pts-note">${pointsNote(question)}</span></legend><div class="options"></div>`;
   for (const opt of optionsFor(question, clip)) {
     const b = document.createElement("button");
     b.textContent = displayAnswer(question, opt);
+    b.setAttribute("aria-pressed", "false");
     b.onclick = () => {
       guess[question] = opt;
-      for (const sib of div.querySelectorAll("button")) sib.classList.toggle("chosen", sib === b);
+      for (const sib of set.querySelectorAll("button")) sib.setAttribute("aria-pressed", String(sib === b));
       onChange();
     };
-    div.querySelector(".options").append(b);
+    set.querySelector(".options").append(b);
   }
-  container.append(div);
+  container.append(set);
 }
 
 function showRound() {
@@ -74,14 +83,17 @@ function showRound() {
   const plays = createPlayLog();
 
   const playCurrent = () => {
-    if (play(clip.audio[game.timbre], $("play"), $("progress-bar"), "Play", $("spectrogram"))) {
+    const clock = (seconds, duration) => { $("play-clock").textContent = `${formatClock(seconds)} / ${formatClock(duration)}`; };
+    if (play(clip.audio[game.timbre], $("play"), $("progress-bar"), "Play", $("spectrogram"), clock)) {
       heard.add(game.timbre);
       plays.played(clip.id);
     }
   };
 
-  $("round-label").textContent = `Round ${game.index + 1} of ${game.clips.length}`;
+  $("round-label").textContent = `Round ${game.index + 1} of ${game.clips.length} · Guess the clip`;
+  header(false);
   $("progress-bar").style.width = "0";
+  $("play-clock").textContent = "0:00";
   $("play").textContent = "Play";
   $("play").onclick = playCurrent;
   renderTimbreSwitch($("timbre-switch"), timbres, game.timbre, (id) => {
@@ -98,20 +110,21 @@ function showRound() {
   $("reveal").disabled = true;
 
   const onChange = () => {
-    const done = questions.every((q) => guess[q] !== undefined);
+    const answered = questions.filter((q) => guess[q] !== undefined).length;
+    const done = answered === questions.length;
     $("reveal").disabled = !done;
     if (done && hasBonus(game.variant) && bonus.hidden) bonus.hidden = false;
+    $("round-hint").textContent = !done ? `${answered} of ${questions.length} answered.`
+      : hasBonus(game.variant) ? "All answered. Try the bonus, or reveal whenever you're ready."
+      : "All answered. Reveal whenever you're ready.";
   };
+  onChange();
   for (const q of questions) renderQuestion(qs, q, clip, guess, onChange);
   if (hasBonus(game.variant)) renderQuestion(bonus, "station", clip, guess, () => {});
 
   $("reveal").onclick = () => showReveal(clip, guess, heard, plays);
   show("round");
   clearSpectrogram($("spectrogram"));
-}
-
-function cls(points, max) {
-  return points === max ? "good" : points > 0 ? "part" : "bad";
 }
 
 function showReveal(clip, guess, heard, plays) {
@@ -126,13 +139,23 @@ function showReveal(clip, guess, heard, plays) {
   game.records.push(record);
   send("round", game.ids, record);
 
-  $("reveal-label").textContent = `Round ${game.index + 1} of ${game.clips.length}: +${score.total}`;
+  $("reveal-label").textContent = `Round ${game.index + 1} of ${game.clips.length} · The answer`;
+  $("reveal-points").textContent = `+${score.total}`;
+  $("reveal-possible").textContent = `${score.total} of ${maxScorePerRound(game.variant)} possible`;
   $("reveal-table").innerHTML =
-    "<tr><th></th><th>Your guess</th><th>Answer</th><th></th></tr>" +
-    asked.map((q) => `<tr><td>${LABELS[q]}</td><td class="${cls(score[q], POINTS[q])}">${displayAnswer(q, guess[q]) ?? "—"}</td>` +
-      `<td>${displayAnswer(q, clip.answer[q])}</td><td class="pts">${score[q]}</td></tr>`).join("");
+    "<thead><tr><th></th><th>Your guess</th><th>Answer</th><th class=\"pts\">Pts</th></tr></thead><tbody>" +
+    asked.map((q) => {
+      const m = guessMark(q, guess[q], score[q]);
+      const shown = guess[q] === undefined ? m.mark : `${m.mark} ${escape(displayAnswer(q, guess[q]))}`;
+      const note = m.note ? ` <span class="note-inline">${m.note}</span>` : "";
+      return `<tr><th scope="row"${q === "station" ? ' class="bonus-label"' : ""}>${LABELS[q]}</th>` +
+        `<td class="guess ${m.kind}">${shown}${note}</td>` +
+        `<td>${escape(displayAnswer(q, clip.answer[q]))}</td><td class="pts">${score[q]}</td></tr>`;
+    }).join("") + "</tbody>";
   const year = clip.year ? `, ${clip.year}` : "";
-  $("reveal-who").textContent = `${clip.speaker}: ${clip.program} (${clip.answer.station}${year})`;
+  $("reveal-who").textContent = clip.speaker;
+  $("reveal-meta").textContent = `${clip.program} (${clip.answer.station}${year})`;
+  header(true);
   const thumb = $("reveal-thumb");
   thumb.hidden = !clip.thumbnail;
   if (clip.thumbnail) {
@@ -162,6 +185,7 @@ function finish() {
   const byId = Object.fromEntries(corpus.map((c) => [c.id, c]));
   showEnd({
     score: `${total} / ${max}`,
+    meta: `Guess the clip · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
     ids: game.ids,
     mode: "classic",
     scorePct: Math.round((100 * total) / max),

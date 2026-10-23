@@ -4,7 +4,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { seededRng } from "./quiz-core.js";
 import {
   MATCH_CONFIG, describe, differingAttributes, levelFor, difficultySchedule, candidateDistractors,
-  buildMatchGame, scoreMatch, summarizeMatch, pairCoverage, decadeGap, weightedDifferences, matchPoolSize,
+  buildMatchGame, scoreMatch, summarizeMatch, pairCoverage, decadeGap, weightedDifferences, matchPoolSize, findPhrase,
 } from "./match-core.js";
 
 const clip = (id, country, decade, genre, speaker = id, recognizable = "unlikely", year = null) =>
@@ -212,4 +212,9 @@ test("stats keep their decimals even for whole numbers (JSON turns 5.0 into 5)",
 test("match pool size counts the clips a game can use; pure mode drops likely-recognizable ones", () => {
   assert.equal(matchPoolSize(CORPUS, { pure: false }), 8);
   assert.equal(matchPoolSize(CORPUS, { pure: true }), 7);
+});
+
+test("findPhrase completes the FIND caption: an article, then the description", () => {
+  assert.equal(findPhrase(clip("a", "UK", "1970s", "news")), "a UK news report from the 1970s");
+  assert.equal(findPhrase(clip("a", "US", "2010s", "opinion")), "a US opinion piece from the 2010s");
 });

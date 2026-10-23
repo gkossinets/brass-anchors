@@ -2,7 +2,7 @@
 // The URL is the single source of truth for the mode: picking a mode on the
 // front page sets ?mode=, and Back returns to the front page.
 import { modeFromSearch } from "./log-core.js";
-import { $, show, stopAudio, startingTimbre } from "./shared.js";
+import { $, show, stopAudio, startingTimbre, setHeader } from "./shared.js";
 import { setupClassic, classicPoolSize, startClassic } from "./quiz.js";
 import { startMatch } from "./match.js";
 import { matchPoolSize } from "./match-core.js";
@@ -29,13 +29,12 @@ function setupFrontPage() {
     const s = settings();
     const n = classicPoolSize(s);
     const m = matchPoolSize(corpus, s);
-    $("clip-count").textContent =
-      `${corpus.length} clips in the corpus. With these options, "Match the description" can use ${m} ` +
-      `and "Guess the clip" (the variant ticked) ${n}.`;
+    $("clip-count").textContent = `${corpus.length} clips · ${m} for Match · ${n} for this Guess the clip variant`;
+    $("match-strip").textContent = `Recommended · ${s.rounds} round${s.rounds === 1 ? "" : "s"}`;
     $("start").disabled = n === 0;
     $("start-match").disabled = m < 2;
   };
-  for (const el of document.querySelectorAll("#screen-start input, #screen-start select")) el.onchange = update;
+  for (const el of document.querySelectorAll("#screen-start input, #screen-start select")) el.onchange = el.oninput = update;
   update();
 }
 
@@ -45,7 +44,13 @@ function route() {
   const s = settings();
   if (mode === "classic") startClassic(s);
   else if (mode === "match") startMatch(corpus, timbres, s);
-  else show("start");
+  else showFront();
+}
+
+function showFront() {
+  const decades = corpus.map((c) => c.answer.decade).sort();
+  setHeader({ kind: "front", span: decades.length ? `${decades[0]} to now` : "" });
+  show("start");
 }
 
 function go(mode) {
@@ -71,7 +76,7 @@ fetch("quiz.json")
     route();
   })
   .catch((err) => {
-    show("start");
+    showFront();
     $("load-error").hidden = false;
     $("load-error").textContent =
       `Could not load clips (${err.message}). Build web/quiz.json with the pipeline and serve this folder over HTTP.`;
