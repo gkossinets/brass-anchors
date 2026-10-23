@@ -70,6 +70,13 @@ function go(mode) {
 $("start").onclick = () => go("classic");
 $("start-match").onclick = () => go("match");
 $("again").onclick = () => go(null);
+// The logo and name lead home. A plain click switches screens without a reload, like
+// New game; Cmd/Ctrl/Shift-clicks keep the browser's own behaviour (new tab, etc.).
+$("home-link").onclick = (e) => {
+  if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  go(null);
+};
 window.onpopstate = route;
 
 fetch("quiz.json")
