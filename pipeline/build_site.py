@@ -16,7 +16,8 @@ from pathlib import Path
 from pipeline.config import ROOT, WEB_DIR
 
 DIST_DIR = ROOT / "dist"
-# Local-only files in web/: the clip review tool, unit tests, and the audio link (copied per file below).
+# Local-only things in web/: the clip review tool, unit tests, and the audio link (its files
+# are copied one by one below). Other folders, such as fonts/, are copied whole.
 EXCLUDE = ("review*", "*.test.js", "audio")
 
 
@@ -64,7 +65,11 @@ def build_site(web_dir: Path, out_dir: Path) -> dict:
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True)
     for src in sorted(web_dir.iterdir()):
-        if src.is_file() and not any(fnmatch(src.name, pattern) for pattern in EXCLUDE):
+        if any(fnmatch(src.name, pattern) for pattern in EXCLUDE):
+            continue
+        if src.is_dir():
+            shutil.copytree(src, out_dir / src.name)  # asset folders, e.g. fonts/
+        elif src.is_file():
             shutil.copy2(src, out_dir / src.name)
     for rel in media:
         dest = out_dir / rel

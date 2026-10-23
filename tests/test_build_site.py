@@ -82,3 +82,14 @@ def test_missing_media_fails_loudly_instead_of_shipping_a_broken_game(web, tmp_p
 def test_refuses_to_build_into_the_source_folder(web):
     with pytest.raises(ValueError):
         build_site(web, web)
+
+
+def test_asset_folders_such_as_fonts_are_copied_whole(web, tmp_path):
+    (web / "fonts").mkdir()
+    (web / "fonts" / "oswald-latin.woff2").write_bytes(b"wOF2font")
+    (web / "fonts" / "OFL.txt").write_text("licence")
+    out = tmp_path / "dist"
+    summary = build_site(web, out)
+    assert (out / "fonts" / "oswald-latin.woff2").read_bytes() == b"wOF2font"
+    assert (out / "fonts" / "OFL.txt").exists()
+    assert summary["files"] == 12

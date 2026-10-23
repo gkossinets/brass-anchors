@@ -116,7 +116,7 @@ Then:
 
 ### What the deployed site records
 
-Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used), each finished game's score, and, if a player saves it, the game with their notes. Notes are never shown on the results page. Each browser gets a random player id. No names, accounts, or IP addresses are stored, and the front page says what's recorded. Collection is off on `localhost` unless the URL has `?collect=1`.
+Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used), each finished game's score, and, if a player saves it, the game with their notes. Notes are never shown on the results page. Each browser gets a random player id. No names, accounts, or IP addresses are stored, and the site loads nothing from third parties (its fonts are self-hosted). The front page says: "This site does not collect personal data. To learn which comparisons are hard, it records only anonymous gameplay results: your answers, how long they take, and any notes you save." Collection is off on `localhost` unless the URL has `?collect=1`.
 
 Anyone can post to `/api/log`, so the results are only as trustworthy as an open endpoint allows. The server rejects malformed or impossible rounds (unknown difficulty, points that don't match it, answers in under a second), and a game's final score counts in the distribution only when all its rounds arrived and add up to it. A patient script can still post plausible fake games; `make stats` shows the counts to watch.
 
