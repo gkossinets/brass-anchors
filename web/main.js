@@ -5,7 +5,7 @@ import { modeFromSearch } from "./log-core.js";
 import { $, show, stopAudio, startingTimbre, setHeader } from "./shared.js";
 import { setupClassic, classicPoolSize, startClassic } from "./quiz.js";
 import { startMatch } from "./match.js";
-import { matchPoolSize } from "./match-core.js";
+import { matchPoolSize, matchMaxRounds } from "./match-core.js";
 import { collecting } from "./collect.js";
 
 let corpus = [];
@@ -29,8 +29,12 @@ function setupFrontPage() {
     const s = settings();
     const n = classicPoolSize(s);
     const m = matchPoolSize(corpus, s);
-    $("clip-count").textContent = `${corpus.length} clips · ${m} for Match · ${n} for this Guess the clip variant`;
-    $("match-strip").textContent = `Recommended · ${s.rounds} round${s.rounds === 1 ? "" : "s"}`;
+    const maxRounds = matchMaxRounds(corpus, s);
+    $("clip-count").textContent =
+      `${corpus.length} clips · ${m} for Match (up to ${maxRounds} rounds) · ${n} for this Guess the clip variant`;
+    // A Match game never repeats a clip, so it can't run longer than maxRounds.
+    const matchRounds = Math.min(s.rounds, maxRounds);
+    $("match-strip").textContent = `Recommended · ${matchRounds} round${matchRounds === 1 ? "" : "s"}`;
     $("start").disabled = n === 0;
     $("start-match").disabled = m < 2;
   };

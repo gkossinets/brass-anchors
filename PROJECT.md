@@ -4,7 +4,7 @@ Why things are the way they are, what's known to be weak, and what could come ne
 
 ## Status
 
-The pipeline and both game modes work end to end with 20 reviewed clips. Live at <https://brass-anchors.pages.dev> (Cloudflare Pages, deployed 2026-10-23) with anonymous play data in D1. Tests: 105 pytest and 94 `node --test`, all passing (`make test`).
+The pipeline and both game modes work end to end with 20 reviewed clips. Live at <https://brass-anchors.pages.dev> (Cloudflare Pages, deployed 2026-10-23) with anonymous play data in D1. Tests: 105 pytest and 95 `node --test`, all passing (`make test`).
 
 ## Corpus
 
@@ -69,7 +69,7 @@ Problems found this way, worth watching for:
 - A distractor differs from the correct clip in at least one of country, decade, and news vs opinion, so it never fits the description.
 - Difficulty counts weighted differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (`decadeFarGap`), since 1967 vs 2024 is far easier to hear than 1995 vs 2007. Easy is 3 or more, medium 2, hard 1. Points: easy 1, medium 2, hard 3.
 - The ramp: 30% easy, 30% hard, the rest medium (5 rounds: 2/2/1).
-- A same-speaker distractor is allowed only at hard, and other speakers are preferred even then. A correct clip is never reused in a game, and a distractor never repeats in consecutive rounds. The correct side is random. Picking unlocks once both clips have been started.
+- A same-speaker distractor is allowed only at hard, and other speakers are preferred even then. No clip is heard twice in a game, as the right answer or the other one: once heard, a clip is easy to recognize by its opening (the trombone Tucker Carlson, say). So a game has at most half as many rounds as there are clips (10 from 20; 9 in pure mode), and the front page says so. Pairing is a randomized backtracking search that fills the hard rounds first (their pairs are scarcest) and restarts after 2,000 steps, up to 30 times; on the real corpus all 1,000 test games got the full 3/4/3 ramp with no fallbacks, at under 1 ms each. The correct side is random. Picking unlocks once both clips have been started.
 - If no pair is left at the scheduled level, the round falls back to an easier level first, then a harder one, and the fallback is recorded.
 - `MATCH_CONFIG` in `web/match-core.js` holds the wording and scoring knobs. `make check-pairs` uses the same module, so the report and the game can't disagree. With 20 clips: 142 easy, 136 medium, and 88 hard ordered pairs, and every clip has a partner at every level.
 

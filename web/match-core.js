@@ -103,45 +103,103 @@ export function matchPoolSize(clips, { pure = false } = {}) {
   return eligible(clips, pure).length;
 }
 
+/** The most rounds a game can have: two clips a round, and no clip is heard twice. */
+export function matchMaxRounds(clips, { pure = false } = {}) {
+  return Math.floor(eligible(clips, pure).length / 2);
+}
+
+// The search is randomized, and an unlucky ordering can wander for a long time
+// before backtracking far enough. Many short attempts beat one long one; the
+// totals keep an awkward corpus from freezing the page.
+const SEARCH_ATTEMPTS = 30;
+const STEPS_PER_ATTEMPT = 2000;
+
+/**
+ * Pair unused clips for each scheduled round by backtracking search.
+ * `allowed(requested)` lists the levels a round may use, in order of preference.
+ * Returns the longest assignment found: an array of { correct, distractor, level }
+ * per round (undefined where a round couldn't be filled).
+ */
+function searchPairs(pool, schedule, rng, allowed) {
+  let best = [];
+  for (let attempt = 0; attempt < SEARCH_ATTEMPTS; attempt++) {
+    const picks = searchOnce(pool, schedule, rng, allowed);
+    if (picks.filter(Boolean).length > best.filter(Boolean).length) best = picks;
+    if (best.filter(Boolean).length === schedule.length) break;
+  }
+  return best;
+}
+
+function searchOnce(pool, schedule, rng, allowed) {
+  // Fill the scarcest rounds first (hard pairs are rarest), so easy rounds don't use up their clips.
+  const scarcity = { hard: 0, medium: 1, easy: 2 };
+  const order = schedule.map((level, i) => i).sort((a, b) => scarcity[schedule[a]] - scarcity[schedule[b]]);
+  const used = new Set();
+  const picks = [];
+  let best = { filled: -1, picks: [] };
+  let steps = 0;
+
+  const candidates = (requested) => {
+    const out = [];
+    for (const level of allowed(requested)) {
+      const free = shuffle(pool.filter((c) => !used.has(c.id)), rng);
+      const atLevel = [];
+      for (const correct of free) {
+        for (const d of candidateDistractors(correct, free, level)) atLevel.push({ correct, distractor: d, level });
+      }
+      // Other speakers first: a same-speaker pair (hard only) is the exception.
+      atLevel.sort((x, y) => (x.correct.speaker === x.distractor.speaker) - (y.correct.speaker === y.distractor.speaker));
+      out.push(...atLevel);
+    }
+    return out;
+  };
+
+  const fill = (k) => {
+    if (k > best.filled) best = { filled: k, picks: [...picks] };
+    if (k === order.length) return true;
+    for (const pick of candidates(schedule[order[k]])) {
+      if (++steps > STEPS_PER_ATTEMPT) return false;
+      used.add(pick.correct.id).add(pick.distractor.id);
+      picks[order[k]] = pick;
+      if (fill(k + 1)) return true;
+      used.delete(pick.correct.id);
+      used.delete(pick.distractor.id);
+      picks[order[k]] = undefined;
+    }
+    return false;
+  };
+  fill(0);
+  return best.picks;
+}
+
 /**
  * Build a game's rounds.
  *
- * Each round takes an unused correct clip that can be paired at the scheduled
- * level; if none can, it falls back (easier first) and records why. Distractors
- * prefer a different speaker and never repeat in consecutive rounds.
+ * No clip is heard twice in a game, as the right answer or the other one: once
+ * heard, a clip is easy to recognize by its opening. So a game has at most half
+ * as many rounds as there are clips. The pairing searches for the scheduled
+ * difficulty of every round; only if that's impossible does a round fall back
+ * (easier first), and each fallback is recorded.
  *
  * @returns {{rounds: object[], fallbacks: string[]}}
  */
 export function buildMatchGame(clips, { rounds = 10, pure = false, rng = Math.random } = {}) {
   const pool = eligible(clips, pure);
-  const schedule = difficultySchedule(Math.min(rounds, pool.length));
-  const order = shuffle(pool, rng);
-  const used = new Set();
+  const schedule = difficultySchedule(Math.min(rounds, Math.floor(pool.length / 2)));
+  let picks = searchPairs(pool, schedule, rng, (requested) => [requested]);
+  if (picks.filter(Boolean).length < schedule.length) {
+    picks = searchPairs(pool, schedule, rng, (requested) => FALLBACK_ORDER[requested]);
+  }
+
   const out = [];
   const fallbacks = [];
-  let previousDistractor = null;
-
   for (const [i, requested] of schedule.entries()) {
-    let pick = null;
-    for (const level of FALLBACK_ORDER[requested]) {
-      for (const correct of order) {
-        if (used.has(correct.id)) continue;
-        const candidates = candidateDistractors(correct, pool, level).filter((d) => d.id !== previousDistractor);
-        if (candidates.length === 0) continue;
-        const otherSpeakers = candidates.filter((d) => d.speaker !== correct.speaker);
-        const choices = otherSpeakers.length ? otherSpeakers : candidates;
-        pick = { correct, distractor: choices[Math.floor(rng() * choices.length)], level };
-        break;
-      }
-      if (pick) break;
-    }
+    const pick = picks[i];
     if (!pick) {
       fallbacks.push(`round ${i + 1}: no pair available at any level; game ends early`);
       break;
     }
     if (pick.level !== requested) fallbacks.push(`round ${i + 1}: no ${requested} pair left; fell back to ${pick.level}`);
-    used.add(pick.correct.id);
-    previousDistractor = pick.distractor.id;
     out.push({
       ...pick,
       requestedLevel: requested,
