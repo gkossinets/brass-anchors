@@ -2,31 +2,25 @@
 // Best-effort: a failed send never interrupts play, and games still save locally.
 import { collectionEnabled, makeEvent } from "./collect-core.js";
 
-const PLAYER_KEY = "brass-anchors.player";
+// Earlier versions kept a lasting player id here; it linked one person's games.
+const OLD_PLAYER_KEY = "brass-anchors.player";
 
 // Decided once at boot: the mode links rewrite the URL and would drop ?collect=1.
 export const collecting = collectionEnabled(location);
 
-let sessionPlayer = null;
-
-// A random id that lets the stats count players without knowing who they are.
-function playerId() {
-  try {
-    let id = localStorage.getItem(PLAYER_KEY);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(PLAYER_KEY, id);
-    }
-    return id;
-  } catch {
-    sessionPlayer ??= crypto.randomUUID(); // storage blocked: one id for this page load
-    return sessionPlayer;
-  }
+try {
+  localStorage.removeItem(OLD_PLAYER_KEY);
+} catch {
+  // Storage blocked: there's nothing stored to remove either.
 }
 
-/** Ids for a new game's events. */
+/**
+ * Ids for a new game's events. Both are fresh random values for each game, so
+ * nothing ties two games to the same person: the site collects no personal data.
+ * (The player field stays in the event format; it now identifies nobody.)
+ */
 export function newGameIds() {
-  return collecting ? { player: playerId(), game: crypto.randomUUID() } : null;
+  return collecting ? { player: crypto.randomUUID(), game: crypto.randomUUID() } : null;
 }
 
 /** Send one event; does nothing when collection is off. */

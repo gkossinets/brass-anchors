@@ -152,7 +152,8 @@
       </div>
       <div class="panel">
         <label for="cues" class="panel-title">What gave it away?</label>
-        <textarea id="cues" rows="5" placeholder="Pauses, pitch resets, speed, emphasis, the shape of sentence endings..."></textarea>
+        <p class="note" id="cues-hint">Please don't include your name or contact details.</p>
+        <textarea id="cues" aria-describedby="cues-hint" rows="5" placeholder="Pauses, pitch resets, speed, emphasis, the shape of sentence endings..."></textarea>
         <div class="button-row">
           <button id="save" class="primary">Save</button>
           <button id="export" class="secondary">Export all saved games (JSON)</button>
