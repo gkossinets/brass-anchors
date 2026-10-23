@@ -15,51 +15,61 @@
       </a>
       <div class="topbar-status"><span class="dot live"></span><span>The ratings</span></div>
     </header>
-    <div class="hero stats-hero">
+    <div class="results-head">
       <p class="eyebrow accent">Everyone's results so far</p>
+      <nav class="tabs" aria-label="Game mode">
+        <a id="tab-match" href="?mode=match">Match the description</a>
+        <a id="tab-classic" href="?mode=classic">Guess the clip</a>
+      </nav>
     </div>
 
-    <nav class="tabs" aria-label="Game mode">
-      <a id="tab-match" href="?mode=match">Match the description</a>
-      <a id="tab-classic" href="?mode=classic">Guess the clip</a>
-    </nav>
-
-    <p id="stats-status" class="muted">Loading…</p>
+    <p id="stats-status" class="note">Loading…</p>
 
     <div id="stats-body" hidden>
       <div class="kpis" id="kpis"></div>
 
-      <section>
-        <h2>Final scores</h2>
-        <p id="you-line"></p>
-        <figure class="chart" id="score-chart"></figure>
-        <details>
-          <summary>Show as a table</summary>
-          <table id="score-table" class="data"></table>
-        </details>
-      </section>
+      <!-- Cards in two columns on wide screens, like the reveal cards; one column on phones. -->
+      <div class="result-grid">
+        <section class="card result-card">
+          <h2 class="eyebrow">Final scores</h2>
+          <p id="you-line" class="you-line"></p>
+          <figure class="chart" id="score-chart"></figure>
+          <details>
+            <summary>Show as a table</summary>
+            <table id="score-table" class="data"></table>
+          </details>
+        </section>
 
-      <section id="match-sections">
-        <h2>Accuracy by difficulty</h2>
-        <table id="level-table" class="data"></table>
-        <h3>Hard rounds, by what differed</h3>
-        <table id="attribute-table" class="data"></table>
-        <h2>Hardest comparisons</h2>
-        <table id="hardest-pairs" class="data"></table>
-        <h2>Easiest comparisons</h2>
-        <table id="easiest-pairs" class="data"></table>
-      </section>
+        <section class="card result-card only-match">
+          <h2 class="eyebrow">Accuracy by difficulty</h2>
+          <table id="level-table" class="data"></table>
+          <h2 class="eyebrow">Hard rounds, by what differed</h2>
+          <table id="attribute-table" class="data"></table>
+        </section>
+        <section class="card result-card only-match">
+          <h2 class="eyebrow">Hardest comparisons</h2>
+          <table id="hardest-pairs" class="data"></table>
+        </section>
+        <section class="card result-card only-match">
+          <h2 class="eyebrow">Easiest comparisons</h2>
+          <table id="easiest-pairs" class="data"></table>
+        </section>
 
-      <section id="classic-sections">
-        <h2>Exact answers by question</h2>
-        <table id="question-table" class="data"></table>
-        <h2>Hardest clips</h2>
-        <table id="hardest-clips" class="data"></table>
-        <h2>Easiest clips</h2>
-        <table id="easiest-clips" class="data"></table>
-      </section>
+        <section class="card result-card only-classic">
+          <h2 class="eyebrow">Exact answers by question</h2>
+          <table id="question-table" class="data"></table>
+        </section>
+        <section class="card result-card only-classic">
+          <h2 class="eyebrow">Hardest clips</h2>
+          <table id="hardest-clips" class="data"></table>
+        </section>
+        <section class="card result-card only-classic">
+          <h2 class="eyebrow">Easiest clips</h2>
+          <table id="easiest-clips" class="data"></table>
+        </section>
+      </div>
 
-      <p class="muted" id="footnote"></p>
+      <p class="note" id="footnote"></p>
     </div>
 
     <p><a class="button brass" href="./">Play a game</a></p>

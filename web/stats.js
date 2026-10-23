@@ -35,7 +35,7 @@ function scoreChart(scores) {
   const step = max <= 5 ? 1 : Math.ceil(max / 4);
   const top = Math.ceil(max / step) * step;
   // Drawn at the width it has (not scaled down), so labels stay legible on a phone.
-  const W = Math.max(280, $("score-chart").clientWidth - 24), H = 220, left = 32, right = 8, plotTop = 20, bottom = 28;
+  const W = Math.max(260, $("score-chart").clientWidth), H = 170, left = 28, right = 4, plotTop = 18, bottom = 24;
   const plotW = W - left - right, plotH = H - plotTop - bottom;
   const slot = plotW / bins.length;
   const y = (v) => plotTop + plotH - (v / top) * plotH;
@@ -136,13 +136,13 @@ function pairRow(p) {
 function renderMatch(m, minAttempts) {
   const levels = Object.entries(m.byLevel).map(([level, t]) =>
     [`${level[0].toUpperCase()}${level.slice(1)} (×${MATCH_CONFIG.points[level]})`, pct(t.right, t.n), secs(t.medianMs), t.n]);
-  $("level-table").innerHTML = rows(["Level", "Right", "Median time", "Rounds"], levels, "No rounds played yet.");
+  $("level-table").innerHTML = rows(["Level", "Right", "Time", "Rounds"], levels, "No rounds played yet.");
   const attrs = Object.entries(m.hardByAttribute).map(([attr, t]) =>
     [`Only ${MATCH_CONFIG.attributeLabel[attr] ?? attr}`, pct(t.right, t.n), secs(t.medianMs), t.n]);
-  $("attribute-table").innerHTML = rows(["Differed in", "Right", "Median time", "Rounds"], attrs, "No hard rounds yet.");
+  $("attribute-table").innerHTML = rows(["Differed in", "Right", "Time", "Rounds"], attrs, "No hard rounds yet.");
   const notYet = `Not enough plays yet: a comparison needs ${minAttempts} attempts to be ranked.`;
-  $("hardest-pairs").innerHTML = rows(["Clips", "Right", "Median time", "Attempts"], m.hardest.map(pairRow), notYet);
-  $("easiest-pairs").innerHTML = rows(["Clips", "Right", "Median time", "Attempts"], m.easiest.map(pairRow), notYet);
+  $("hardest-pairs").innerHTML = rows(["Clips", "Right", "Time", "Tries"], m.hardest.map(pairRow), notYet);
+  $("easiest-pairs").innerHTML = rows(["Clips", "Right", "Time", "Tries"], m.easiest.map(pairRow), notYet);
 }
 
 function clipRow(c) {
@@ -153,15 +153,15 @@ function renderClassic(c, minAttempts) {
   const qs = Object.entries(c.byQuestion).map(([q, t]) => [QUESTION_LABELS[q] ?? q, pct(t.exact, t.n), t.n]);
   $("question-table").innerHTML = rows(["Question", "Exactly right", "Answers"], qs, "No rounds played yet.");
   const notYet = `Not enough plays yet: a clip needs ${minAttempts} plays to be ranked.`;
-  $("hardest-clips").innerHTML = rows(["Clip", "Exactly right", "Median time", "Plays"], c.hardest.map(clipRow), notYet);
-  $("easiest-clips").innerHTML = rows(["Clip", "Exactly right", "Median time", "Plays"], c.easiest.map(clipRow), notYet);
+  $("hardest-clips").innerHTML = rows(["Clip", "Exact", "Time", "Plays"], c.hardest.map(clipRow), notYet);
+  $("easiest-clips").innerHTML = rows(["Clip", "Exact", "Time", "Plays"], c.easiest.map(clipRow), notYet);
 }
 
 // ---------- boot ----------
 
 $(`tab-${mode}`).setAttribute("aria-current", "page");
-$("match-sections").hidden = mode !== "match";
-$("classic-sections").hidden = mode !== "classic";
+for (const el of document.querySelectorAll(".only-match")) el.hidden = mode !== "match";
+for (const el of document.querySelectorAll(".only-classic")) el.hidden = mode !== "classic";
 
 Promise.all([
   fetch("api/stats").then((r) => {
@@ -175,8 +175,8 @@ Promise.all([
   if (mode === "match") renderMatch(data.match, data.minAttempts);
   else renderClassic(data.classic, data.minAttempts);
   $("footnote").textContent = "Only each player's first game counts: later games replay clips they've already heard. " +
-    "Times run from the first Play to the answer. Right = share of rounds answered correctly; " +
-    "\"exactly right\" for Guess the clip counts full marks only. Anonymous: no names or notes are shown.";
+    "Time is the median from the first Play to the answer. Right = share of rounds answered correctly; " +
+    "Exact = share of answers with full marks. Anonymous: no names or notes are shown.";
   $("stats-status").hidden = true;
   $("stats-body").hidden = false;
 }).catch((err) => {
