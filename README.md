@@ -4,6 +4,10 @@ Can you tell a 1970s newsreader from a 2020s cable host by the melody of their v
 
 Brass Anchors is a browser game built from 10 to 20 second clips of news anchors and commentators. Each voice is replaced by a synthesized instrument (a trombone by default, or an octave-up trumpet or a voice-like hum) that follows the speaker's pitch and loudness but carries no words. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
 
+## Why it might be possible
+
+Prosody is the music of speech: pitch, rhythm, tempo, loudness, and pauses, independent of the words. The game strips the words and keeps the music, and asks whether that's enough. There are reasons to think it might be. Broadcast delivery has changed over the decades: mid-century newsreaders tend to sound measured and declamatory, while today's presenters sound faster and more conversational. American and British English use different intonation tunes, so the rises, falls, and pitch range of a sentence carry an accent even without vowels and consonants. And reading the news has a recognizable cadence, with regular stress, a pitch reset at each new sentence, and evenly spaced pauses, while arguing an opinion sounds more varied and emphatic, with sudden pitch excursions and pauses for effect. These are hunches, not established findings for every clip. The game, and the play data it collects, is a way to test them.
+
 ## Game modes
 
 - **Match the description**: read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. Rounds ramp from easy (the clips differ in country, decade, and news vs opinion) to hard (they differ in one). The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
