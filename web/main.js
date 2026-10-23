@@ -16,7 +16,7 @@ function settings() {
     variant: document.querySelector('input[name="variant"]:checked').value,
     country: $("chair-country").value,
     pure: $("pure").checked,
-    rounds: Math.max(1, parseInt($("rounds").value, 10) || 5),
+    rounds: Math.max(1, parseInt($("rounds").value, 10) || 10),
     // No picker on the front page: games start with the sound last chosen in a game's own switch.
     timbre: startingTimbre(timbres),
   };

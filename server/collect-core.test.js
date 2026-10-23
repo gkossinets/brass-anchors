@@ -7,7 +7,8 @@ const GAME = "9e8d7c6b-5a49-4382-a716-151413121110";
 
 const round = (over = {}) => ({
   kind: "round", player: PLAYER, game: GAME, mode: "match",
-  record: { format: 2, mode: "match", round: 3, clip_ids: ["a", "b"], ms_first_play_to_answer: 8123, right: true },
+  record: { format: 2, mode: "match", round: 3, clip_ids: ["a", "b"], ms_first_play_to_answer: 8123, right: true,
+    difficulty: "hard", points: 3, correct_id: "a", distractor_id: "b" },
   ...over,
 });
 const game = (over = {}) => ({
@@ -64,4 +65,36 @@ test("caps the body size and the length of the notes", () => {
 
 test("the error says what was wrong, for the server log", () => {
   assert.match(parseEvent(body(round({ mode: "karaoke" }))).error, /mode/);
+});
+
+test("a match round must look like one the game sends", () => {
+  const r = round();
+  const withRecord = (over) => body({ ...r, record: { ...r.record, ...over } });
+  assert.equal(parseEvent(withRecord({ difficulty: "trivial" })).ok, false);
+  assert.equal(parseEvent(withRecord({ right: "yes" })).ok, false);
+  assert.equal(parseEvent(withRecord({ points: 99 })).ok, false);
+  assert.equal(parseEvent(withRecord({ correct_id: "" })).ok, false);
+  assert.equal(parseEvent(withRecord({ correct_id: "x".repeat(200) })).ok, false);
+});
+
+test("answer times must be humanly possible: both clips started, at least a second", () => {
+  const r = round();
+  const withMs = (ms) => body({ ...r, record: { ...r.record, ms_first_play_to_answer: ms } });
+  assert.equal(parseEvent(withMs(150)).ok, false);
+  assert.equal(parseEvent(withMs(null)).ok, false);
+  assert.equal(parseEvent(withMs(4 * 3600 * 1000)).ok, false);
+  assert.equal(parseEvent(withMs(1000)).ok, true);
+});
+
+test("a classic round may have no play time (answered before pressing Play) but not an impossible one", () => {
+  const classic = { kind: "round", player: PLAYER, game: GAME, mode: "classic",
+    record: { mode: "classic", round: 1, clip_id: "a", guess: {}, score: { total: 2 }, ms_first_play_to_answer: null } };
+  assert.equal(parseEvent(body(classic)).ok, true);
+  assert.equal(parseEvent(body({ ...classic, record: { ...classic.record, ms_first_play_to_answer: 10 } })).ok, false);
+  assert.equal(parseEvent(body({ ...classic, record: { ...classic.record, score: { total: 50 } } })).ok, false);
+});
+
+test("difficulty must be a real level, not an inherited property name", () => {
+  const r = round();
+  assert.equal(parseEvent(body({ ...r, record: { ...r.record, difficulty: "constructor", points: 0, right: false } })).ok, false);
 });

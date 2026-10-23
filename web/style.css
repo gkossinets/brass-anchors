@@ -8,6 +8,9 @@
   --part: #a07a12;
   --bad: #a3322a;
   --card: #fffdf8;
+  /* Results histogram: other games' bins and yours (validated as an ordinal pair against --card). */
+  --bar: #d2aa8a;
+  --bar-you: var(--accent);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -21,6 +24,7 @@
     --part: #d9b44a;
     --bad: #e2766d;
     --card: #1f1e1b;
+    --bar: #9a6a45;
   }
 }
 
@@ -54,6 +58,17 @@ button {
   cursor: pointer;
 }
 button:hover:not(:disabled) { border-color: var(--accent); }
+/* A link that navigates away, styled like the buttons beside it. */
+a.button {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--fg);
+  text-decoration: none;
+}
+a.button:hover { border-color: var(--accent); }
 button:disabled { opacity: 0.45; cursor: default; }
 button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
 button.chosen { outline: 2px solid var(--accent); outline-offset: 1px; font-weight: 600; }
@@ -152,3 +167,45 @@ img.thumb { width: 96px; height: 64px; object-fit: cover; border-radius: 4px; fl
 .geeks h3 { margin: 12px 0 2px; font-size: 0.8rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
 .geeks td:last-child { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .geeks .term { cursor: help; text-decoration: underline dotted var(--muted); text-underline-offset: 3px; }
+
+/* ---------- results page (stats.html) ---------- */
+
+.stats-page h1 a.home { color: inherit; text-decoration: none; }
+.stats-page h2 { font-size: 1.15rem; margin: 28px 0 8px; }
+.stats-page h3 { font-size: 1rem; margin: 16px 0 8px; color: var(--muted); font-weight: normal; }
+
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin: 0 0 20px; border-bottom: 1px solid var(--line); }
+.tabs a { padding: 8px 12px; color: var(--muted); text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs a[aria-current="page"] { color: var(--fg); border-bottom-color: var(--accent); }
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 0 0 8px; }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 12px 16px; }
+.kpi-value { font-size: 1.8rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi-label { color: var(--muted); font-size: 0.85rem; }
+
+.chart { position: relative; margin: 0 0 8px; padding: 12px; background: var(--card); border: 1px solid var(--line); border-radius: 6px; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { stroke: var(--muted); stroke-width: 1; }
+.chart .tick { fill: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.chart .bar { fill: var(--bar); }
+.chart .yours .bar { fill: var(--bar-you); }
+.chart .you-label { fill: var(--fg); font-size: 12px; font-weight: 600; }
+.chart .hit { fill: transparent; }
+.chart .bin { outline: none; cursor: default; }
+.chart .bin:hover .bar, .chart .bin:focus .bar { filter: brightness(1.12); }
+.chart .bin:focus-visible .hit { stroke: var(--accent); stroke-width: 1; }
+.chart .tip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--fg);
+  color: var(--bg);
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+details { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
+details table { margin-top: 8px; color: var(--fg); }
+table.data td.num, table.data th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }

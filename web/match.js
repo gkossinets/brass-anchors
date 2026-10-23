@@ -194,6 +194,8 @@ function finish() {
   showEnd({
     score: `${s.total} / ${s.max}`,
     ids: game.ids,
+    mode: "match",
+    scorePct: Math.round((100 * s.total) / s.max),
     tableHtml: `<tr><th>Accuracy</th><th></th></tr>${levelRows}` +
       (hardRows ? `<tr><th>Hard rounds</th><th></th></tr>${hardRows}` : "") + note,
     buildRecord: (cues) => ({

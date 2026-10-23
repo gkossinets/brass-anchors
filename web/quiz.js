@@ -163,6 +163,8 @@ function finish() {
   showEnd({
     score: `${total} / ${max}`,
     ids: game.ids,
+    mode: "classic",
+    scorePct: Math.round((100 * total) / max),
     tableHtml: "<tr><th>Speaker</th><th>Year</th><th></th></tr>" +
       game.results.map((r) => {
         const c = byId[r.id];
@@ -180,6 +182,7 @@ function finish() {
         rounds: game.rounds,
         timbre_at_start: game.timbre_at_start,
       },
+      summary: { total, max },
       rounds: game.records,
       cues,
     }),

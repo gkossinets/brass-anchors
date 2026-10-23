@@ -19,7 +19,9 @@ The "Stats for geeks" panel shows several of these measures for each clip. The c
 - **Match the description**: read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. Rounds ramp from easy (the clips differ in country, decade, and news vs opinion) to hard (they differ in one). The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
 - **Guess the clip**: hear one clip and guess its decade, country, and whether it's news or opinion, with a station bonus. Variants: news-or-opinion only, and "same chair, different decade" (one country, decade only).
 
-Options on the front page: number of rounds, and pure mode, which leaves out speakers you might recognize by voice alone. The sound can be switched on every round screen.
+Options on the front page: number of rounds (10 by default), and pure mode, which leaves out speakers you might recognize by voice alone. The sound can be switched on every round screen.
+
+On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by difficulty, and the easiest and hardest comparisons (Match) or clips (Guess the clip).
 
 ## How it works
 
@@ -114,7 +116,9 @@ Then:
 
 ### What the deployed site records
 
-Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used) and, when a player saves a finished game, the game with their notes. Each browser gets a random player id. No names, accounts, or IP addresses are stored, and the front page says what's recorded. Collection is off on `localhost` unless the URL has `?collect=1`.
+Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used), each finished game's score, and, if a player saves it, the game with their notes. Notes are never shown on the results page. Each browser gets a random player id. No names, accounts, or IP addresses are stored, and the front page says what's recorded. Collection is off on `localhost` unless the URL has `?collect=1`.
+
+Anyone can post to `/api/log`, so the results are only as trustworthy as an open endpoint allows. The server rejects malformed or impossible rounds (unknown difficulty, points that don't match it, answers in under a second), and a game's final score counts in the distribution only when all its rounds arrived and add up to it. A patient script can still post plausible fake games; `make stats` shows the counts to watch.
 
 ## Repository layout
 

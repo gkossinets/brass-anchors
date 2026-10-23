@@ -19,7 +19,8 @@ test("?collect=1 turns it on locally, for testing against `make site-dev`", () =
 
 test("events the game builds pass the server's checks", () => {
   const ids = { player: crypto.randomUUID(), game: crypto.randomUUID() };
-  const round = makeEvent("round", ids, { format: 2, mode: "match", round: 1, right: false });
+  const round = makeEvent("round", ids, { format: 2, mode: "match", round: 1, right: false, points: 0,
+    difficulty: "easy", correct_id: "a", distractor_id: "b", ms_first_play_to_answer: 5200 });
   assert.deepEqual(Object.keys(round).sort(), ["game", "kind", "mode", "player", "record"]);
   assert.equal(parseEvent(JSON.stringify(round)).ok, true);
   const game = makeEvent("game", ids, { format: 2, mode: "classic", cues: "", rounds: [] });

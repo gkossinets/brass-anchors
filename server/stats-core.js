@@ -48,14 +48,39 @@ function summarizeClassic(rounds) {
     clip,
     n: rs.length,
     meanPoints: rs.reduce((sum, r) => sum + (r.score?.total ?? 0), 0) / rs.length,
+    exactShare: rs.reduce((sum, r) => sum + exactShare(r), 0) / rs.length,
     medianMs: median(rs.map((r) => r.ms_first_play_to_answer)),
-  })).sort((a, b) => a.meanPoints - b.meanPoints);
+  })).sort((a, b) => a.exactShare - b.exactShare || (b.medianMs ?? 0) - (a.medianMs ?? 0));
   return { byQuestion, byClip };
+}
+
+// Share of the questions asked that got full marks. Unlike points, it compares
+// rounds across variants that ask different questions.
+function exactShare(round) {
+  const asked = QUESTIONS.filter((q) => round.guess?.[q] !== undefined);
+  if (asked.length === 0) return 0;
+  return asked.filter((q) => round.score?.[q] === FULL_POINTS[q]).length / asked.length;
+}
+
+// A claimed final score counts only if every round from 1 up arrived and their points add up
+// to it, so one forged "100%" record can't move the distribution.
+function backedByRounds(record, roundEvents) {
+  const n = roundEvents.length;
+  if (n === 0 || roundEvents.some((e) => e.round < 1 || e.round > n)) return false;
+  const points = roundEvents.reduce((sum, e) => sum + (e.record.points ?? e.record.score?.total ?? 0), 0);
+  return points === record.summary.total;
+}
+
+// A finished game's score as a whole percentage of its maximum; null for records without one.
+function scorePct(record) {
+  const { total, max } = record.summary ?? {};
+  return typeof total === "number" && max > 0 ? Math.round((100 * total) / max) : null;
 }
 
 /**
  * Summarize event rows ({kind, player, game, mode, round, received_at, payload}).
- * A round sent twice counts once; a game saved twice keeps its latest notes.
+ * A round sent twice counts once. Each game sends its record when it finishes and
+ * again when the player saves notes; the latest record per game counts.
  */
 export function summarize(rows) {
   let skipped = 0;
@@ -75,11 +100,22 @@ export function summarize(rows) {
     seenRounds.add(key);
     return true;
   });
-  const latestSave = {};
+  const latestGame = {};
   for (const e of events.filter((ev) => ev.kind === "game")) {
-    if (!latestSave[e.game] || e.received_at > latestSave[e.game].received_at) latestSave[e.game] = e;
+    if (!latestGame[e.game] || e.received_at > latestGame[e.game].received_at) latestGame[e.game] = e;
   }
-  const notes = Object.values(latestSave)
+  const finishedGames = Object.values(latestGame);
+  const roundsByGame = groupBy(rounds, (e) => e.game);
+  const scores = { match: [], classic: [] };
+  let unbacked = 0;
+  for (const e of finishedGames) {
+    const p = scorePct(e.record);
+    if (p === null || !scores[e.mode]) continue;
+    if (backedByRounds(e.record, roundsByGame[e.game] ?? [])) scores[e.mode].push(p);
+    else unbacked += 1;
+  }
+  for (const list of Object.values(scores)) list.sort((a, b) => a - b);
+  const notes = finishedGames
     .filter((e) => typeof e.record.cues === "string" && e.record.cues.trim())
     .sort((a, b) => a.received_at.localeCompare(b.received_at))
     .map((e) => ({ at: e.received_at, mode: e.mode, text: e.record.cues.trim() }));
@@ -87,7 +123,9 @@ export function summarize(rows) {
   return {
     players: new Set(events.map((e) => e.player)).size,
     games: new Set(events.map((e) => e.game)).size,
-    saved: Object.keys(latestSave).length,
+    finished: finishedGames.length,
+    scores,
+    unbacked,
     skipped,
     match: summarizeMatch(rounds.filter((e) => e.mode === "match").map((e) => e.record)),
     classic: summarizeClassic(rounds.filter((e) => e.mode === "classic").map((e) => e.record)),
@@ -102,7 +140,8 @@ const row = (label, t) => `  ${label.padEnd(10)} ${`${t.right}/${t.n}`.padStart(
 
 /** Plain-text report for the terminal. Times are median ms from first Play to answer. */
 export function formatReport(s, { topPairs = 10 } = {}) {
-  const lines = [`${plural(s.players, "player")}, ${plural(s.games, "game")}, ${s.saved} saved` +
+  const lines = [`${plural(s.players, "player")}, ${plural(s.games, "game")}, ${s.finished} finished` +
+    (s.unbacked ? ` (${s.unbacked} with scores their rounds don't support, left out of the distribution)` : "") +
     (s.skipped ? ` (${s.skipped} unreadable rows skipped)` : "")];
 
   const levels = Object.entries(s.match.byLevel);
@@ -133,4 +172,30 @@ export function formatReport(s, { topPairs = 10 } = {}) {
     for (const n of s.notes) lines.push(`  ${n.at.slice(0, 16).replace("T", " ")}  ${n.mode}: ${n.text.replace(/\s+/g, " ")}`);
   }
   return lines.join("\n");
+}
+
+/**
+ * What the public stats page shows: no notes, no player or game ids. Pairs and
+ * clips need `minAttempts` plays to be ranked; the easiest and hardest lists never
+ * share an entry.
+ */
+export function publicSummary(rows, { minAttempts = 3, top = 5 } = {}) {
+  const s = summarize(rows);
+  const ranked = (list) => {
+    const enough = list.filter((x) => x.n >= minAttempts);
+    const hardest = enough.slice(0, Math.min(top, Math.ceil(enough.length / 2)));
+    const easiest = enough.slice(hardest.length).reverse().slice(0, top);
+    return { hardest, easiest };
+  };
+  const pairs = ranked(s.match.pairs);
+  const clips = ranked(s.classic.byClip);
+  return {
+    players: s.players,
+    games: s.games,
+    finished: s.finished,
+    scores: s.scores,
+    minAttempts,
+    match: { byLevel: s.match.byLevel, hardByAttribute: s.match.hardByAttribute, ...pairs },
+    classic: { byQuestion: s.classic.byQuestion, ...clips },
+  };
 }

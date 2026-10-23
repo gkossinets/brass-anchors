@@ -4,7 +4,7 @@ Why things are the way they are, what's known to be weak, and what could come ne
 
 ## Status
 
-The pipeline and both game modes work end to end with 20 reviewed clips. The site is ready to deploy to Cloudflare Pages with anonymous play data in D1. Tests: 105 pytest and 67 `node --test`, all passing (`make test`).
+The pipeline and both game modes work end to end with 20 reviewed clips. The site is ready to deploy to Cloudflare Pages with anonymous play data in D1. Tests: 105 pytest and 81 `node --test`, all passing (`make test`).
 
 ## Corpus
 
@@ -59,7 +59,8 @@ Problems found this way, worth watching for:
 - **One audio element**: starting any clip stops the others.
 - **Spectrogram**: Web Audio `AnalyserNode` (fftSize 4096) drawn on a canvas, log axis 60 Hz to 3 kHz, -95 to -25 dB. Each clip fills the width left to right, so the whole contour stays visible and synth and original can be compared. It shows only what the clip carries, so it gives nothing away. Once routed through the AudioContext, the audio element is only audible through it.
 - **Sound memory**: the switch on each round screen remembers the choice (localStorage) for the next game.
-- **Defaults**: 5 rounds; Match the description is listed first and its Play button has focus.
+- **Defaults**: 10 rounds; Match the description is listed first and its Play button has focus.
+- **Results page** (`web/stats.html`, data from `GET /api/stats`): headline numbers, the score histogram, accuracy by difficulty and by what differed, and the five easiest and hardest comparisons (Match) or clips (Guess the clip). A comparison or clip needs 3 attempts to be ranked, and the easiest and hardest lists never share an entry. The end screen links to it with the player's score (`?mode=match&you=70`), which is marked on the histogram ("higher than 58% of finished games"). The histogram is one series, so no legend; your bin is the accent colour and the rest a lighter step of the same hue (validated as an ordinal pair against the card surface in both themes). Bars carry hover and focus tooltips, and a table view repeats the data. It's redrawn at the width available, so labels stay legible on a phone. No notes and no ids are published. Guess-the-clip clips are ranked by the share of questions answered with full marks, which compares variants that ask different questions.
 
 ### Match the description
 
@@ -89,7 +90,9 @@ Shared by both modes (`format: 2`). A game record has `mode`, `settings`, `round
 - **Collection**: `web/collect.js` sends each round as it's answered, via `sendBeacon` so the last one survives a closed tab, because many players won't finish or save. Save sends the whole game with notes. Sending is best-effort and never blocks play. Off on localhost unless `?collect=1`.
 - **Validation**: `server/collect-core.js` checks every event (kind, mode, UUID ids, round range, 64 KB body, 4000-character notes) before `functions/api/log.js` inserts it.
 - **Privacy**: a random player id per browser; no names, accounts, or IP addresses.
-- **Stats**: `server/stats-core.js` de-duplicates rounds per game and round, takes notes from each game's latest save, and treats pairs as unordered.
+- **Stats**: `server/stats-core.js` de-duplicates rounds per game and round, takes each game's latest record (sent when it finishes, and again on Save with notes), and treats pairs as unordered.
+- **Fake results**: the endpoint is open and the repo documents the format, so anyone could post made-up games. Cheap defences are in place: `collect-core.js` rejects impossible rounds (unknown difficulty, points that don't match it, a clip id outside `[a-z0-9_]`, answers under a second), and a final score enters the distribution only when rounds 1 to N all arrived and their points add up to it, so a single forged record can't move it (`make stats` counts those it left out). A script that posts consistent rounds still gets through. Cloudflare's rate-limiting binding isn't available to Pages Functions (Workers only), so a real per-sender limit would mean moving the API to a Worker, possibly with Turnstile (an invisible bot check) at game start.
+- **`/api/stats`** reads the whole events table per request and asks for a minute of caching; under `wrangler pages dev` the response carried Pages' default `max-age=0` instead, so check the header once deployed.
 - **Caching**: Pages serves files with `max-age=0, must-revalidate`, and the local server sends `no-cache`, so a browser never mixes a new page with old scripts.
 - **Range requests**: browsers need HTTP Range to seek in audio, and Safari needs it to play at all. `pipeline/static_server.py` adds it to Python's server for `make serve` and `make review`. Wrangler's dev server lacks it, which the game tolerates since it always plays from the start.
 
@@ -99,6 +102,7 @@ Shared by both modes (`format: 2`). A game record has `mode`, `settings`, `round
 - 14 of 20 clips are news, so most prompts say "news report".
 - No speaker has two clips in the game, so same-speaker hard pairs are untested on real data.
 - Tooltips don't show on touch screens.
+- Fake results: see "Fake results" above.
 
 ## Ideas
 

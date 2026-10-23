@@ -110,10 +110,14 @@ function exportSaved() {
 /**
  * Show the end screen. `buildRecord(cues)` returns the game record to save;
  * saving twice replaces the first save rather than adding a duplicate. When
- * collecting, Save also sends the record (`make stats` keeps the latest save per game).
+ * collecting, the record is sent as the game finishes (for the score
+ * distribution) and again on Save with the notes; the stats keep the latest.
+ * `mode` and `scorePct` let the results page mark where this game falls.
  */
-export function showEnd({ score, tableHtml, buildRecord, ids }) {
+export function showEnd({ score, tableHtml, buildRecord, ids, mode, scorePct }) {
   stopAudio();
+  send("game", ids, buildRecord(""));
+  $("see-results").href = `stats.html?mode=${mode}&you=${scorePct}`;
   $("final-score").textContent = score;
   $("summary-table").innerHTML = tableHtml;
   $("cues").value = "";

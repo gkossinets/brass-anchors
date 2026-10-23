@@ -34,9 +34,10 @@
       <fieldset>
         <legend>Options</legend>
         <label><input type="checkbox" id="pure"> Pure mode: leave out speakers you might recognize by voice alone</label>
-        <label>Rounds <input type="number" id="rounds" value="5" min="1" max="50"></label>
+        <label>Rounds <input type="number" id="rounds" value="10" min="1" max="50"></label>
       </fieldset>
       <p id="clip-count" class="muted"></p>
+      <p class="muted"><a href="stats.html">Everyone's results so far</a></p>
       <p id="collect-note" class="muted" hidden>To learn which comparisons are hard, this site records your answers, how long they take, and any notes you save. Anonymous: no names, accounts, or IP addresses.</p>
       <p id="load-error" class="error" hidden></p>
     </section>
@@ -94,6 +95,7 @@
         <button id="save" class="primary">Save</button>
         <button id="export">Export all saved games (JSON)</button>
         <button id="again">New game</button>
+        <a id="see-results" class="button" href="stats.html">See how everyone did</a>
       </div>
       <p id="save-status" class="muted"></p>
     </section>

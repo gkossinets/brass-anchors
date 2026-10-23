@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brass Anchors results</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="stats-page">
+    <header>
+      <h1><a class="home" href="./">Brass Anchors</a></h1>
+      <p class="tagline">Everyone's results so far</p>
+    </header>
+
+    <nav class="tabs" aria-label="Game mode">
+      <a id="tab-match" href="?mode=match">Match the description</a>
+      <a id="tab-classic" href="?mode=classic">Guess the clip</a>
+    </nav>
+
+    <p id="stats-status" class="muted">Loading…</p>
+
+    <div id="stats-body" hidden>
+      <div class="kpis" id="kpis"></div>
+
+      <section>
+        <h2>Final scores</h2>
+        <p id="you-line"></p>
+        <figure class="chart" id="score-chart"></figure>
+        <details>
+          <summary>Show as a table</summary>
+          <table id="score-table" class="data"></table>
+        </details>
+      </section>
+
+      <section id="match-sections">
+        <h2>Accuracy by difficulty</h2>
+        <table id="level-table" class="data"></table>
+        <h3>Hard rounds, by what differed</h3>
+        <table id="attribute-table" class="data"></table>
+        <h2>Hardest comparisons</h2>
+        <table id="hardest-pairs" class="data"></table>
+        <h2>Easiest comparisons</h2>
+        <table id="easiest-pairs" class="data"></table>
+      </section>
+
+      <section id="classic-sections">
+        <h2>Exact answers by question</h2>
+        <table id="question-table" class="data"></table>
+        <h2>Hardest clips</h2>
+        <table id="hardest-clips" class="data"></table>
+        <h2>Easiest clips</h2>
+        <table id="easiest-clips" class="data"></table>
+      </section>
+
+      <p class="muted" id="footnote"></p>
+    </div>
+
+    <p><a class="button" href="./">Play a game</a></p>
+  </main>
+  <script type="module" src="stats.js"></script>
+</body>
+</html>
