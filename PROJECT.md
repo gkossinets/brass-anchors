@@ -75,7 +75,7 @@ Problems found this way, worth watching for:
 
 ### Stats for geeks
 
-Computed from each clip's contour by `pipeline/stats.py`, rounded into the manifest, and formatted by `geekStatsRows`. Thresholds are relative to each clip's own speech level, since noise floors range from -36 to -43 dB across recordings. Definitions are hover tooltips (`title` attributes, so not on touch screens). The two reveal cards share a CSS subgrid so their sections line up.
+Shown on both reveals: on each Match card (lined up across A and B) and, for Guess the clip, beside the answer table (`web/geeks.js` builds the panel for both). Computed from each clip's contour by `pipeline/stats.py`, rounded into the manifest, and formatted by `geekStatsRows`. Thresholds are relative to each clip's own speech level, since noise floors range from -36 to -43 dB across recordings. Definitions are hover tooltips (`title` attributes, so not on touch screens). The two reveal cards share a CSS subgrid so their sections line up.
 
 - Average pitch (median Hz), pitch range (5th-95th percentile in semitones), and pitch variation (SD in semitones).
 - Pauses: unvoiced stretches at least 15 dB below speech level, 0.2 s or longer, excluding the clip's edges. Shown per minute, because clips run 12-24 s, plus the average pause length.

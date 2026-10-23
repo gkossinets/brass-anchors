@@ -1,6 +1,7 @@
 // "Match the description" screens. Rules live in match-core.js.
 import { displayAnswer } from "./quiz-core.js";
-import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch, LEVELS, geekStatsRows } from "./match-core.js";
+import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch, LEVELS } from "./match-core.js";
+import { geeksHtml } from "./geeks.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
 import { formatClock } from "./display-core.js";
@@ -179,15 +180,6 @@ function revealCardHtml(round, side, picked) {
       <a href="${clip.link}" target="_blank" rel="noopener">Source on YouTube</a>
     </div>
   </div>`;
-}
-
-function geeksHtml(clip) {
-  const rows = geekStatsRows(clip.stats);
-  // Always emit the block: both reveal cards need the same sections to line up on the shared grid.
-  if (rows.length === 0) return '<div class="geeks"></div>';
-  // Definitions live in tooltips (hover a label) to keep the table compact.
-  return `<div class="geeks"><p class="eyebrow accent">Stats for geeks</p><table>${rows.map((r) =>
-    `<tr><td><span class="term" title="${escape(r.hint)}">${r.label}</span></td><td>${escape(r.value)}</td></tr>`).join("")}</table></div>`;
 }
 
 function showReveal(round, picked, right, points) {

@@ -103,7 +103,11 @@
           <button id="next" class="primary big">Next</button>
         </div>
       </div>
-      <table id="reveal-table" class="answer-table"></table>
+      <!-- The answers beside the clip's Stats for geeks; stacked on narrow screens. -->
+      <div class="reveal-body">
+        <table id="reveal-table" class="answer-table"></table>
+        <div id="reveal-geeks"></div>
+      </div>
       <div class="panel">
         <p class="eyebrow">Now hear the real voice</p>
         <div class="well"><div class="spectro"><canvas id="spectrogram-original" aria-label="Spectrogram of the original"></canvas></div></div>

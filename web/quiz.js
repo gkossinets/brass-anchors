@@ -6,6 +6,7 @@ import {
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
 import { formatClock } from "./display-core.js";
+import { geeksHtml } from "./geeks.js";
 import { newGameIds, send } from "./collect.js";
 
 const LABELS = { decade: "Decade", country: "Country", genre: "News or opinion?", station: "Station (bonus)" };
@@ -155,6 +156,7 @@ function showReveal(clip, guess, heard, plays) {
   const year = clip.year ? `, ${clip.year}` : "";
   $("reveal-who").textContent = clip.speaker;
   $("reveal-meta").textContent = `${clip.program} (${clip.answer.station}${year})`;
+  $("reveal-geeks").innerHTML = geeksHtml(clip);
   header(true);
   const thumb = $("reveal-thumb");
   thumb.hidden = !clip.thumbnail;
