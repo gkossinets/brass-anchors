@@ -111,6 +111,7 @@ Then:
 
 - `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses, about 8 MB) and uploads it. Run `make audio` first if clips changed.
 - `make stats` reports players and games, counting only each player's first game, since later games replay familiar clips (`make stats ALL=1` includes replays); Match accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair; Guess-the-clip accuracy per question and per clip; and players' notes.
+- `make feedback` lists messages sent with the site's feedback form ("Send feedback" on the front and results pages). It asks for no name or contact details, so nobody's email appears on the site, and a hidden field quietly drops simple bot submissions. After pulling this change, run `make db-setup` once to add the feedback table.
 - `make site-dev` runs the deployable site locally with a local database at <http://localhost:8788/?collect=1>; `make stats LOCAL=1` reports on it.
 - Pages answers HTTP Range requests with the whole file, and Safari may not play audio from a server that does, so `functions/audio/[[path]].js` serves `/audio/*` with proper `206` responses. To check a deploy: `curl -sI -H 'Range: bytes=0-1' https://<site>/audio/trombone/<id>.mp3` should say `206`.
 
@@ -126,7 +127,7 @@ Anyone can post to `/api/log`, so the results are only as trustworthy as an open
 pipeline/    Python pipeline, review server, and site builder
 web/         the game (and the local review page)
 server/      validation, schema, and stats for collected play data
-functions/   Cloudflare Pages functions: /api/log, /api/stats, and ranged /audio/*
+functions/   Cloudflare Pages functions: /api/log, /api/stats, /api/feedback, and ranged /audio/*
 tools/       check-pairs and stats command-line reports
 tests/       pytest suite (JavaScript tests sit beside their modules as *.test.js)
 ```

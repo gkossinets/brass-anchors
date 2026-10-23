@@ -7,6 +7,7 @@ import { setupClassic, classicPoolSize, startClassic } from "./quiz.js";
 import { startMatch } from "./match.js";
 import { matchPoolSize, matchMaxRounds } from "./match-core.js";
 import { collecting } from "./collect.js";
+import { setupFeedback } from "./feedback.js";
 
 let corpus = [];
 let timbres = [];
@@ -70,6 +71,7 @@ function go(mode) {
 $("start").onclick = () => go("classic");
 $("start-match").onclick = () => go("match");
 $("again").onclick = () => go(null);
+setupFeedback("front");
 // The logo and name lead home. A plain click switches screens without a reload, like
 // New game; Cmd/Ctrl/Shift-clicks keep the browser's own behaviour (new tab, etc.).
 $("home-link").onclick = (e) => {

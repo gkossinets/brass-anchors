@@ -1,6 +1,7 @@
 // Results page: everyone's scores and the easiest and hardest comparisons, from /api/stats.
 import { histogram, compareToOthers, clipLabel, pageParams, pct } from "./stats-view-core.js";
 import { MATCH_CONFIG } from "./match-core.js";
+import { setupFeedback } from "./feedback.js";
 
 const $ = (id) => document.getElementById(id);
 const escape = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]);
@@ -160,6 +161,7 @@ function renderClassic(c, minAttempts) {
 // ---------- boot ----------
 
 $(`tab-${mode}`).setAttribute("aria-current", "page");
+setupFeedback("results");
 for (const el of document.querySelectorAll(".only-match")) el.hidden = mode !== "match";
 for (const el of document.querySelectorAll(".only-classic")) el.hidden = mode !== "classic";
 

@@ -12,3 +12,11 @@ CREATE TABLE IF NOT EXISTS events (
 );
 CREATE INDEX IF NOT EXISTS events_game ON events (game);
 CREATE INDEX IF NOT EXISTS events_kind_mode ON events (kind, mode);
+
+-- Messages from the site's feedback form. No names or contact details are asked for.
+CREATE TABLE IF NOT EXISTS feedback (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  received_at TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+  page        TEXT    NOT NULL,  -- front | results | other
+  message     TEXT    NOT NULL
+);

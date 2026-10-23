@@ -1,6 +1,6 @@
 PY := .venv/bin/python
 
-.PHONY: audio fetch normalize contours synth encode thumbs manifest serve review check-pairs test site site-dev deploy db-setup stats
+.PHONY: audio fetch normalize contours synth encode thumbs manifest serve review check-pairs test site site-dev deploy db-setup stats feedback
 
 # Full pipeline; every stage skips work that's already done, so reruns are cheap.
 audio: fetch normalize contours synth encode thumbs manifest
@@ -71,3 +71,7 @@ deploy: site
 # only (later games replay familiar clips); ALL=1 includes replays, LOCAL=1 reads the site-dev database
 stats:
 	@$(WRANGLER) d1 execute $(DB) $(if $(LOCAL),--local,--remote) --json --command "SELECT * FROM events" | node tools/stats.mjs $(if $(ALL),--all,)
+
+# Messages from the site's feedback form; LOCAL=1 reads the site-dev database
+feedback:
+	@$(WRANGLER) d1 execute $(DB) $(if $(LOCAL),--local,--remote) --json --command "SELECT received_at, page, message FROM feedback" | node tools/feedback.mjs
