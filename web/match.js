@@ -186,6 +186,7 @@ function showReveal(round, picked, right, points) {
   // "Correct", not "Right": the two clips sit left and right.
   $("match-result").textContent = right ? "Correct" : "Not this time";
   $("match-result").className = `result-tag ${right ? "right" : "wrong"}`;
+  $("match-reveal-possible").textContent = `${points} of 1 possible`;
   header(true);
   $("match-reveal-prompt").innerHTML = promptHtml(round.correct);
   const box = $("match-reveal-cards");
