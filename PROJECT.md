@@ -26,6 +26,7 @@ All work is on `main`; the other branches were deleted on 2026-10-24. The old de
 - `yt-dlp --force-keyframes-at-cuts` is required: without it, cuts start at the previous keyframe and pick up seconds of theme music.
 - Each clip keeps a cached block of its source audio (±60 s) in `sources/`, so uploads that vanish don't lose clips, and re-cuts take seconds. `raw/<id>.json` records each cut, so editing times in `clips.csv` triggers a re-cut.
 - Synthesis follows the speaker's pitch and loudness only: no vibrato or reverb, which would add movement the speaker didn't make. Trombone is the default. Voices use cascaded formants; instruments use resonance peaks, because cascading made them sound muffled.
+- Two sounds, trombone (default) and hum. The octave-up trumpet was dropped 2026-10-24: unused, and with three sounds the switch took two rows on a phone, pushing Reveal below the fold (Pixel 10). Phones also get 16px panel padding and gaps instead of 24px.
 - The game plays 48 kbit/s CBR MP3 (exact seeking). Opus would be smaller, but older iPhones don't play it reliably. WAVs stay the pipeline's working files, and a stale MP3 keeps its clip out of the manifest.
 
 **Game rules**
@@ -79,6 +80,5 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 **Adding languages** (decided 2026-10-23): French and Russian are done and live. Mandarin (mainland China) is next: about 10 clips, aiming for 5 men and 5 women and a spread of decades. Lead: CCTV *Xinwen Lianbo* from 1978 (so no 1960s-70s); watch for its music bed. News vs opinion doesn't matter for this mode, so genre balance isn't needed. Once Mandarin is in, the language card's text and the README need a fourth language.
 
 1. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
-2. Compare trumpet and trombone on women's voices; possibly choose the default sound per clip.
-3. Transcript-based speaking rate.
-4. Tone languages vs stress languages: a README paragraph once the language game has data.
+2. Transcript-based speaking rate.
+3. Tone languages vs stress languages: a README paragraph once the language game has data.

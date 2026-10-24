@@ -41,7 +41,6 @@ def test_manifest_contains_answers_audio_paths_and_link(tmp_path):
     assert first["audio"] == {
         "original": "audio/original/us_a.mp3",
         "trombone": "audio/trombone/us_a.mp3",
-        "brass": "audio/brass/us_a.mp3",
         "hum": "audio/hum/us_a.mp3",
     }
     assert first["link"] == "https://www.youtube.com/watch?v=AAA&t=192s"

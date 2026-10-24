@@ -424,7 +424,11 @@ textarea {
 @media (max-width: 600px) {
   main { padding: 0 16px 48px; }
   .modes, .cards { grid-template-columns: 1fr; }
-  .screen { gap: 24px; padding-top: 24px; }
+  /* Tighter spacing on phones, so a round's Reveal button shows without scrolling;
+     the narrower panel padding also keeps the round label on one line. */
+  .screen { gap: 16px; padding-top: 16px; }
+  .panel { padding: 16px; }
+  .action-row.ruled { padding-top: 16px; }
   .seg { width: 20px; }
   .options-row .push { margin-left: 0; }
   .lt-prompt, .lt-who { flex-basis: 100%; }
