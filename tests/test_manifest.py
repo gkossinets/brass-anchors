@@ -50,6 +50,12 @@ def test_manifest_contains_answers_audio_paths_and_link(tmp_path):
     assert m["clips"][1]["year"] is None
 
 
+def test_manifest_carries_the_speaker_sex(tmp_path):
+    # The clip stats page charts pitch for women and men apart.
+    m = build_manifest(load_clips(write_csv(tmp_path)), has_audio=lambda cid: True)
+    assert m["clips"][0]["sex"] == "m"
+
+
 def test_manifest_can_exclude_low_confidence(tmp_path):
     clips = load_clips(write_csv(tmp_path))
     m = build_manifest(clips, has_audio=lambda cid: True, exclude_low_confidence=True)

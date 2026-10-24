@@ -51,6 +51,7 @@ def clip_entry(clip: Clip, thumbnail: bool = False, stats: dict | None = None) -
             "station": clip.station,
         },
         "speaker": clip.speaker,
+        "sex": clip.sex,
         "program": clip.program,
         "year": clip.year,
         "recognizable": clip.recognizable,
