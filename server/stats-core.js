@@ -92,6 +92,15 @@ function scorePct(record) {
 }
 
 // Match and Guess the clip play the same English clips; the language game mostly others.
+/**
+ * Match games scored before log format 3, when a right pick was worth 1-3 points
+ * by difficulty. Match stats restarted with the one-point scoring, so these are
+ * left out of Match accuracy and scores (their notes still count).
+ */
+function oldScoringMatchGames(events) {
+  return new Set(events.filter((e) => e.kind === "round" && e.mode === "match" && !(e.record.format >= 3)).map((e) => e.game));
+}
+
 const clipFamily = (mode) => (mode === "language" ? "language" : "english");
 
 /**
@@ -130,6 +139,7 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
     }
   }
   const counted = firstGamesOnly ? firstGames(all) : new Set(all.map((e) => e.game));
+  const oldMatch = oldScoringMatchGames(all);
   const events = all.filter((e) => counted.has(e.game));
   const seenRounds = new Set();
   const rounds = events.filter((e) => {
@@ -149,7 +159,7 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
   let unbacked = 0;
   for (const e of finishedGames) {
     const p = scorePct(e.record);
-    if (p === null || !scores[e.mode]) continue;
+    if (p === null || !scores[e.mode] || oldMatch.has(e.game)) continue;
     if (backedByRounds(e.record, roundsByGame[e.game] ?? [])) scores[e.mode].push(p);
     else unbacked += 1;
   }
@@ -168,7 +178,8 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
     scores,
     unbacked,
     skipped,
-    match: summarizeMatch(rounds.filter((e) => e.mode === "match").map((e) => e.record)),
+    oldMatchGames: oldMatch.size,
+    match: summarizeMatch(rounds.filter((e) => e.mode === "match" && !oldMatch.has(e.game)).map((e) => e.record)),
     classic: summarizeClassic(rounds.filter((e) => e.mode === "classic").map((e) => e.record)),
     language: summarizeLanguage(rounds.filter((e) => e.mode === "language").map((e) => e.record)),
     notes,
@@ -185,7 +196,8 @@ export function formatReport(s, { topPairs = 10 } = {}) {
   const lines = [`${plural(s.players, "player")}, ${plural(s.games, "game")}, ${s.finished} finished` +
     (s.replays ? `; ${plural(s.replays, "replay")} left out (only each player's first game counts)` : "") +
     (s.unbacked ? ` (${s.unbacked} with scores their rounds don't support, left out of the distribution)` : "") +
-    (s.skipped ? ` (${s.skipped} unreadable rows skipped)` : "")];
+    (s.skipped ? ` (${s.skipped} unreadable rows skipped)` : "") +
+    (s.oldMatchGames ? `; ${plural(s.oldMatchGames, "Match game")} from before the scoring change left out` : "")];
 
   const levels = Object.entries(s.match.byLevel);
   if (levels.length) {

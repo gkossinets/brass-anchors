@@ -11,6 +11,15 @@ const round = (over = {}) => ({
     difficulty: "hard", points: 3, correct_id: "a", distractor_id: "b" },
   ...over,
 });
+test("match rounds from format 3 on score one point; format 2 rounds keep their multiplier", () => {
+  const flat = (record) => parseEvent(body(round({ record: { ...round().record, ...record } }))).ok;
+  assert.equal(flat({ format: 3, points: 1 }), true);
+  assert.equal(flat({ format: 3, points: 3 }), false);
+  assert.equal(flat({ format: 3, right: false, points: 0 }), true);
+  assert.equal(flat({ format: 2, points: 3 }), true, "games logged before the change still count");
+  assert.equal(flat({ format: 2, points: 1 }), false);
+});
+
 const game = (over = {}) => ({
   kind: "game", player: PLAYER, game: GAME, mode: "classic",
   record: { format: 2, mode: "classic", cues: "pauses gave it away", rounds: [] },

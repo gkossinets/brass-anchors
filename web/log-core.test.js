@@ -29,6 +29,7 @@ test("round records share one shape across modes", () => {
   for (const r of [match, classic]) {
     assert.deepEqual(Object.keys(r).slice(0, 7), ["format", "mode", "round", "clip_ids", "plays", "ms_first_play_to_answer", "timbre"]);
     assert.equal(r.format, LOG_FORMAT);
+    assert.equal(LOG_FORMAT, 3, "format 3: Match rounds score one point each");
   }
   assert.equal(match.mode, "match");
   assert.equal(match.difficulty, "hard");

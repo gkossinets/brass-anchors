@@ -137,11 +137,11 @@ function pairRow(p) {
 
 function renderMatch(m, minAttempts) {
   const levels = Object.entries(m.byLevel).map(([level, t]) =>
-    [`${level[0].toUpperCase()}${level.slice(1)} (×${MATCH_CONFIG.points[level]})`, pct(t.right, t.n), secs(t.medianMs), t.n]);
-  $("level-table").innerHTML = rows(["Level", "Right", "Time", "Rounds"], levels, "No rounds played yet.");
+    [MATCH_CONFIG.pairLabel[level] ?? level, pct(t.right, t.n), secs(t.medianMs), t.n]);
+  $("level-table").innerHTML = rows(["The two clips", "Right", "Time", "Rounds"], levels, "No rounds played yet.");
   const attrs = Object.entries(m.hardByAttribute).map(([attr, t]) =>
     [`Only ${MATCH_CONFIG.attributeLabel[attr] ?? attr}`, pct(t.right, t.n), secs(t.medianMs), t.n]);
-  $("attribute-table").innerHTML = rows(["Differed in", "Right", "Time", "Rounds"], attrs, "No hard rounds yet.");
+  $("attribute-table").innerHTML = rows(["Differed in", "Right", "Time", "Rounds"], attrs, "No such rounds yet.");
   const notYet = `Not enough plays yet: a comparison needs ${minAttempts} attempts to be ranked.`;
   $("hardest-pairs").innerHTML = rows(["Clips", "Right", "Time", "Tries"], m.hardest.map(pairRow), notYet);
   $("easiest-pairs").innerHTML = rows(["Clips", "Right", "Time", "Tries"], m.easiest.map(pairRow), notYet);

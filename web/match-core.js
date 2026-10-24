@@ -1,4 +1,6 @@
 // "Match the description" rules: descriptions, distractor choice, difficulty, scoring.
+// Difficulty only shapes the game (closer pairs later on); players never see it,
+// and every right pick scores one point.
 // Pure (no DOM), so it runs under `node --test` and in tools/check-pairs.mjs.
 import { shuffle, englishOnly } from "./quiz-core.js";
 
@@ -11,7 +13,8 @@ export const MATCH_CONFIG = {
   genreNoun: { news: "news report", opinion: "opinion piece" },
   // Used in "When only ___ differed" on the end screen.
   attributeLabel: { country: "the country", decade: "the decade", genre: "news vs opinion" },
-  points: { easy: 1, medium: 2, hard: 3 },
+  // How the results page names each pairing level; players never see "easy" or "hard".
+  pairLabel: { easy: "Very different", medium: "Somewhat alike", hard: "Alike but for one thing" },
   // A decade difference this many decades or more apart counts as two differences:
   // 1960s vs 2020s is far easier to hear than 1990s vs 2000s.
   decadeFarGap: 3,
@@ -95,19 +98,18 @@ export function candidateDistractors(correct, pool, level) {
 }
 
 // English only: see englishOnly in quiz-core.js.
-function eligible(clips, pure) {
-  const english = englishOnly(clips);
-  return pure ? english.filter((c) => c.recognizable !== "likely") : english;
+function eligible(clips) {
+  return englishOnly(clips);
 }
 
 /** How many clips a match game with these settings can draw from (front-page status line). */
-export function matchPoolSize(clips, { pure = false } = {}) {
-  return eligible(clips, pure).length;
+export function matchPoolSize(clips) {
+  return eligible(clips).length;
 }
 
 /** The most rounds a game can have: two clips a round, and no clip is heard twice. */
-export function matchMaxRounds(clips, { pure = false } = {}) {
-  return Math.floor(eligible(clips, pure).length / 2);
+export function matchMaxRounds(clips) {
+  return Math.floor(eligible(clips).length / 2);
 }
 
 // The search is randomized, and an unlucky ordering can wander for a long time
@@ -185,8 +187,8 @@ function searchOnce(pool, schedule, rng, allowed) {
  *
  * @returns {{rounds: object[], fallbacks: string[]}}
  */
-export function buildMatchGame(clips, { rounds = 10, pure = false, rng = Math.random } = {}) {
-  const pool = eligible(clips, pure);
+export function buildMatchGame(clips, { rounds = 10, rng = Math.random } = {}) {
+  const pool = eligible(clips);
   const schedule = difficultySchedule(Math.min(rounds, Math.floor(pool.length / 2)));
   let picks = searchPairs(pool, schedule, rng, (requested) => [requested]);
   if (picks.filter(Boolean).length < schedule.length) {
@@ -214,10 +216,10 @@ export function buildMatchGame(clips, { rounds = 10, pure = false, rng = Math.ra
   return { rounds: out, fallbacks };
 }
 
-/** Points for a pick: the level's multiplier when right, else 0. */
+/** Points for a pick: one when right, else 0. */
 export function scoreMatch(round, pickedSide) {
   const right = pickedSide === round.correctSide;
-  return { right, points: right ? MATCH_CONFIG.points[round.level] : 0 };
+  return { right, points: right ? 1 : 0 };
 }
 
 /** Totals plus accuracy by level and, for hard rounds, by the one attribute that differed. */
@@ -228,7 +230,7 @@ export function summarizeMatch(results) {
   let max = 0;
   for (const r of results) {
     total += r.points;
-    max += MATCH_CONFIG.points[r.level];
+    max += 1;
     byLevel[r.level].total += 1;
     byLevel[r.level].right += r.right ? 1 : 0;
     if (r.level === "hard") {
@@ -246,8 +248,8 @@ export function summarizeMatch(results) {
  * have no partner at a level, and which single attribute separates hard pairs
  * (decade-only hard pairs are at most decadeFarGap - 1 decades apart).
  */
-export function pairCoverage(clips, { pure = false } = {}) {
-  const pool = eligible(clips, pure);
+export function pairCoverage(clips) {
+  const pool = eligible(clips);
   const pairs = Object.fromEntries(LEVELS.map((l) => [l, 0]));
   const unusable = Object.fromEntries(LEVELS.map((l) => [l, []]));
   const hardByAttribute = {};

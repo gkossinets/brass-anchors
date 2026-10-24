@@ -26,7 +26,7 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and tw
 - The game plays 48 kbit/s CBR MP3 (exact seeking). Opus would be smaller, but older iPhones don't play it reliably. WAVs stay the pipeline's working files, and a stale MP3 keeps its clip out of the manifest.
 
 **Game rules**
-- Match difficulty counts differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (those are easy to hear). Easy is 3+, medium 2, hard 1.
+- Match scores one point per right pick (log format 3 on). It used to multiply by difficulty (1-3), but players couldn't tell the levels apart, so the labels went too. Match stats restart with format 3: older Match games stay in the database but are left out of the results. Difficulty still orders the pairs, closest last. It counts differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (those are easy to hear). Easy is 3+, medium 2, hard 1.
 - No clip plays twice in a Match game, because a heard clip is recognizable by its opening. So a game is at most half as many rounds as there are clips. Pairing is a randomized backtracking search with restarts, which keeps the full easy-to-hard ramp.
 - Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts), and it's shown for English only, the language it was calibrated on.
 - Guess the language takes rounds from each language in turn: English is the biggest set, so a draw from the whole pool would make "English" the safe guess. It opens at three languages; with two it's a coin flip. One point per round.

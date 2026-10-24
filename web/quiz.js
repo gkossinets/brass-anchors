@@ -224,7 +224,6 @@ function finish() {
       settings: {
         variant: game.variant,
         country: game.variant === "same-chair" ? game.country : null,
-        pure: game.pure,
         rounds: game.rounds,
         timbre_at_start: game.timbre_at_start,
       },

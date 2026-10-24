@@ -18,9 +18,9 @@ try {
 const pad = (s, n) => String(s).padEnd(n);
 const lpad = (s, n) => String(s).padStart(n);
 
-for (const pure of [false, true]) {
-  const cov = pairCoverage(clips, { pure });
-  console.log(`\n${pure ? "Pure mode (recognizable=likely excluded)" : "All clips"}: ${cov.clips} clips`);
+{
+  const cov = pairCoverage(clips);
+  console.log(`\nAll clips: ${cov.clips} clips`);
   console.log(`${pad("level", 8)}${lpad("pairs", 7)}  clips with no partner at this level`);
   for (const level of LEVELS) {
     const none = cov.unusable[level];

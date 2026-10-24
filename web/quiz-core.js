@@ -117,11 +117,9 @@ export function englishOnly(clips) {
 }
 
 /** Apply the game variant's clip restrictions. */
-export function filterClips(clips, { variant, country, pure = false }) {
+export function filterClips(clips, { variant, country }) {
   const pool = variant === "language" ? clips : englishOnly(clips);
-  return pool.filter((c) =>
-    (!pure || c.recognizable !== "likely") &&
-    (variant !== "same-chair" || c.answer.country === country));
+  return pool.filter((c) => variant !== "same-chair" || c.answer.country === country);
 }
 
 /** How many languages these clips cover. */

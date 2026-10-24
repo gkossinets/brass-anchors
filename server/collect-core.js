@@ -65,7 +65,9 @@ const plausibleMs = (ms) => typeof ms === "number" && ms >= MIN_ANSWER_MS && ms 
 function matchRoundProblem(r) {
   if (!Object.hasOwn(LEVEL_POINTS, r.difficulty ?? "")) return "unknown difficulty";
   if (typeof r.right !== "boolean") return "right is not true or false";
-  if (r.points !== (r.right ? LEVEL_POINTS[r.difficulty] : 0)) return "points don't match the difficulty";
+  // Format 3 dropped the difficulty multiplier; older games keep the points they were played for.
+  const pointsIfRight = r.format >= 3 ? 1 : LEVEL_POINTS[r.difficulty];
+  if (r.points !== (r.right ? pointsIfRight : 0)) return "points don't match the scoring";
   if (!CLIP_ID.test(r.correct_id ?? "") || !CLIP_ID.test(r.distractor_id ?? "")) return "bad clip id";
   if (!plausibleMs(r.ms_first_play_to_answer)) return "implausible answer time";
   return null;

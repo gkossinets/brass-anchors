@@ -79,7 +79,7 @@ test("candidates differ by exactly the level's count; same speaker only at hard"
   }
 });
 
-function checkGame(game, corpus, { pure = false } = {}) {
+function checkGame(game, corpus) {
   // Once heard, a clip is recognizable by its opening, so no clip plays twice in a game, in either role.
   const heard = game.rounds.flatMap((r) => [r.correct.id, r.distractor.id]);
   assert.equal(new Set(heard).size, heard.length, "no clip is used twice in a game");
@@ -91,15 +91,13 @@ function checkGame(game, corpus, { pure = false } = {}) {
     if (r.level === "hard" && r.differs[0] === "decade") assert.ok(r.decadeGap < MATCH_CONFIG.decadeFarGap, "far-apart decades are never hard");
     if (r.correct.speaker === r.distractor.speaker) assert.equal(r.level, "hard");
     assert.ok(["A", "B"].includes(r.correctSide));
-    if (pure) for (const c of [r.correct, r.distractor]) assert.notEqual(c.recognizable, "likely");
   });
 }
 
 test("many generated games obey every pairing rule", () => {
   for (let seed = 0; seed < 300; seed++) {
-    const pure = seed % 2 === 0;
-    const game = buildMatchGame(CORPUS, { rounds: 6, pure, rng: seededRng(seed) });
-    checkGame(game, CORPUS, { pure });
+    const game = buildMatchGame(CORPUS, { rounds: 6, rng: seededRng(seed) });
+    checkGame(game, CORPUS);
   }
 });
 
@@ -108,11 +106,10 @@ test("pairs from the real manifest obey every rule (when web/quiz.json has been 
   if (!existsSync(path)) return t.skip("web/quiz.json not built");
   const corpus = JSON.parse(readFileSync(path)).clips;
   for (let seed = 0; seed < 500; seed++) {
-    const pure = seed % 3 === 0;
-    const game = buildMatchGame(corpus, { rounds: 10, pure, rng: seededRng(seed) });
-    // Two clips a round, none reused: 20 clips allow 10 rounds, pure mode's 19 allow 9.
-    assert.equal(game.rounds.length, Math.min(10, matchMaxRounds(corpus, { pure })));
-    checkGame(game, corpus, { pure });
+    const game = buildMatchGame(corpus, { rounds: 10, rng: seededRng(seed) });
+    // Two clips a round, none reused: 20 clips allow 10 rounds.
+    assert.equal(game.rounds.length, Math.min(10, matchMaxRounds(corpus)));
+    checkGame(game, corpus);
     assert.deepEqual(game.fallbacks, [], `seed ${seed}: the corpus supports the full ramp without reuse`);
   }
 });
@@ -148,7 +145,6 @@ test("missing hard pairs fall back to an easier level, and say so", () => {
 
 test("a game is at most half as many rounds as there are clips, since none is reused", () => {
   assert.equal(matchMaxRounds(CORPUS), 4);
-  assert.equal(matchMaxRounds(CORPUS, { pure: true }), 3); // 7 clips without the recognizable one
   assert.equal(buildMatchGame(CORPUS, { rounds: 50, rng: seededRng(2) }).rounds.length, 4);
 });
 
@@ -166,9 +162,10 @@ test("pairing searches ahead: a pick that strands the last two clips is avoided"
   }
 });
 
-test("scoring multiplies by difficulty from config", () => {
-  assert.deepEqual(MATCH_CONFIG.points, { easy: 1, medium: 2, hard: 3 });
-  assert.deepEqual(scoreMatch({ level: "hard", correctSide: "B" }, "B"), { right: true, points: 3 });
+test("a right pick is one point whatever the pairing: players can't tell the levels apart", () => {
+  assert.equal(MATCH_CONFIG.points, undefined);
+  assert.deepEqual(scoreMatch({ level: "hard", correctSide: "B" }, "B"), { right: true, points: 1 });
+  assert.deepEqual(scoreMatch({ level: "easy", correctSide: "A" }, "A"), { right: true, points: 1 });
   assert.deepEqual(scoreMatch({ level: "hard", correctSide: "B" }, "A"), { right: false, points: 0 });
 });
 
@@ -176,13 +173,13 @@ test("summary breaks accuracy down by difficulty and by what differed in hard ro
   const results = [
     { level: "easy", differs: ["country", "decade", "genre"], right: true, points: 1 },
     { level: "medium", differs: ["decade", "genre"], right: false, points: 0 },
-    { level: "hard", differs: ["decade"], right: true, points: 3 },
+    { level: "hard", differs: ["decade"], right: true, points: 1 },
     { level: "hard", differs: ["decade"], right: false, points: 0 },
-    { level: "hard", differs: ["genre"], right: true, points: 3 },
+    { level: "hard", differs: ["genre"], right: true, points: 1 },
   ];
   const s = summarizeMatch(results);
-  assert.equal(s.total, 7);
-  assert.equal(s.max, 1 + 2 + 3 + 3 + 3);
+  assert.equal(s.total, 3, "X out of 10: one point per right pick");
+  assert.equal(s.max, 5);
   assert.deepEqual(s.byLevel.hard, { right: 2, total: 3 });
   assert.deepEqual(s.byLevel.medium, { right: 0, total: 1 });
   assert.deepEqual(s.hardByAttribute, { decade: { right: 1, total: 2 }, genre: { right: 1, total: 1 } });
@@ -198,8 +195,6 @@ test("pair coverage counts pairs per level, clips without partners, and what har
   assert.equal(Object.values(cov.hardDecadeGaps).reduce((a, b) => a + b, 0), cov.hardByAttribute.decade ?? 0);
   for (const gap of Object.keys(cov.hardDecadeGaps)) assert.ok(Number(gap) < MATCH_CONFIG.decadeFarGap);
   assert.ok(Array.isArray(cov.unusable.easy));
-  const pure = pairCoverage(CORPUS, { pure: true });
-  assert.ok(pure.pairs.easy <= cov.pairs.easy);
 });
 
 test("stats for geeks: labelled rows with units, plain-language hints, and dashes for missing values", async () => {
@@ -236,9 +231,8 @@ test("stats keep their decimals even for whole numbers (JSON turns 5.0 into 5)",
   assert.deepEqual(rows.map((r) => r.value), ["190 Hz", "12.0 semitones", "4.0 semitones", "5.0 syllables/s", "8", "0.50 s"]);
 });
 
-test("match pool size counts the clips a game can use; pure mode drops likely-recognizable ones", () => {
-  assert.equal(matchPoolSize(CORPUS, { pure: false }), 8);
-  assert.equal(matchPoolSize(CORPUS, { pure: true }), 7);
+test("match pool size counts the clips a game can use, recognizable voices included", () => {
+  assert.equal(matchPoolSize(CORPUS), 8);
 });
 
 test("findPhrase completes the FIND caption: an article, then the description", () => {

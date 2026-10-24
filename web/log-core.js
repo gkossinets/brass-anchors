@@ -1,8 +1,11 @@
 // Shared per-round log format for both modes, play tracking, and mode routing.
 // Pure (no DOM), so it runs under `node --test`.
 
-/** Bump when the round record's shape changes; games saved before format 2 have no `format` field. */
-export const LOG_FORMAT = 2;
+/**
+ * Bump when the round record's shape or meaning changes; games saved before format 2
+ * have no `format` field. Format 3: a right Match pick scores 1 point (it was 1-3 by difficulty).
+ */
+export const LOG_FORMAT = 3;
 const MODES = ["classic", "match", "language"];
 
 /** Counts plays per clip and times from the first play; `now` is injectable for tests. */

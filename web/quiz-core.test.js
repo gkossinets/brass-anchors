@@ -89,10 +89,9 @@ test("answers display capitalized for genre and unchanged otherwise", () => {
   assert.equal(displayAnswer("genre", undefined), undefined);
 });
 
-test("pure mode drops likely-recognizable clips", () => {
+test("recognizable voices stay in: there's no pure mode any more", () => {
   const ids = filterClips(CLIPS, { variant: "classic", pure: true }).map((c) => c.id);
-  assert.ok(!ids.includes("b"));
-  assert.equal(ids.length, 4);
+  assert.ok(ids.includes("b"));
 });
 
 test("same-chair variant keeps one country only", () => {
@@ -165,9 +164,8 @@ test("the description and decade games play English clips only", () => {
   assert.deepEqual(englishOnly(MIXED).map((c) => c.answer.country), Array(6).fill("US"));
 });
 
-test("the language game draws on every language, and pure mode still applies", () => {
+test("the language game draws on every language", () => {
   assert.equal(filterClips(MIXED, { variant: "language" }).length, 15);
-  assert.ok(!filterClips(MIXED, { variant: "language", pure: true }).some((c) => c.id === "f2"));
 });
 
 test("the language game asks one question worth 1 point, with no bonus", () => {

@@ -8,8 +8,10 @@ const row = (kind, game, payload, { player = `p_${game}`, mode = payload.mode, a
   ({ id: ++nextId, kind, player, game, mode, round: payload.round ?? null, received_at: at, payload: JSON.stringify(payload) });
 
 const LEVEL_POINTS = { easy: 1, medium: 2, hard: 3 };
-const matchRound = (game, round, level, right, ms, { correct = "a", distractor = "b", differs = ["decade"] } = {}) =>
-  row("round", game, { mode: "match", round, difficulty: level, right, points: right ? LEVEL_POINTS[level] : 0,
+// Format 3 and later: one point per right pick. Format 2 multiplied by difficulty.
+const matchRound = (game, round, level, right, ms, { correct = "a", distractor = "b", differs = ["decade"], format = 3 } = {}) =>
+  row("round", game, { format, mode: "match", round, difficulty: level, right,
+    points: right ? (format >= 3 ? 1 : LEVEL_POINTS[level]) : 0,
     ms_first_play_to_answer: ms, correct_id: correct, distractor_id: distractor, differs });
 
 const classicRound = (game, round, clip, guess, score, ms) =>
@@ -37,9 +39,9 @@ const asPlayer = (player, ...rows) => rows.map((r) => ({ ...r, player }));
 
 test("only each player's first game counts: later games replay clips they've heard", () => {
   const rows = [
-    ...asPlayer("ann", matchRound("ann1", 1, "hard", false, 9000), finished("ann1", "match", 0, 3),
-      matchRound("ann2", 1, "hard", true, 2000), finished("ann2", "match", 3, 3)),
-    ...asPlayer("bob", matchRound("bob1", 1, "hard", true, 8000), finished("bob1", "match", 3, 3)),
+    ...asPlayer("ann", matchRound("ann1", 1, "hard", false, 9000), finished("ann1", "match", 0, 1),
+      matchRound("ann2", 1, "hard", true, 2000), finished("ann2", "match", 1, 1)),
+    ...asPlayer("bob", matchRound("bob1", 1, "hard", true, 8000), finished("bob1", "match", 1, 1)),
   ];
   const s = summarize(rows);
   assert.deepEqual(s.match.byLevel.hard, { n: 2, right: 1, medianMs: 8500 }, "ann's replay is left out");
@@ -146,7 +148,7 @@ test("the report is plain text with the headline numbers", () => {
 });
 
 test("rounds without both clip ids are left out of the pair list", () => {
-  const s = summarize([row("round", "g1", { mode: "match", round: 1, difficulty: "easy", right: true }),
+  const s = summarize([row("round", "g1", { format: 3, mode: "match", round: 1, difficulty: "easy", right: true }),
     matchRound("g2", 1, "easy", true, 1000)]);
   assert.deepEqual(s.match.pairs.map((p) => p.clips), [["a", "b"]]);
   assert.equal(s.match.byLevel.easy.n, 2);
@@ -157,7 +159,7 @@ const finished = (game, mode, total, max, extra = {}) => row("game", game, { mod
 test("final scores are percentages of each finished game's maximum, latest record per game", () => {
   const s = summarize([
     matchRound("g1", 1, "easy", true, 3000), matchRound("g1", 2, "easy", false, 3000), finished("g1", "match", 1, 2),
-    matchRound("g2", 1, "hard", true, 3000), finished("g2", "match", 3, 3),
+    matchRound("g2", 1, "hard", true, 3000), finished("g2", "match", 1, 1),
     classicRound("g3", 1, "c", {}, { total: 4 }, 3000), classicRound("g3", 2, "c", {}, { total: 5 }, 3000), finished("g3", "classic", 9, 50),
     { ...finished("g1", "match", 1, 2, { cues: "notes on save" }), received_at: "2026-10-23T11:00:00Z" },
     row("game", "g4", { mode: "match", cues: "" }), // no summary: older client, left out
@@ -206,7 +208,7 @@ test("classic clips are ranked the same way: hardest and easiest, enough attempt
 });
 
 test("a game's score counts only when every round arrived and they add up to its total", () => {
-  const rounds = (game, pts) => pts.map((p, i) => row("round", game, { mode: "match", round: i + 1, difficulty: "easy",
+  const rounds = (game, pts) => pts.map((p, i) => row("round", game, { format: 3, mode: "match", round: i + 1, difficulty: "easy",
     right: p > 0, points: p, ms_first_play_to_answer: 3000, correct_id: "a", distractor_id: "b" }));
   const s = summarize([
     ...rounds("real", [1, 0, 1]), finished("real", "match", 2, 3),
@@ -219,6 +221,18 @@ test("a game's score counts only when every round arrived and they add up to its
 });
 
 // ---------- Guess the language ----------
+
+test("Match stats restart with format 3: games scored by difficulty are left out, their notes kept", () => {
+  const s = summarize([
+    matchRound("old", 1, "hard", true, 3000, { format: 2 }), finished("old", "match", 3, 3, { cues: "old notes" }),
+    matchRound("new", 1, "hard", false, 3000), finished("new", "match", 0, 1),
+  ]);
+  assert.deepEqual(s.scores.match, [0]);
+  assert.deepEqual(s.match.byLevel, { hard: { n: 1, right: 0, medianMs: 3000 } });
+  assert.equal(s.oldMatchGames, 1);
+  assert.deepEqual(s.notes.map((n) => n.text), ["old notes"]);
+  assert.match(formatReport(s), /1 Match game from before the scoring change left out/);
+});
 
 const languageRound = (game, round, language, guessed, ms = 4000, clip = `${language}_clip`) =>
   row("round", game, { mode: "language", round, clip_id: clip, language, guess: { language: guessed },

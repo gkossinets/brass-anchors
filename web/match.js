@@ -1,6 +1,6 @@
 // "Match the description" screens. Rules live in match-core.js.
 import { displayAnswer } from "./quiz-core.js";
-import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch, LEVELS } from "./match-core.js";
+import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch } from "./match-core.js";
 import { geeksHtml } from "./geeks.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
@@ -18,7 +18,6 @@ function promptHtml(clip) {
   return escape(findPhrase(clip));
 }
 
-const capitalized = (s) => s[0].toUpperCase() + s.slice(1);
 const runningScore = () => game.results.reduce((sum, r) => sum + r.points, 0);
 
 function header(answered) {
@@ -31,7 +30,7 @@ function clipOn(round, side) {
 
 export function startMatch(corpus, timbreList, settings) {
   timbres = timbreList;
-  const built = buildMatchGame(corpus, { rounds: settings.rounds, pure: settings.pure });
+  const built = buildMatchGame(corpus, { rounds: settings.rounds });
   // Fallbacks are part of the game record too; the console note helps while curating.
   for (const note of built.fallbacks) console.info(`[match] ${note}`);
   game = {
@@ -46,7 +45,7 @@ export function startMatch(corpus, timbreList, settings) {
     ids: newGameIds(),
   };
   if (game.rounds.length === 0) {
-    $("match-prompt").textContent = "Not enough clips for this game. Try turning off pure mode.";
+    $("match-prompt").textContent = "Not enough clips for this game.";
     show("match");
     return;
   }
@@ -84,7 +83,7 @@ function showRound() {
   const heard = new Set();
   const ids = SIDES.map((s) => clipOn(round, s).id);
 
-  $("match-label").textContent = `Round ${game.index + 1} of ${game.rounds.length} · ${capitalized(round.level)}`;
+  $("match-label").textContent = `Round ${game.index + 1} of ${game.rounds.length}`;
   header(false);
   $("match-prompt").innerHTML = promptHtml(round.correct);
   const box = $("match-cards");
@@ -183,9 +182,9 @@ function revealCardHtml(round, side, picked) {
 }
 
 function showReveal(round, picked, right, points) {
-  $("match-reveal-label").textContent = `Round ${game.index + 1} of ${game.rounds.length} · ${capitalized(round.level)}`;
+  $("match-reveal-label").textContent = `Round ${game.index + 1} of ${game.rounds.length}`;
   // "Correct", not "Right": the two clips sit left and right.
-  $("match-result").textContent = right ? `Correct, +${points}` : "Not this time";
+  $("match-result").textContent = right ? "Correct" : "Not this time";
   $("match-result").className = `result-tag ${right ? "right" : "wrong"}`;
   header(true);
   $("match-reveal-prompt").innerHTML = promptHtml(round.correct);
@@ -210,27 +209,22 @@ function showReveal(round, picked, right, points) {
 
 function finish() {
   const s = summarizeMatch(game.results);
-  const levelRows = LEVELS.filter((l) => s.byLevel[l].total > 0).map((l) =>
-    `<tr><td>${l[0].toUpperCase() + l.slice(1)} (×${MATCH_CONFIG.points[l]})</td><td class="pts">${s.byLevel[l].right} / ${s.byLevel[l].total}</td></tr>`).join("");
-  const hardRows = Object.entries(s.hardByAttribute).map(([attr, r]) =>
+  // The closest pairs, where the clips differed in one thing only, are the telling ones.
+  const closeRows = Object.entries(s.hardByAttribute).map(([attr, r]) =>
     `<tr><td>When only ${MATCH_CONFIG.attributeLabel[attr]} differed</td><td class="pts">${r.right} / ${r.total}</td></tr>`).join("");
-  const note = game.fallbacks.length
-    ? `<tr><td colspan="2" class="muted">${game.fallbacks.length} round${game.fallbacks.length === 1 ? "" : "s"} used an easier pair than planned: the corpus ran short.</td></tr>`
-    : "";
   showEnd({
     score: `${s.total} / ${s.max}`,
     ids: game.ids,
     mode: "match",
     scorePct: Math.round((100 * s.total) / s.max),
     meta: `Match the description · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
-    tableHtml: `<tr><th>Accuracy</th><th></th></tr>${levelRows}` +
-      (hardRows ? `<tr><th>Hard rounds</th><th></th></tr>${hardRows}` : "") + note,
+    tableHtml: closeRows ? `<tr><th>Closest pairs</th><th></th></tr>${closeRows}` : "",
     buildRecord: (cues) => ({
       format: LOG_FORMAT,
       mode: "match",
       started: game.started,
       finished: new Date().toISOString(),
-      settings: { pure: game.settings.pure, rounds: game.settings.rounds, timbre_at_start: game.settings.timbre },
+      settings: { rounds: game.settings.rounds, timbre_at_start: game.settings.timbre },
       fallbacks: game.fallbacks,
       summary: s,
       rounds: game.records,

@@ -17,7 +17,6 @@ function settings() {
   return {
     variant: document.querySelector('input[name="variant"]:checked').value,
     country: $("chair-country").value,
-    pure: $("pure").checked,
     rounds: Math.max(1, parseInt($("rounds").value, 10) || 10),
     // No picker on the front page: games start with the sound last chosen in a game's own switch.
     timbre: startingTimbre(timbres),
@@ -30,8 +29,8 @@ function setupFrontPage() {
   const update = () => {
     const s = settings();
     const n = classicPoolSize(s);
-    const m = matchPoolSize(corpus, s);
-    const maxRounds = matchMaxRounds(corpus, s);
+    const m = matchPoolSize(corpus);
+    const maxRounds = matchMaxRounds(corpus);
     const languagePool = filterClips(corpus, { ...s, variant: "language" });
     const languages = languageOptions(languagePool);
     const languageReady = languages.length >= MIN_LANGUAGES;
@@ -43,11 +42,11 @@ function setupFrontPage() {
     // A Guess the clip game plays each clip once too, so it can't outrun its pool either.
     const classicRounds = Math.min(s.rounds, n);
     const rounds = (k) => `${k} round${k === 1 ? "" : "s"}`;
-    $("match-strip").textContent = `Two clips a round · ${rounds(matchRounds)}`;
-    $("classic-strip").textContent = `One clip a round · ${rounds(classicRounds)}`;
+    $("match-rounds").textContent = `Two clips a round · ${rounds(matchRounds)}`;
+    $("classic-rounds").textContent = `One clip a round · ${rounds(classicRounds)}`;
     const names = languages.map((l) => displayAnswer("language", l));
     const listed = names.length > 1 ? `${names.slice(0, -1).join(", ")}, or ${names.at(-1)}` : names.join("");
-    $("language-strip").textContent = languageReady
+    $("language-rounds").textContent = languageReady
       ? `One clip a round · ${rounds(Math.min(s.rounds, languagePool.length))}` : "Coming soon";
     $("language-desc").textContent = languageReady
       ? `Hear one clip and name its language: ${listed}.`

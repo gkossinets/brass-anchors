@@ -22,19 +22,31 @@
         <h1 class="hero-title">Brass Anchors</h1>
         <p class="lede">News voices replaced by a trombone, following their pitch and loudness. Can you still tell them apart?</p>
       </div>
+      <!-- Easiest first: the order is the difficulty ramp. -->
       <div class="modes">
         <div class="mode-card">
-          <div class="strip strip-accent" id="match-strip">Two clips a round</div>
+          <div class="strip strip-accent">Easy</div>
           <div class="mode-body">
-            <h2>Match the description</h2>
-            <p class="desc grow">Read a description, hear two English clips, and pick the one that fits. Starts easy, ends hard.</p>
-            <button id="start-match" class="primary" autofocus>Play</button>
+            <h2>Guess the language</h2>
+            <p class="meta" id="language-rounds"></p>
+            <p class="desc grow" id="language-desc">Hear one clip and name its language.</p>
+            <button id="start-language" class="primary" autofocus>Play</button>
           </div>
         </div>
         <div class="mode-card">
-          <div class="strip" id="classic-strip">One clip a round</div>
+          <div class="strip">Moderate</div>
+          <div class="mode-body">
+            <h2>Match the description</h2>
+            <p class="meta" id="match-rounds"></p>
+            <p class="desc grow">Read a description, hear two English clips, and pick the one that fits.</p>
+            <button id="start-match" class="secondary brass">Play</button>
+          </div>
+        </div>
+        <div class="mode-card">
+          <div class="strip">Advanced</div>
           <div class="mode-body">
             <h2>Guess the clip</h2>
+            <p class="meta" id="classic-rounds"></p>
             <p class="desc">Hear one English clip. Guess when, where, and whether it's news or opinion.</p>
             <div class="variants">
               <label><input type="radio" name="variant" value="classic" checked> Decade, country, news or opinion, plus a station bonus</label>
@@ -46,19 +58,8 @@
             <button id="start" class="secondary brass">Play</button>
           </div>
         </div>
-        <div class="mode-card wide">
-          <div class="strip" id="language-strip">One clip a round</div>
-          <div class="mode-body">
-            <div>
-              <h2>Guess the language</h2>
-              <p class="desc" id="language-desc">Hear one clip and name its language.</p>
-            </div>
-            <button id="start-language" class="secondary brass">Play</button>
-          </div>
-        </div>
       </div>
       <div class="options-row">
-        <label class="check"><input type="checkbox" id="pure"> Pure mode: leave out speakers you might recognize by voice alone</label>
         <label class="rounds">Rounds <input type="number" id="rounds" value="10" min="1" max="50"></label>
         <span id="clip-count" class="meta push"></span>
       </div>
