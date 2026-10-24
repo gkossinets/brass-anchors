@@ -31,11 +31,11 @@ def harmonic_amplitude(y: np.ndarray, freq: float) -> float:
 
 def test_timbre_set_with_trombone_first_as_the_game_default():
     # The game starts on the manifest's first timbre.
-    assert list(TIMBRES) == ["trombone", "brass", "hum"]
+    # Two timbres, so the switch fits on one line on a phone.
+    assert list(TIMBRES) == ["trombone", "hum"]
 
 
-def test_voice_like_timbres_are_not_transposed_and_brass_is():
-    assert TIMBRES["brass"].transpose_semitones == 12
+def test_timbres_play_at_true_pitch():
     for name in ("hum", "trombone"):
         assert TIMBRES[name].transpose_semitones == 0
 

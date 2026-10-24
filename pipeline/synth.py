@@ -50,17 +50,15 @@ class Timbre:
 
 
 # Order matters: the game starts on the first timbre. Trombone fits male voices
-# at true pitch; the octave-up trumpet may suit female voices better; hum is a
-# backup. (A cello preset was tried and dropped after listening.)
+# at true pitch; hum is a backup. (A cello preset was tried and dropped after
+# listening; the octave-up trumpet went unused and was dropped so the switch
+# fits on one line on a phone.)
 TIMBRES: dict[str, Timbre] = {
     # Brass source with a wide dark-to-bright swing (soft = mellow, loud = brassy);
     # broad bell/mouthpiece resonances.
     "trombone": Timbre("trombone", "Trombone", 0, dark_slope=2.4, bright_slope=0.9,
                        body=((500, 350, 2.5), (1100, 700, 2.0)),
                        ramp_seconds=0.015),
-    # The first sound the game had: an octave up, 12 harmonics, no resonances.
-    "brass": Timbre("brass", "Trumpet (octave up)", 12, dark_slope=1.6, bright_slope=0.6,
-                    max_harmonics=12, max_freq=0.45 * SAMPLE_RATE),
     # Neutral vowel (schwa-like) on a glottal-ish source: hummed speech melody.
     "hum": Timbre("hum", "Hum (voice)", 0, dark_slope=1.6, bright_slope=0.9,
                   formants=((500, 80), (1500, 100), (2500, 140), (3500, 200)),

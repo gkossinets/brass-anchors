@@ -2,7 +2,7 @@
 
 Can you tell a 1970s newsreader from a 2020s cable host by the melody of their voice alone?
 
-Brass Anchors is a browser game built from 10 to 20 second clips of news anchors and commentators. Each voice is replaced by a synthesized instrument (a trombone by default, or an octave-up trumpet or a voice-like hum) that follows the speaker's pitch and loudness but carries no words. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
+Brass Anchors is a browser game built from 10 to 20 second clips of news anchors and commentators. Each voice is replaced by a synthesized instrument (a trombone by default, or a voice-like hum) that follows the speaker's pitch and loudness but carries no words. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
 
 ## What the game tests
 
@@ -35,7 +35,7 @@ A Python pipeline turns a list of YouTube sections (`clips.csv`) into game audio
 1. Cut each section from a cached block of the video's audio (yt-dlp, ffmpeg).
 2. Normalize to mono 22.05 kHz at -23 LUFS, so loudness can't give a clip away.
 3. Track pitch with Praat (parselmouth) and loudness per 10 ms frame.
-4. Resynthesize: an additive engine renders harmonics on the pitch track, shaped by formants (hum) or brass resonances (trombone, trumpet), brighter as the speaker gets louder, silent wherever the speaker is.
+4. Resynthesize: an additive engine renders harmonics on the pitch track, shaped by formants (hum) or brass resonances (trombone), brighter as the speaker gets louder, silent wherever the speaker is.
 5. Encode MP3s for the browser and write the manifest `web/quiz.json`.
 
 The game is static HTML and vanilla JavaScript modules, with no build step and no framework. The source audio isn't in this repository: clone it, list clips in `clips.csv`, and the pipeline downloads and builds them.

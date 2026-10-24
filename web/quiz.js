@@ -3,7 +3,7 @@
 import {
   GENRES, decadeOptions, countryOptions, stationOptions, scoreRound,
   filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, pointsNote, guessMark,
-  englishOnly, languageOptions, pickLanguageRounds,
+  englishOnly, languageOptions, pickLanguageRounds, roundHint,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
@@ -127,9 +127,7 @@ function showRound() {
     const done = answered === questions.length;
     $("reveal").disabled = !done;
     if (done && hasBonus(game.variant) && bonus.hidden) bonus.hidden = false;
-    $("round-hint").textContent = !done ? `${answered} of ${questions.length} answered.`
-      : hasBonus(game.variant) ? "All answered. Try the bonus, or reveal whenever you're ready."
-      : "All answered. Reveal whenever you're ready.";
+    $("round-hint").textContent = roundHint(answered, questions.length);
   };
   onChange();
   for (const q of questions) renderQuestion(qs, q, clip, guess, onChange);

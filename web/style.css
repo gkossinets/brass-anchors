@@ -424,11 +424,27 @@ textarea {
 @media (max-width: 600px) {
   main { padding: 0 16px 48px; }
   .modes, .cards { grid-template-columns: 1fr; }
-  .screen { gap: 24px; padding-top: 24px; }
+  /* Tighter spacing on phones, so a round's Reveal button shows without scrolling;
+     the narrower panel padding also keeps the round label on one line. */
+  .topbar { padding-bottom: 12px; }
+  .screen { gap: 16px; padding-top: 12px; }
+  .panel { padding: 16px; }
+  .action-row.ruled { padding-top: 16px; }
+  /* "Round 10 of 10 · Guess the language" on one line down to 360px-wide phones. */
+  .panel-top .eyebrow { font-size: 12px; letter-spacing: 0.04em; }
   .seg { width: 20px; }
   .options-row .push { margin-left: 0; }
-  .lt-prompt, .lt-who { flex-basis: 100%; }
-  .reveal-body { grid-template-columns: 1fr; gap: 20px; }
+  .lt-prompt { flex-basis: 100%; }
+  /* Points beside the speaker's name rather than above it, and smaller gaps, so the
+     reveal shows "Hear the original" without scrolling. */
+  .reveal-head { gap: 12px; }
+  #screen-reveal .prompt-block { flex-basis: 100%; }
+  #screen-reveal .lower-third { flex-wrap: nowrap; }
+  #screen-reveal .lt-tag { padding: 8px 12px; }
+  .lt-points { font-size: 26px; }
+  .lt-who { flex: 1 1 0; min-width: 0; gap: 12px; padding: 8px 12px; }
+  #reveal-thumb { width: 44px; height: 44px; }
+  .reveal-body { grid-template-columns: 1fr; gap: 16px; }
   .push-right { align-self: stretch; }
 }
 
