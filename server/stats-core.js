@@ -121,14 +121,8 @@ function firstGames(events) {
   return new Set(Object.values(first).map((f) => f.game));
 }
 
-/**
- * Summarize event rows ({kind, player, game, mode, round, received_at, payload}).
- * A round sent twice counts once. Each game sends its record when it finishes and
- * again when the player saves notes; the latest record per game counts. By default
- * only each player's first game counts (see firstGames); players and games still
- * count everything, and `replays` says how many games were left out.
- */
-export function summarize(rows, { firstGamesOnly = true } = {}) {
+// Rows with their payload parsed; rows whose payload isn't JSON are counted and dropped.
+function parseRows(rows) {
   let skipped = 0;
   const all = [];
   for (const row of rows) {
@@ -138,17 +132,43 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
       skipped += 1;
     }
   }
-  const counted = firstGamesOnly ? firstGames(all) : new Set(all.map((e) => e.game));
-  const oldMatch = oldScoringMatchGames(all);
-  const events = all.filter((e) => counted.has(e.game));
-  const seenRounds = new Set();
-  const rounds = events.filter((e) => {
+  return { all, skipped };
+}
+
+const countedGames = (events, firstGamesOnly) => (firstGamesOnly ? firstGames(events) : new Set(events.map((e) => e.game)));
+
+// Round events, each game's round once: a round can be sent twice.
+function uniqueRounds(events) {
+  const seen = new Set();
+  return events.filter((e) => {
     if (e.kind !== "round") return false;
     const key = `${e.game}#${e.round}`;
-    if (seenRounds.has(key)) return false;
-    seenRounds.add(key);
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
+}
+
+/** The round events summarize counts ({...row, record}), for other summaries of the same rows. */
+export function countedRounds(rows, { firstGamesOnly = true } = {}) {
+  const { all } = parseRows(rows);
+  const counted = countedGames(all, firstGamesOnly);
+  return uniqueRounds(all.filter((e) => counted.has(e.game)));
+}
+
+/**
+ * Summarize event rows ({kind, player, game, mode, round, received_at, payload}).
+ * A round sent twice counts once. Each game sends its record when it finishes and
+ * again when the player saves notes; the latest record per game counts. By default
+ * only each player's first game counts (see firstGames); players and games still
+ * count everything, and `replays` says how many games were left out.
+ */
+export function summarize(rows, { firstGamesOnly = true } = {}) {
+  const { all, skipped } = parseRows(rows);
+  const counted = countedGames(all, firstGamesOnly);
+  const oldMatch = oldScoringMatchGames(all);
+  const events = all.filter((e) => counted.has(e.game));
+  const rounds = uniqueRounds(events);
   const latestGame = {};
   for (const e of events.filter((ev) => ev.kind === "game")) {
     if (!latestGame[e.game] || e.received_at > latestGame[e.game].received_at) latestGame[e.game] = e;
