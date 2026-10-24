@@ -14,3 +14,24 @@ export function collectionEnabled({ hostname, search }) {
 export function makeEvent(kind, { player, game }, record) {
   return { kind, player, game, mode: record.mode, record };
 }
+
+const RETRY_DELAY_MS = 2000;
+
+/**
+ * Post one event, retrying once after a network error or a server error (5xx). A 4xx means
+ * the server rejected the event, and sending it again would be rejected again.
+ * `post(body)` resolves to {ok, status} or throws; resolves to whether the event arrived.
+ */
+export async function deliver(post, body, { retries = 1, wait = (ms) => new Promise((r) => setTimeout(r, ms)) } = {}) {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await post(body);
+      if (res.ok) return true;
+      if (res.status < 500) return false;
+    } catch {
+      // network error: retry below
+    }
+    if (attempt >= retries) return false;
+    await wait(RETRY_DELAY_MS);
+  }
+}

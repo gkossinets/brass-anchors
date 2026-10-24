@@ -1,6 +1,6 @@
 // Sends game events to /api/log on the deployed site (see collect-core.js for when).
 // Best-effort: a failed send never interrupts play, and games still save locally.
-import { collectionEnabled, makeEvent } from "./collect-core.js";
+import { collectionEnabled, makeEvent, deliver } from "./collect-core.js";
 
 const PLAYER_KEY = "brass-anchors.player";
 
@@ -34,10 +34,12 @@ export function send(kind, ids, record) {
   if (!collecting || !ids) return;
   try {
     const body = JSON.stringify(makeEvent(kind, ids, record));
-    // sendBeacon survives the tab closing right after the last answer.
-    if (navigator.sendBeacon?.("/api/log", new Blob([body], { type: "application/json" }))) return;
-    fetch("/api/log", { method: "POST", body, keepalive: true, headers: { "Content-Type": "application/json" } })
-      .catch((err) => console.warn(`[collect] ${err.message}`));
+    // While the page is being hidden or closed, only sendBeacon reliably gets out. Otherwise a
+    // normal request, retried once: a beacon can't tell whether it arrived, and phones drop some.
+    if (document.visibilityState === "hidden" &&
+        navigator.sendBeacon?.("/api/log", new Blob([body], { type: "application/json" }))) return;
+    const post = (b) => fetch("/api/log", { method: "POST", body: b, keepalive: true, headers: { "Content-Type": "application/json" } });
+    deliver(post, body).then((arrived) => { if (!arrived) console.warn(`[collect] ${kind} event not stored`); });
   } catch (err) {
     console.warn(`[collect] ${err.message}`);
   }
