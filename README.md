@@ -28,6 +28,8 @@ The front page also sets the number of rounds (10 by default). The sound can be 
 
 On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by how alike the two clips were (Match), and the easiest and hardest comparisons (Match) or clips (Guess the clip), and how often each language is named correctly and what it's mistaken for.
 
+A clip stats page (`clips.html`, linked from the front page and the results page) compares the clips themselves: average pitch (women and men apart), pitch range and variation, pauses, and time silent, grouped by language, decade, or sex, as a table of medians and a dot chart per measurement with one dot per clip. It names the standouts (widest pitch range, most pauses, and so on) and lists each game's hardest clips, counting every game played.
+
 ## How it works
 
 A Python pipeline turns a list of YouTube sections (`clips.csv`) into game audio:
@@ -140,7 +142,7 @@ Anyone can post to `/api/log`, so the results are only as trustworthy as an open
 pipeline/    Python pipeline, review server, and site builder
 web/         the game (and the local review page)
 server/      validation, schema, and stats for collected play data
-functions/   Cloudflare Pages functions: /api/log, /api/stats, /api/feedback, and ranged /audio/*
+functions/   Cloudflare Pages functions: /api/log, /api/stats, /api/clip-stats, /api/feedback, and ranged /audio/*
 tools/       check-pairs and stats command-line reports
 design/      HTML mocks of the visual design and of layout options (open design/mobile/index.html)
 tests/       pytest suite (JavaScript tests sit beside their modules as *.test.js)

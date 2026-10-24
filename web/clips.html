@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Brass Anchors clip stats</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="stats-page clips-page">
+    <header class="topbar">
+      <a class="wordmark home" href="./">
+        <svg class="logo" width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="14" cy="14" r="12"></circle><path d="M14 4v20M6 10c3 2 13 2 16 0M6 18c3-2 13-2 16 0"></path></svg>
+        Brass Anchors
+      </a>
+      <div class="topbar-status"><span class="dot live"></span><span>Clip stats</span></div>
+    </header>
+    <div class="results-head">
+      <p class="eyebrow accent">The voices, measured</p>
+    </div>
+    <p class="note">How the anchors in the game sound, by language, decade, and sex, and which clips fool players most.
+      The measurements are explained in <a href="https://github.com/gkossinets/brass-anchors#what-the-game-tests" target="_blank" rel="noopener">what the game tests</a>.
+      Groups are small, one speaker per clip, so treat differences as hints.</p>
+    <p class="note">The charts are easiest to read on a desktop or another wide screen.</p>
+
+    <p id="load-error" class="error" hidden></p>
+
+    <section class="card result-card">
+      <h2 class="eyebrow">Hardest to get right</h2>
+      <nav class="tabs" role="tablist" aria-label="Game">
+        <button type="button" role="tab" class="tab" data-game="language">Guess the language</button>
+        <button type="button" role="tab" class="tab" data-game="match">Match the clue</button>
+        <button type="button" role="tab" class="tab" data-game="classic">Guess the clip</button>
+      </nav>
+      <table id="hardest" class="data hardest"></table>
+      <div id="mistaken-box" hidden>
+        <h3 class="eyebrow">Languages mistaken for others</h3>
+        <table id="mistaken" class="data"></table>
+      </div>
+      <p class="note" id="hardest-note"></p>
+    </section>
+
+    <section class="card result-card">
+      <div class="card-head">
+        <h2 class="eyebrow">At a glance</h2>
+        <div class="tabs group-switch" role="tablist" aria-label="Group by"></div>
+      </div>
+      <div class="table-scroll"><table id="glance" class="data glance"></table></div>
+      <p class="note">Medians: the middle clip of each group.</p>
+    </section>
+
+    <section class="card result-card">
+      <h2 class="eyebrow">Standouts</h2>
+      <ul id="standouts" class="standouts"></ul>
+    </section>
+
+    <section class="card result-card">
+      <div class="card-head">
+        <h2 class="eyebrow">Every clip</h2>
+        <div class="tabs group-switch" role="tablist" aria-label="Group by"></div>
+      </div>
+      <p class="chart-legend">
+        <svg width="12" height="12" aria-hidden="true"><circle class="clip-dot f" cx="6" cy="6" r="4.5"></circle></svg> woman
+        <svg width="12" height="12" aria-hidden="true"><circle class="clip-dot m" cx="6" cy="6" r="4.5"></circle></svg> man
+        <span class="legend-bar" aria-hidden="true"></span> group median
+      </p>
+      <div id="charts"></div>
+    </section>
+
+    <div class="footer-links">
+      <a class="button brass" href="./">Play a game</a>
+      <a href="stats.html">Everyone's results so far</a>
+    </div>
+    <div class="chart-tip" id="chart-tip" role="status" hidden></div>
+  </main>
+  <script type="module" src="clips.js"></script>
+</body>
+</html>

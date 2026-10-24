@@ -4,7 +4,7 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. A clip stats page (`clips.html`) compares the clips' speech measurements by language, decade, and sex, and lists each game's hardest clips (built 2026-10-24; design and plan in `docs/superpowers/`). Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
 
 All work is on `main`; the other branches and the `feature-ui` worktree were deleted on 2026-10-24. The old design spec, `design/broadcast-brass.md`, is no longer on any branch (its last commit is `eeb85c9`, recoverable until git prunes it).
 
@@ -12,7 +12,7 @@ All work is on `main`; the other branches and the `feature-ui` worktree were del
 
 - **Pipeline** (`pipeline/`, Python): `clips.csv` → cached source audio → normalized clips → pitch and loudness contours → instrument renders → MP3s → `web/quiz.json` (answers, audio paths, speech stats). `make review` is a local page for checking and editing clips; it has its own plain stylesheet (`web/review.css`), not the game's.
 - **Game** (`web/`): static HTML and vanilla ES modules, no build step. Game rules live in pure `*-core.js` modules with tests beside them; the DOM modules are thin.
-- **Server** (`functions/`, `server/`): Cloudflare Pages functions for `/api/log` (play data), `/api/stats` (the results page), `/api/feedback`, and ranged `/audio/*`. Checks and summaries are pure modules in `server/`, tested.
+- **Server** (`functions/`, `server/`): Cloudflare Pages functions for `/api/log` (play data), `/api/stats` (the results page), `/api/clip-stats` (the clip stats page's hardest clips), `/api/feedback`, and ranged `/audio/*`. Checks and summaries are pure modules in `server/`, tested.
 - **Deploy**: `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses) and uploads it. `make stats` and `make feedback` read the live database.
 
 ## Key decisions
@@ -50,6 +50,8 @@ All work is on `main`; the other branches and the `feature-ui` worktree were del
 - Pages answers HTTP Range requests with the whole file, and Safari may not play audio from such a server, so a function serves `/audio/*` with proper `206` responses.
 - Each browser keeps a lasting random player ID. A 10-round Match game plays all 20 English clips, so later games are replays of familiar clips; the stats count **each player's first game only** (`make stats ALL=1` includes replays). The language game counts separately: a player's first language game counts even after a Match game, since it plays mostly other clips. Because a lasting ID can count as personal data, the privacy note says plainly that one is kept, rather than claiming "no personal data".
 - Rounds are sent as they're answered, because many players won't finish or save.
+- The clip stats page counts every game for its hardest-clips lists, replays included, unlike the results page: the owner wanted it to fill quickly. One list per game, because the games miss at very different rates and Match and Guess the clip play English only: pooled, the list would be all English clips. A miss: the wrong language; in Guess the clip, any asked question scored zero (a decade one off isn't a miss; the bonus doesn't count); in Match, a wrong pick counts against the clip that fit.
+- The clip stats page charts pitch for women and men apart, always: pitch differs far more by sex than by language. Speaking rate stays off it (calibrated on English only).
 - The feedback form asks for no contact details, so there's no email on the site and no way to reply.
 - Defences against fake play data are cheap ones: impossible rounds are rejected, and a final score counts only if its rounds add up. A real per-sender rate limit isn't available to Pages Functions; it would mean moving the API to a Worker.
 
@@ -66,7 +68,7 @@ French (reviewed 2026-10-24): 5 men and 5 women, one each from the 1960s, 1970s,
 
 Russian (reviewed 2026-10-24, times trimmed in review): 5 men and 5 women, one each from the 1960s and 2020s and two from each decade between, except the 1970s, which has none. The official Soviet TV archive on YouTube has few 1970s anchors on camera. Sources are mostly official uploads (the state TV archive, *Vesti Nedeli*, TV Rain).
 
-Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1980s (Du Xian, 1989-06-04), then two each from the 1990s, 2000s, and 2020s, and three from the 2010s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. No man from the 1980s could be named: Xue Fei speaks only a few lines in the one named 1989 broadcast, and the uploads with longer readings by a man don't say who he is. Two clips are politically charged, and that was accepted: Du Xian's is the June 4, 1989 broadcast, famous for her slow, mournful delivery, and Pan Tao's is about the 1911 Revolution anniversary, ending on a line against separatists. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
+Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1990s (Xing Zhibin, 1996), three from the 2000s, four from the 2010s, and two from the 2020s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. Solemn readings were replaced (2026-10-24) because their slow, pause-heavy delivery came from the occasion, not the language, and dominated the clip stats standouts: Luo Jing's 1997 reading of Deng Xiaoping's death notice (43% silent) gave way to his 2008 newscast, and Du Xian's June 4, 1989 broadcast to Ouyang Xiadan (2019). That cost the 1980s: no other anchor from before 1996 could be named (Xue Fei speaks only a few lines in the one named 1989 broadcast; a 1991 upload credited to Zhang Hongmin is someone else's voice-over). Pan Tao's clip is about the 1911 Revolution anniversary, ending on a line against separatists; that was accepted. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
 
 Set-aside clips are in `backburner/clips.csv`: a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
@@ -89,7 +91,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 **Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24).
 
-1. A named Mandarin man from the 1980s, to replace one of the three 2010s clips. Leads: the 1988-07-13 and 1989-05-17 broadcasts have long readings by an unnamed man; a named 1980s source for Xue Fei, Zhao Zhongxiang, or a young Luo Jing would settle it.
+1. Named Mandarin anchors from the 1980s and 1990s reading ordinary news, to even out the decades (2010s has four clips). Leads: the 1988-07-13, 1989-05-17, and 1995-06-26 broadcasts have readings by unnamed anchors; an upload titled "1996 3 25 海霞" has Hai Xia in 1996 (she's the 2020s clip now).
 2. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
 3. Transcript-based speaking rate.
 4. Tone languages vs stress languages: a README paragraph once the language game has data, now that Mandarin (a tone language) is in.

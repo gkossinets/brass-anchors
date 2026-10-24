@@ -13,7 +13,8 @@ const MAX_CLASSIC_ROUND_POINTS = 5; // decade 2 + country 1 + genre 1 + station 
 // Faster than this, nobody has listened: a match pick needs both clips started.
 const MIN_ANSWER_MS = 1000;
 const MAX_ANSWER_MS = 60 * 60 * 1000;
-const CLIP_ID = /^[a-z0-9_]{1,64}$/;
+// Not a name every object inherits: summaries key objects by clip id.
+const CLIP_ID = /^(?!(?:__proto__|constructor|prototype)$)[a-z0-9_]{1,64}$/;
 const MODES = ["classic", "match", "language"];
 const LANGUAGES = ["en", "fr", "ru", "zh"]; // web/quiz-core.js LANGUAGES
 // Player and game ids are crypto.randomUUID() values made in the browser.
