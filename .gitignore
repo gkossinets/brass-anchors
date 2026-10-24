@@ -25,10 +25,11 @@ __pycache__/
 .vscode/
 .idea/
 
-# Backburner: clips set aside from the game; rows in backburner/clips.csv are committed
-backburner/raw/
-backburner/processed/
-backburner/sources/
+# Working files kept out of the public repo: clips set aside from the game, design mocks,
+# and design and planning notes
+backburner/
+design/
+docs/superpowers/
 
 # Brainstorming companion mockups
 .superpowers/

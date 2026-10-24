@@ -5,6 +5,7 @@ requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
   "numpy", "scipy", "soundfile", "librosa", "praat-parselmouth", "pyloudnorm", "matplotlib", "pillow",
+  "opencv-python-headless<5",  # 5.0 no longer ships the face-detection models
 ]
 
 [project.optional-dependencies]

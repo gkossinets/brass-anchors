@@ -87,7 +87,7 @@ Changing a clip's times in `clips.csv` and running `make audio` re-cuts just tha
 - `thumbnail_ok`: `yes` once the speaker picture has been checked on the review page
 - Rows whose `id` starts with `#` are ignored
 
-`backburner/clips.csv` holds clips set aside from the game; the pipeline reads only `clips.csv`.
+The pipeline reads only `clips.csv`; to set a clip aside, move its row to a file of your own.
 
 ### Speaker pictures
 
@@ -144,7 +144,6 @@ web/         the game (and the local review page)
 server/      validation, schema, and stats for collected play data
 functions/   Cloudflare Pages functions: /api/log, /api/stats, /api/clip-stats, /api/feedback, and ranged /audio/*
 tools/       check-pairs and stats command-line reports
-design/      HTML mocks of the visual design and of layout options (open design/mobile/index.html)
 tests/       pytest suite (JavaScript tests sit beside their modules as *.test.js)
 ```
 

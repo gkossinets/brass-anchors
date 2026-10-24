@@ -4,9 +4,7 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. A clip stats page (`clips.html`) compares the clips' speech measurements by language, decade, and sex, and lists each game's hardest clips (built 2026-10-24; design and plan in `docs/superpowers/`). Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
-
-All work is on `main`; the other branches and the `feature-ui` worktree were deleted on 2026-10-24. The old design spec, `design/broadcast-brass.md`, is no longer on any branch (its last commit is `eeb85c9`, recoverable until git prunes it).
+Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. A clip stats page (`clips.html`) compares the clips' speech measurements by language, decade, and sex, and lists each game's hardest clips (built 2026-10-24). Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
 
 ## Architecture
 
@@ -38,7 +36,7 @@ All work is on `main`; the other branches and the `feature-ui` worktree were del
 - Reveal waits until the clip has been played, in every game (Match already required both clips): a guess made without listening says nothing about the voice and skews the stats. Answers can still be picked first.
 - The station bonus in Guess the clip shows from the start of the round. It used to appear once the main questions were answered, which pushed Reveal down just as a phone player reached for it.
 - Language buttons show codes (EN, FR, RU, ZH) in one row of equal buttons; the full names were too wide for one row on a phone. Screen readers and the hover title get the full name, and the reveal table spells it out.
-- On every reveal, Next sits below the answer, flush right beside the round's score, where Reveal sits on the round screen; the original voice comes after. Mocks of the options considered are in `design/mobile/`.
+- On every reveal, Next sits below the answer, flush right beside the round's score, where Reveal sits on the round screen; the original voice comes after.
 - Match scores one point per right pick (log format 3 on). It used to multiply by difficulty (1-3), but players couldn't tell the levels apart, so the labels went too. Match stats restart with format 3: older Match games stay in the database but are left out of the results. Difficulty still orders the pairs, closest last. It counts differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (those are easy to hear). Easy is 3+, medium 2, hard 1.
 - No clip plays twice in a Match game, because a heard clip is recognizable by its opening. So a game is at most half as many rounds as there are clips. Pairing is a randomized backtracking search with restarts, which keeps the full easy-to-hard ramp.
 - Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts), and it's shown for English only, the language it was calibrated on.
@@ -70,7 +68,7 @@ Russian (reviewed 2026-10-24, times trimmed in review): 5 men and 5 women, one e
 
 Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1990s (Xing Zhibin, 1996), three from the 2000s, four from the 2010s, and two from the 2020s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. Solemn readings were replaced (2026-10-24) because their slow, pause-heavy delivery came from the occasion, not the language, and dominated the clip stats standouts: Luo Jing's 1997 reading of Deng Xiaoping's death notice (43% silent) gave way to his 2008 newscast, and Du Xian's June 4, 1989 broadcast to Ouyang Xiadan (2019). That cost the 1980s: no other anchor from before 1996 could be named (Xue Fei speaks only a few lines in the one named 1989 broadcast; a 1991 upload credited to Zhang Hongmin is someone else's voice-over). Pan Tao's clip is about the 1911 Revolution anniversary, ending on a line against separatists; that was accepted. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
 
-Set-aside clips are in `backburner/clips.csv`: a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
+Clips set aside (kept outside the repo): a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
 Curation pitfalls, worth checking on each new clip's diagnostic plot:
 - Censor bleeps, music beds, and mains hum: the pitch tracker latches onto them. `extract_contour` warns about steady tones. Official uploads are usually cleaner than re-uploads.
