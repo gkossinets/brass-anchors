@@ -16,7 +16,7 @@ const MISS_RULES = {
 };
 
 function hardest(records, rule, minAttempts, top) {
-  const byClip = {};
+  const byClip = Object.create(null); // a clip id like "__proto__" is just a key
   for (const record of records) {
     const { clip, missed } = rule(record);
     if (!clip) continue;

@@ -124,3 +124,10 @@ test("a language round can't claim a point for a wrong guess, or name a language
   assert.equal(parseEvent(body(languageRound({ guess: {} , score: { total: 0 } }))).ok, false);
   assert.equal(parseEvent(body(languageRound({ ms_first_play_to_answer: 10 }))).ok, false);
 });
+
+test("clip ids can't be names every object inherits: one such row used to break both stats pages", () => {
+  for (const id of ["__proto__", "constructor", "prototype"]) {
+    assert.equal(parseEvent(body(languageRound({ clip_id: id }))).ok, false, id);
+  }
+  assert.equal(parseEvent(body(languageRound({ clip_id: "fr_1970s_ortf_x" }))).ok, true);
+});

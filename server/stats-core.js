@@ -22,8 +22,9 @@ function tally(groups) {
   }]));
 }
 
+// Prototype-free, so a key like "__proto__" from a stored row is just a key.
 function groupBy(items, keyOf) {
-  const out = {};
+  const out = Object.create(null);
   for (const item of items) (out[keyOf(item)] ??= []).push(item);
   return out;
 }

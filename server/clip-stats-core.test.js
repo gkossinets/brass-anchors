@@ -100,3 +100,11 @@ test("no rows: empty lists, not errors", () => {
   const d = clipDifficulty([]);
   assert.deepEqual([d.language.hardest, d.match.hardest, d.classic.hardest, d.language.mistakenFor, d.rounds], [[], [], [], {}, 0]);
 });
+
+test("a clip id named like an inherited property is tallied like any other, without touching Object.prototype", () => {
+  const d = clipDifficulty(["g1", "g2", "g3"].map((g) => languageRound(g, 1, "__proto__", "fr", "ru")));
+  assert.deepEqual(d.language.hardest, [{ clip: "__proto__", n: 3, missed: 3 }]);
+  assert.equal({}.n, undefined);
+  const c = clipDifficulty(["g1", "g2", "g3"].map((g) => classicRound(g, 1, "__proto__", FULL, { decade: 0, country: 1, genre: 1, total: 2 })));
+  assert.deepEqual(c.classic.hardest, [{ clip: "__proto__", n: 3, missed: 3 }]);
+});
