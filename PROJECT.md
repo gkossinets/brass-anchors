@@ -4,7 +4,9 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and two game modes. A third, Guess the language, is built (branch `languages`) and waits for French, Russian, and Mandarin clips. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 40 reviewed clips: 20 English, 10 French, 10 Russian. Three games on the front page, easiest first: Guess the language (English, French, or Russian), Match the clue (formerly Match the description), and Guess the clip. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+
+All work is on `main`; the other branches were deleted on 2026-10-24. The old design spec, `design/broadcast-brass.md`, is no longer on any branch (its last commit is `eeb85c9`, recoverable until git prunes it).
 
 ## Architecture
 
@@ -19,6 +21,7 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and tw
 - Every clip has a required `language`. Match and Guess the clip play English (US and UK) only: in another language, the country and often the decade would be given away. Guess the language plays everything.
 - Mandarin comes from mainland China only, so each non-English language maps to one country.
 - `USSR/Russia` is one country label, because separate labels would give away the decade.
+- Speaker pictures come from a hand-made screenshot when there is one; otherwise they're picked from the clip's video (the face that keeps returning to the same spot, with a local vision model rejecting graphics and newsmakers). Picks are wrong often enough (2 of 20 on the English clips) that each needs a tick in the review page's thumbnail OK box.
 - Every clip is normalized to -23 LUFS, so loudness can't give a clip away.
 - `yt-dlp --force-keyframes-at-cuts` is required: without it, cuts start at the previous keyframe and pick up seconds of theme music.
 - Each clip keeps a cached block of its source audio (±60 s) in `sources/`, so uploads that vanish don't lose clips, and re-cuts take seconds. `raw/<id>.json` records each cut, so editing times in `clips.csv` triggers a re-cut.
@@ -26,6 +29,9 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and tw
 - The game plays 48 kbit/s CBR MP3 (exact seeking). Opus would be smaller, but older iPhones don't play it reliably. WAVs stay the pipeline's working files, and a stale MP3 keeps its clip out of the manifest.
 
 **Game rules**
+- Game names follow one pattern, "verb the noun", and each fits on one line of its front-page card. That's why Match the description became Match the clue; the card text still says "Read a description". The URL stays `?mode=match`.
+- Guess the clip has one setting, clips from the UK, the US, or both, instead of three variants. With one country picked, the country question is left out. Station options come only from the clips the game plays, so a French or Russian station can't turn up as an obvious wrong answer.
+- There's no "pure" mode (leaving out recognizable voices): it was rarely worth its checkbox.
 - Match scores one point per right pick (log format 3 on). It used to multiply by difficulty (1-3), but players couldn't tell the levels apart, so the labels went too. Match stats restart with format 3: older Match games stay in the database but are left out of the results. Difficulty still orders the pairs, closest last. It counts differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (those are easy to hear). Easy is 3+, medium 2, hard 1.
 - No clip plays twice in a Match game, because a heard clip is recognizable by its opening. So a game is at most half as many rounds as there are clips. Pairing is a randomized backtracking search with restarts, which keeps the full easy-to-hard ramp.
 - Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts), and it's shown for English only, the language it was calibrated on.
@@ -49,7 +55,9 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and tw
 
 The table counts English clips only: 5 men and 5 women each for the US and UK.
 
-Russian (added 2026-10-23, awaiting review): 5 men and 5 women, one each from the 1960s and 2020s and two from each decade between, except the 1970s, which has none. The official Soviet TV archive on YouTube has few 1970s anchors on camera. Sources are mostly official uploads (the state TV archive, *Vesti Nedeli*, TV Rain).
+French (reviewed 2026-10-24): 5 men and 5 women, one each from the 1960s, 1970s, 2010s, and 2020s, and two each from the 1980s to 2000s. Mostly France 2, plus Antenne 2, TF1, and RTF; 8 of the 10 come from INA's official uploads.
+
+Russian (reviewed 2026-10-24, times trimmed in review): 5 men and 5 women, one each from the 1960s and 2020s and two from each decade between, except the 1970s, which has none. The official Soviet TV archive on YouTube has few 1970s anchors on camera. Sources are mostly official uploads (the state TV archive, *Vesti Nedeli*, TV Rain).
 
 Set-aside clips are in `backburner/clips.csv`: a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
@@ -68,7 +76,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 ## Next steps
 
-**Adding languages** (decided 2026-10-23): about 10 clips each of French, Russian (the 2 set-aside clips plus 8), and Mandarin (mainland China), aiming for 5 men and 5 women each and a spread of decades. Leads to check: INA's official YouTube channels (France, well dated); Gosteleradiofond and *Vremya*, NTV *Segodnya* (Russia); CCTV *Xinwen Lianbo* from 1978 (China, so no 1960s-70s). Watch for mains hum on old Soviet re-uploads and the *Xinwen Lianbo* music bed. News vs opinion doesn't matter for this mode, so genre balance isn't needed. Deploy after each language; the language card says "Coming soon" until there are three.
+**Adding languages** (decided 2026-10-23): French and Russian are done and live. Mandarin (mainland China) is next: about 10 clips, aiming for 5 men and 5 women and a spread of decades. Lead: CCTV *Xinwen Lianbo* from 1978 (so no 1960s-70s); watch for its music bed. News vs opinion doesn't matter for this mode, so genre balance isn't needed. Once Mandarin is in, the language card's text and the README need a fourth language.
 
 1. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
 2. Compare trumpet and trombone on women's voices; possibly choose the default sound per clip.
