@@ -14,8 +14,8 @@ export const MIN_LANGUAGES = 3;
 
 const QUESTIONS = {
   "classic": ["decade", "country", "genre"],
-  "news-or-opinion": ["genre"],
-  "same-chair": ["decade"],
+  // One country chosen on the front page: asking which country would give it away.
+  "one-country": ["decade", "genre"],
   "language": ["language"],
 };
 // Country is worth 1 while the corpus is US/UK only: a two-way choice is a coin
@@ -98,9 +98,14 @@ export function questionsFor(variant) {
   return QUESTIONS[variant];
 }
 
-/** Station bonus only appears in the classic game. */
+/** Guess the clip's variant for the front page's country choice ("both", or one country). */
+export function clipVariant(country) {
+  return country === "both" ? "classic" : "one-country";
+}
+
+/** Station bonus appears in Guess the clip, whichever countries it plays. */
 export function hasBonus(variant) {
-  return variant === "classic";
+  return variant === "classic" || variant === "one-country";
 }
 
 export function maxScorePerRound(variant) {
@@ -119,7 +124,7 @@ export function englishOnly(clips) {
 /** Apply the game variant's clip restrictions. */
 export function filterClips(clips, { variant, country }) {
   const pool = variant === "language" ? clips : englishOnly(clips);
-  return pool.filter((c) => variant !== "same-chair" || c.answer.country === country);
+  return pool.filter((c) => variant !== "one-country" || c.answer.country === country);
 }
 
 /** How many languages these clips cover. */

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
-  scoreRound, filterClips, questionsFor, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark,
+  scoreRound, filterClips, questionsFor, clipVariant, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark,
   englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES } from "./quiz-core.js";
 
 const clip = (id, country, decade, genre, station, recognizable = "unlikely", language = "en") =>
@@ -94,21 +94,27 @@ test("recognizable voices stay in: there's no pure mode any more", () => {
   assert.ok(ids.includes("b"));
 });
 
-test("same-chair variant keeps one country only", () => {
-  const ids = filterClips(CLIPS, { variant: "same-chair", country: "USSR" }).map((c) => c.id);
+test("one-country game keeps that country's clips only", () => {
+  const ids = filterClips(CLIPS, { variant: "one-country", country: "USSR" }).map((c) => c.id);
   assert.deepEqual(ids, ["d", "e"]);
 });
 
-test("questions per variant", () => {
+test("questions per variant: one country drops the country question", () => {
   assert.deepEqual(questionsFor("classic"), ["decade", "country", "genre"]);
-  assert.deepEqual(questionsFor("news-or-opinion"), ["genre"]);
-  assert.deepEqual(questionsFor("same-chair"), ["decade"]);
+  assert.deepEqual(questionsFor("one-country"), ["decade", "genre"]);
+  assert.equal(questionsFor("news-or-opinion"), undefined, "retired variant");
+  assert.equal(questionsFor("same-chair"), undefined, "retired variant");
 });
 
 test("max score per round matches the variant's questions plus bonus", () => {
   assert.equal(maxScorePerRound("classic"), 5);
-  assert.equal(maxScorePerRound("news-or-opinion"), 1);
-  assert.equal(maxScorePerRound("same-chair"), 2);
+  assert.equal(maxScorePerRound("one-country"), 4);
+});
+
+test("guess the clip variant from the country choice", () => {
+  assert.equal(clipVariant("both"), "classic");
+  assert.equal(clipVariant("UK"), "one-country");
+  assert.equal(clipVariant("US"), "one-country");
 });
 
 test("pickRounds never repeats a clip and caps at corpus size", () => {
@@ -156,11 +162,9 @@ const MIXED = [
 ];
 
 test("the description and decade games play English clips only", () => {
-  for (const variant of ["classic", "news-or-opinion"]) {
-    const ids = filterClips(MIXED, { variant }).map((c) => c.id);
-    assert.deepEqual(ids, ["e1", "e2", "e3", "e4", "e5", "e6"]);
-  }
-  assert.deepEqual(filterClips(MIXED, { variant: "same-chair", country: "France" }), []);
+  const ids = filterClips(MIXED, { variant: "classic" }).map((c) => c.id);
+  assert.deepEqual(ids, ["e1", "e2", "e3", "e4", "e5", "e6"]);
+  assert.deepEqual(filterClips(MIXED, { variant: "one-country", country: "France" }), []);
   assert.deepEqual(englishOnly(MIXED).map((c) => c.answer.country), Array(6).fill("US"));
 });
 

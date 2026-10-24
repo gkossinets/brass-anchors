@@ -47,14 +47,10 @@
           <div class="mode-body">
             <h2>Guess the clip</h2>
             <p class="meta" id="classic-rounds"></p>
-            <p class="desc">Hear one English clip. Guess when, where, and whether it's news or opinion.</p>
-            <div class="variants">
-              <label><input type="radio" name="variant" value="classic" checked> Decade, country, news or opinion, plus a station bonus</label>
-              <label><input type="radio" name="variant" value="news-or-opinion"> News or opinion? That question only</label>
-              <label><input type="radio" name="variant" value="same-chair"> <span>Same chair, different decade: one country, decade only
-                <select id="chair-country" aria-label="Country"></select></span>
-              </label>
-            </div>
+            <p class="desc grow">Hear one English clip. Guess the decade, the country, and whether it's news or opinion.</p>
+            <fieldset class="country-choice" id="clip-countries">
+              <legend>Clips from</legend>
+            </fieldset>
             <button id="start" class="secondary brass">Play</button>
           </div>
         </div>

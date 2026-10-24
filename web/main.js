@@ -4,7 +4,7 @@
 import { modeFromSearch } from "./log-core.js";
 import { $, show, stopAudio, startingTimbre, setHeader } from "./shared.js";
 import { setupClassic, classicPoolSize, startClassic } from "./quiz.js";
-import { filterClips, languageOptions, displayAnswer, MIN_LANGUAGES } from "./quiz-core.js";
+import { filterClips, languageOptions, displayAnswer, clipVariant, MIN_LANGUAGES } from "./quiz-core.js";
 import { startMatch } from "./match.js";
 import { matchPoolSize, matchMaxRounds } from "./match-core.js";
 import { collecting } from "./collect.js";
@@ -13,10 +13,12 @@ import { setupFeedback } from "./feedback.js";
 let corpus = [];
 let timbres = [];
 
+const clipCountry = () => document.querySelector('input[name="clip-country"]:checked')?.value ?? "both";
+
 function settings() {
   return {
-    variant: document.querySelector('input[name="variant"]:checked').value,
-    country: $("chair-country").value,
+    variant: clipVariant(clipCountry()),
+    country: clipCountry(),
     rounds: Math.max(1, parseInt($("rounds").value, 10) || 10),
     // No picker on the front page: games start with the sound last chosen in a game's own switch.
     timbre: startingTimbre(timbres),
@@ -35,7 +37,7 @@ function setupFrontPage() {
     const languages = languageOptions(languagePool);
     const languageReady = languages.length >= MIN_LANGUAGES;
     $("clip-count").textContent =
-      `${corpus.length} clips · ${m} for Match (up to ${maxRounds} rounds) · ${n} for this Guess the clip variant` +
+      `${corpus.length} clips · ${m} for Match (up to ${maxRounds} rounds) · ${n} for Guess the clip` +
       ` · ${languagePool.length} in ${languages.length} language${languages.length === 1 ? "" : "s"} for Guess the language`;
     // A Match game never repeats a clip, so it can't run longer than maxRounds.
     const matchRounds = Math.min(s.rounds, maxRounds);

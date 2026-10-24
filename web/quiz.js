@@ -25,12 +25,15 @@ function header(answered) {
   setHeader({ kind: "game", total: game.clips.length, current: game.index + 1, answered, score });
 }
 
-/** Fill the classic-only parts of the front page (same-chair country list). */
+/** Fill Guess the clip's country choice on the front page: both, or one country. */
 export function setupClassic(clips, timbreList) {
   corpus = clips;
   timbres = timbreList;
   const countries = [...new Set(englishOnly(corpus).map((c) => c.answer.country))].sort();
-  $("chair-country").innerHTML = countries.map((c) => `<option>${c}</option>`).join("");
+  const choice = (value, label, checked) =>
+    `<label><input type="radio" name="clip-country" value="${value}"${checked ? " checked" : ""}> ${label}</label>`;
+  $("clip-countries").insertAdjacentHTML("beforeend",
+    [choice("both", "Both", true), ...countries.map((c) => choice(c, c, false))].join(""));
 }
 
 /** How many clips a classic game with these settings can draw from. */
@@ -62,7 +65,8 @@ function optionsFor(question, clip) {
   if (question === "country") return countryOptions(a.country, englishOnly(corpus).map((c) => c.answer.country));
   if (question === "language") return languageOptions(corpus);
   if (question === "genre") return GENRES;
-  return stationOptions(a.station, corpus.map((c) => c.answer.station));
+  // Stations from the clips this game plays: a French or Russian station would be a giveaway.
+  return stationOptions(a.station, filterClips(corpus, game).map((c) => c.answer.station));
 }
 
 function renderQuestion(container, question, clip, guess, onChange) {
@@ -223,7 +227,7 @@ function finish() {
       finished: new Date().toISOString(),
       settings: {
         variant: game.variant,
-        country: game.variant === "same-chair" ? game.country : null,
+        country: game.variant === "one-country" ? game.country : null,
         rounds: game.rounds,
         timbre_at_start: game.timbre_at_start,
       },
