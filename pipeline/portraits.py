@@ -27,7 +27,7 @@ from PIL import Image
 
 from pipeline.clips import load_clips, parse_timestamp
 from pipeline.config import CLIPS_CSV, THUMBNAIL_SRC_DIR
-from pipeline.thumbnails import IMAGE_SUFFIXES
+from pipeline.thumbnails import IMAGE_SUFFIXES, name_key
 
 FRAMES_PER_CLIP = 8
 # The clip itself is often a report read over footage, so look around it too.
@@ -199,11 +199,11 @@ def crop_box(face: Box, size: tuple[int, int]) -> tuple[int, int, int, int]:
 
 
 def missing_speakers(speakers: dict[str, str], folder: Path) -> dict[str, list[str]]:
-    """Speakers with no picture in folder (matched case-insensitively), each with their clip ids."""
-    have = {p.stem.casefold() for p in folder.glob("*") if p.suffix.lower() in IMAGE_SUFFIXES} if folder.is_dir() else set()
+    """Speakers with no picture in folder (matched ignoring case and accents), each with their clip ids."""
+    have = {name_key(p.stem) for p in folder.glob("*") if p.suffix.lower() in IMAGE_SUFFIXES} if folder.is_dir() else set()
     out: dict[str, list[str]] = {}
     for cid, name in speakers.items():
-        if name.casefold() not in have:
+        if name_key(name) not in have:
             out.setdefault(name, []).append(cid)
     return out
 

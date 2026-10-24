@@ -91,6 +91,11 @@ def test_missing_speakers_skips_those_with_a_screenshot_case_insensitively(tmp_p
     assert missing_speakers(speakers, tmp_path) == {"Igor Kirillov": ["ru_b", "ru_c"]}
 
 
+def test_missing_speakers_count_a_screenshot_named_without_accents(tmp_path):
+    (tmp_path / "Leon Zitrone.png").write_bytes(b"")
+    assert missing_speakers({"fr_a": "Léon Zitrone"}, tmp_path) == {}
+
+
 def test_detect_faces_finds_nothing_in_a_blank_frame(tmp_path):
     p = tmp_path / "blank.png"
     Image.new("RGB", (320, 240), "gray").save(p)

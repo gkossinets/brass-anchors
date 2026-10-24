@@ -22,6 +22,15 @@ def test_screenshots_match_clips_by_speaker_name_ignoring_case(tmp_path):
     assert unused == ["Nobody Here.png"]
 
 
+def test_screenshots_match_whether_or_not_the_name_has_its_accents(tmp_path):
+    # Typing "Leon" for "Léon" is easy, and macOS may store "é" decomposed (e + combining accent).
+    touch_png(tmp_path / "Leon Zitrone.png")
+    touch_png(tmp_path / "Beatrice Scho\u0308nberg.png")
+    speakers = {"fr_zitrone": "Léon Zitrone", "fr_schonberg": "Béatrice Schönberg"}
+    matches, missing, unused = match_thumbnails(speakers, tmp_path)
+    assert set(matches) == {"fr_zitrone", "fr_schonberg"} and not missing and not unused
+
+
 def test_one_speaker_with_two_clips_uses_the_same_screenshot(tmp_path):
     touch_png(tmp_path / "Fiona Bruce.jpg", mode="RGB")
     matches, missing, unused = match_thumbnails({"a": "Fiona Bruce", "b": "Fiona Bruce"}, tmp_path)
