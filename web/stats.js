@@ -1,5 +1,6 @@
 // Results page: everyone's scores and the easiest and hardest comparisons, from /api/stats.
-import { histogram, compareToOthers, clipLabel, pageParams, pct } from "./stats-view-core.js";
+import { histogram, compareToOthers, clipLabel, pageParams, pct, mistakenForText } from "./stats-view-core.js";
+import { displayAnswer } from "./quiz-core.js";
 import { MATCH_CONFIG } from "./match-core.js";
 import { setupFeedback } from "./feedback.js";
 
@@ -98,7 +99,7 @@ function renderScores(scores, data) {
   $("kpis").innerHTML =
     kpi(finishedHere, `first game${finishedHere === 1 ? "" : "s"} finished`) +
     kpi(finishedHere ? `${median(scores)}%` : "—", "median score") +
-    kpi(data.players, `player${data.players === 1 ? "" : "s"}, both modes`);
+    kpi(data.players, `player${data.players === 1 ? "" : "s"}, all modes`);
   $("you-line").innerHTML = you === null ? "" : youLine(scores);
   if (finishedHere === 0) {
     $("score-chart").innerHTML = '<p class="muted">No finished games yet.</p>';
@@ -158,12 +159,19 @@ function renderClassic(c, minAttempts) {
   $("easiest-clips").innerHTML = rows(["Clip", "Exact", "Time", "Plays"], c.easiest.map(clipRow), notYet);
 }
 
+function renderLanguage(l) {
+  const body = Object.entries(l.byLanguage).map(([lang, t]) =>
+    [displayAnswer("language", lang), pct(t.right, t.n), t.n, mistakenForText(l.mistakenFor[lang])]);
+  $("language-table").innerHTML = rows(["Language", "Right", "Rounds", "Mistaken for"], body, "No rounds played yet.");
+}
+
 // ---------- boot ----------
 
 $(`tab-${mode}`).setAttribute("aria-current", "page");
 setupFeedback("results");
 for (const el of document.querySelectorAll(".only-match")) el.hidden = mode !== "match";
 for (const el of document.querySelectorAll(".only-classic")) el.hidden = mode !== "classic";
+for (const el of document.querySelectorAll(".only-language")) el.hidden = mode !== "language";
 
 Promise.all([
   fetch("api/stats").then((r) => {
@@ -175,8 +183,10 @@ Promise.all([
   clipsById = Object.fromEntries(quiz.clips.map((c) => [c.id, c]));
   renderScores(data.scores[mode] ?? [], data);
   if (mode === "match") renderMatch(data.match, data.minAttempts);
+  else if (mode === "language") renderLanguage(data.language ?? { byLanguage: {}, mistakenFor: {} });
   else renderClassic(data.classic, data.minAttempts);
-  $("footnote").textContent = "Only each player's first game counts: later games replay clips they've already heard. " +
+  $("footnote").textContent = "Only each player's first game counts (in the language game, their first language game): " +
+    "later games replay clips they've already heard. " +
     "Time is the median from the first Play to the answer. Right = share of rounds answered correctly; " +
     "Exact = share of answers with full marks. Anonymous: no names or notes are shown.";
   $("stats-status").hidden = true;

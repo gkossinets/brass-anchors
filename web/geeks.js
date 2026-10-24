@@ -5,7 +5,7 @@ const escape = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<":
 
 /** The panel's HTML for one clip; an empty panel when the clip has no stats. */
 export function geeksHtml(clip) {
-  const rows = geekStatsRows(clip.stats);
+  const rows = geekStatsRows(clip.stats, clip.answer.language);
   // Always emit the block: Match's two reveal cards need the same sections to line up on their shared grid.
   if (rows.length === 0) return '<div class="geeks"></div>';
   // Definitions live in tooltips (hover a label) to keep the table compact.

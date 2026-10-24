@@ -18,10 +18,13 @@ Prosody is how something is said rather than what is said: the rise and fall of 
 
 - **Match the description**: read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. Rounds ramp from easy (the clips differ in country, decade, and news vs opinion) to hard (they differ in one). The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
 - **Guess the clip**: hear one clip and guess its decade, country, and whether it's news or opinion, with a station bonus. Variants: news-or-opinion only, and "same chair, different decade" (one country, decade only).
+- **Guess the language**: hear one clip and name its language: English, French, Russian, or Mandarin. Rounds are spread evenly across languages. It opens once the corpus has clips in at least three languages.
+
+The first two modes play English clips only, since the language would give their questions away.
 
 Options on the front page: number of rounds (10 by default), and pure mode, which leaves out speakers you might recognize by voice alone. The sound can be switched on every round screen.
 
-On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by difficulty, and the easiest and hardest comparisons (Match) or clips (Guess the clip).
+On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by difficulty, and the easiest and hardest comparisons (Match) or clips (Guess the clip), and how often each language is named correctly and what it's mistaken for.
 
 ## How it works
 
@@ -46,7 +49,7 @@ make audio    # download, cut, analyse, synthesize, encode (a few minutes for 20
 make serve    # then open http://localhost:8000
 ```
 
-`make serve PORT=8001` uses another port. `?mode=match` or `?mode=classic` in the URL skips the front page.
+`make serve PORT=8001` uses another port. `?mode=match`, `?mode=classic`, or `?mode=language` in the URL skips the front page.
 
 ## Pipeline
 
@@ -68,9 +71,10 @@ Changing a clip's times in `clips.csv` and running `make audio` re-cuts just tha
 
 ### clips.csv
 
-`id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling,review_status,review_notes`
+`id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling,review_status,review_notes`
 
 - `start`, `end`: `HH:MM:SS`, `MM:SS`, or seconds, with optional decimals
+- `language`: `en`, `fr`, `ru`, or `zh` (Mandarin); required. Only English clips play in Match the description and Guess the clip
 - `genre`: `news` (reporting) or `opinion` (arguing a view). Label what the clip does, not the speaker's job
 - `sex`: `m` or `f`; sets the pitch-tracking range (60-300 Hz or 100-500 Hz) unless `pitch_floor` and `pitch_ceiling` are given
 - `recognizable`: `unlikely`, `maybe`, or `likely`; pure mode drops `likely`

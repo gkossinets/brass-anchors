@@ -20,6 +20,7 @@
       <nav class="tabs" aria-label="Game mode">
         <a id="tab-match" href="?mode=match">Match the description</a>
         <a id="tab-classic" href="?mode=classic">Guess the clip</a>
+        <a id="tab-language" href="?mode=language">Guess the language</a>
       </nav>
     </div>
 
@@ -55,6 +56,10 @@
           <table id="easiest-pairs" class="data"></table>
         </section>
 
+        <section class="card result-card only-language">
+          <h2 class="eyebrow">Right by language</h2>
+          <table id="language-table" class="data"></table>
+        </section>
         <section class="card result-card only-classic">
           <h2 class="eyebrow">Exact answers by question</h2>
           <table id="question-table" class="data"></table>

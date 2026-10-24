@@ -275,8 +275,10 @@ export function pairCoverage(clips, { pure = false } = {}) {
 /**
  * "Stats for geeks" rows for a clip's speech stats (see pipeline/stats.py),
  * each with a label, a value with units, and a one-line plain-language hint.
+ * The syllable detector was calibrated on English transcripts only, so other
+ * languages get no speaking rate.
  */
-export function geekStatsRows(stats) {
+export function geekStatsRows(stats, language = "en") {
   if (!stats) return [];
   // Fixed decimals so 5.0 doesn't print as "5" next to "4.9".
   const show = (value, unit, decimals = 1) =>
@@ -286,7 +288,9 @@ export function geekStatsRows(stats) {
     { label: "Average pitch", value: show(stats.median_hz, "Hz", 0), hint: "median of the voiced moments" },
     { label: "Pitch range", value: show(stats.range_st, "semitones"), hint: "5th to 95th percentile; 12 semitones is an octave" },
     { label: "Pitch variation", value: show(stats.sd_st, "semitones"), hint: "standard deviation; low means monotone" },
-    { label: "Speaking rate (rough)", value: show(stats.syllables_per_s, "syllables/s"), hint: "rough estimate from loudness peaks; pauses excluded" },
+    ...(language === "en"
+      ? [{ label: "Speaking rate (rough)", value: show(stats.syllables_per_s, "syllables/s"), hint: "rough estimate from loudness peaks; pauses excluded" }]
+      : []),
     // A rate, not a count: clips run 12-24 s, so raw counts would favour long clips.
     { label: "Pauses per minute", value: String(stats.pauses_per_min ?? "—"), hint: `silences of 0.2 s or more, per minute of the clip; ${stats.pause_pct}% of the clip is pause` },
     { label: "Average pause", value: show(stats.mean_pause_s, "s", 2), hint: "mean length of those silences" },

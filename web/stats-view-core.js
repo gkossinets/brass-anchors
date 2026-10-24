@@ -1,6 +1,7 @@
 // Helpers for the results page (stats.html). Pure (no DOM), so it runs under `node --test`.
+import { displayAnswer } from "./quiz-core.js";
 
-const MODES = ["match", "classic"];
+const MODES = ["match", "classic", "language"];
 
 /** Ten 10-point bins of final scores (whole percentages); 100% goes in the top bin. */
 export function histogram(scores) {
@@ -49,4 +50,10 @@ export function pageParams(search) {
 
 export function pct(part, whole) {
   return whole ? `${Math.round((100 * part) / whole)}%` : "—";
+}
+
+/** "Russian 3, French 1": the wrong guesses for one language, most common first. */
+export function mistakenForText(counts) {
+  const wrong = Object.entries(counts ?? {}).sort((a, b) => b[1] - a[1]);
+  return wrong.length ? wrong.map(([l, n]) => `${displayAnswer("language", l)} ${n}`).join(", ") : "—";
 }

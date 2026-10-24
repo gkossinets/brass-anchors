@@ -4,6 +4,7 @@
 import { modeFromSearch } from "./log-core.js";
 import { $, show, stopAudio, startingTimbre, setHeader } from "./shared.js";
 import { setupClassic, classicPoolSize, startClassic } from "./quiz.js";
+import { filterClips, languageOptions, displayAnswer, MIN_LANGUAGES } from "./quiz-core.js";
 import { startMatch } from "./match.js";
 import { matchPoolSize, matchMaxRounds } from "./match-core.js";
 import { collecting } from "./collect.js";
@@ -31,8 +32,12 @@ function setupFrontPage() {
     const n = classicPoolSize(s);
     const m = matchPoolSize(corpus, s);
     const maxRounds = matchMaxRounds(corpus, s);
+    const languagePool = filterClips(corpus, { ...s, variant: "language" });
+    const languages = languageOptions(languagePool);
+    const languageReady = languages.length >= MIN_LANGUAGES;
     $("clip-count").textContent =
-      `${corpus.length} clips · ${m} for Match (up to ${maxRounds} rounds) · ${n} for this Guess the clip variant`;
+      `${corpus.length} clips · ${m} for Match (up to ${maxRounds} rounds) · ${n} for this Guess the clip variant` +
+      ` · ${languagePool.length} in ${languages.length} language${languages.length === 1 ? "" : "s"} for Guess the language`;
     // A Match game never repeats a clip, so it can't run longer than maxRounds.
     const matchRounds = Math.min(s.rounds, maxRounds);
     // A Guess the clip game plays each clip once too, so it can't outrun its pool either.
@@ -40,6 +45,14 @@ function setupFrontPage() {
     const rounds = (k) => `${k} round${k === 1 ? "" : "s"}`;
     $("match-strip").textContent = `Two clips a round · ${rounds(matchRounds)}`;
     $("classic-strip").textContent = `One clip a round · ${rounds(classicRounds)}`;
+    const names = languages.map((l) => displayAnswer("language", l));
+    const listed = names.length > 1 ? `${names.slice(0, -1).join(", ")}, or ${names.at(-1)}` : names.join("");
+    $("language-strip").textContent = languageReady
+      ? `One clip a round · ${rounds(Math.min(s.rounds, languagePool.length))}` : "Coming soon";
+    $("language-desc").textContent = languageReady
+      ? `Hear one clip and name its language: ${listed}.`
+      : "Hear one clip and name its language. Coming once there are clips in more languages.";
+    $("start-language").disabled = !languageReady;
     $("start").disabled = n === 0;
     $("start-match").disabled = m < 2;
   };
@@ -53,6 +66,8 @@ function route() {
   const s = settings();
   if (mode === "classic") startClassic(s);
   else if (mode === "match") startMatch(corpus, timbres, s);
+  // A shared ?mode=language link still opens the front page until the game has enough languages.
+  else if (mode === "language" && !$("start-language").disabled) startClassic({ ...s, variant: "language" });
   else showFront();
 }
 
@@ -70,6 +85,7 @@ function go(mode) {
 
 $("start").onclick = () => go("classic");
 $("start-match").onclick = () => go("match");
+$("start-language").onclick = () => go("language");
 $("again").onclick = () => go(null);
 setupFeedback("front");
 // The logo and name lead home. A plain click switches screens without a reload, like
@@ -97,5 +113,5 @@ fetch("quiz.json")
     $("load-error").hidden = false;
     $("load-error").textContent =
       `Could not load clips (${err.message}). Build web/quiz.json with the pipeline and serve this folder over HTTP.`;
-    $("start").disabled = $("start-match").disabled = true;
+    $("start").disabled = $("start-match").disabled = $("start-language").disabled = true;
   });

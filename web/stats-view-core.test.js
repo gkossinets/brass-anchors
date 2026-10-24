@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { histogram, compareToOthers, clipLabel, pageParams, pct } from "./stats-view-core.js";
+import { histogram, compareToOthers, clipLabel, pageParams, pct, mistakenForText } from "./stats-view-core.js";
 
 test("histogram: ten 10-point bins, with 100% in the top bin", () => {
   const bins = histogram([0, 9, 10, 55, 99, 100]);
@@ -36,6 +36,7 @@ test("clip labels name the speaker, station, and year", () => {
 test("page params: mode defaults to match; your score only when it's a sensible number", () => {
   assert.deepEqual(pageParams(""), { mode: "match", you: null });
   assert.deepEqual(pageParams("?mode=classic&you=64"), { mode: "classic", you: 64 });
+  assert.deepEqual(pageParams("?mode=language&you=90"), { mode: "language", you: 90 });
   assert.deepEqual(pageParams("?mode=karaoke&you=900"), { mode: "match", you: null });
   assert.deepEqual(pageParams("?you=abc"), { mode: "match", you: null });
 });
@@ -43,4 +44,9 @@ test("page params: mode defaults to match; your score only when it's a sensible 
 test("pct rounds a share to a whole percentage", () => {
   assert.equal(pct(2, 3), "67%");
   assert.equal(pct(0, 0), "—");
+});
+
+test("what a language was mistaken for: most often first, by name", () => {
+  assert.equal(mistakenForText({ fr: 1, ru: 3 }), "Russian 3, French 1");
+  assert.equal(mistakenForText(undefined), "—");
 });

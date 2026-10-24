@@ -1,7 +1,9 @@
-// "Guess the clip" (classic mode) screens. Game rules live in quiz-core.js.
+// "Guess the clip" (classic mode) and "Guess the language" screens: one clip a round,
+// buttons to answer. Game rules live in quiz-core.js.
 import {
   GENRES, decadeOptions, countryOptions, stationOptions, scoreRound,
   filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, pointsNote, guessMark,
+  englishOnly, languageOptions, pickLanguageRounds,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
@@ -9,7 +11,8 @@ import { formatClock } from "./display-core.js";
 import { geeksHtml } from "./geeks.js";
 import { newGameIds, send } from "./collect.js";
 
-const LABELS = { decade: "Decade", country: "Country", genre: "News or opinion?", station: "Station (bonus)" };
+const LABELS = { decade: "Decade", country: "Country", genre: "News or opinion?", station: "Station (bonus)", language: "Language" };
+const MODE_NAMES = { classic: "Guess the clip", language: "Guess the language" };
 
 let corpus = [];
 let timbres = [];
@@ -26,7 +29,7 @@ function header(answered) {
 export function setupClassic(clips, timbreList) {
   corpus = clips;
   timbres = timbreList;
-  const countries = [...new Set(corpus.map((c) => c.answer.country))].sort();
+  const countries = [...new Set(englishOnly(corpus).map((c) => c.answer.country))].sort();
   $("chair-country").innerHTML = countries.map((c) => `<option>${c}</option>`).join("");
 }
 
@@ -35,10 +38,14 @@ export function classicPoolSize(settings) {
   return filterClips(corpus, settings).length;
 }
 
+/** Start a game; settings.variant "language" is the language game, anything else Guess the clip. */
 export function startClassic(settings) {
+  const pool = filterClips(corpus, settings);
+  const language = settings.variant === "language";
   game = {
     ...settings,
-    clips: pickRounds(filterClips(corpus, settings), settings.rounds),
+    mode: language ? "language" : "classic",
+    clips: language ? pickLanguageRounds(pool, settings.rounds) : pickRounds(pool, settings.rounds),
     index: 0,
     results: [],
     records: [],
@@ -52,7 +59,8 @@ export function startClassic(settings) {
 function optionsFor(question, clip) {
   const a = clip.answer;
   if (question === "decade") return decadeOptions(a.decade);
-  if (question === "country") return countryOptions(a.country, corpus.map((c) => c.answer.country));
+  if (question === "country") return countryOptions(a.country, englishOnly(corpus).map((c) => c.answer.country));
+  if (question === "language") return languageOptions(corpus);
   if (question === "genre") return GENRES;
   return stationOptions(a.station, corpus.map((c) => c.answer.station));
 }
@@ -91,7 +99,7 @@ function showRound() {
     }
   };
 
-  $("round-label").textContent = `Round ${game.index + 1} of ${game.clips.length} · Guess the clip`;
+  $("round-label").textContent = `Round ${game.index + 1} of ${game.clips.length} · ${MODE_NAMES[game.mode]}`;
   header(false);
   $("progress-bar").style.width = "0";
   $("play-clock").textContent = "0:00";
@@ -134,9 +142,13 @@ function showReveal(clip, guess, heard, plays) {
   const score = scoreRound(clip.answer, guess);
   const asked = [...questionsFor(game.variant), ...(hasBonus(game.variant) ? ["station"] : [])];
   game.results.push({ id: clip.id, score });
-  const record = roundRecord("classic", {
+  const record = roundRecord(game.mode, {
     round: game.index + 1, clipIds: [clip.id], plays: plays.counts(), msToAnswer, timbre: game.timbre,
-  }, { clip_id: clip.id, guess: { ...guess }, score, timbres_heard: [...heard] });
+  }, {
+    clip_id: clip.id, guess: { ...guess }, score, timbres_heard: [...heard],
+    // The language game's stats tally by the answer, which the round record otherwise lacks.
+    ...(game.mode === "language" ? { language: clip.answer.language } : {}),
+  });
   game.records.push(record);
   send("round", game.ids, record);
 
@@ -189,18 +201,24 @@ function finish() {
   const byId = Object.fromEntries(corpus.map((c) => [c.id, c]));
   showEnd({
     score: `${total} / ${max}`,
-    meta: `Guess the clip · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
+    meta: `${MODE_NAMES[game.mode]} · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
     ids: game.ids,
-    mode: "classic",
+    mode: game.mode,
     scorePct: Math.round((100 * total) / max),
-    tableHtml: "<tr><th>Speaker</th><th>Year</th><th></th></tr>" +
-      game.results.map((r) => {
-        const c = byId[r.id];
-        return `<tr><td>${c.speaker}</td><td>${c.year ?? c.answer.decade}</td><td class="pts">${r.score.total}</td></tr>`;
-      }).join(""),
+    tableHtml: game.mode === "language"
+      ? "<tr><th>Speaker</th><th>Language</th><th></th></tr>" +
+        game.results.map((r) => {
+          const c = byId[r.id];
+          return `<tr><td>${c.speaker}</td><td>${displayAnswer("language", c.answer.language)}</td><td class="pts">${r.score.total}</td></tr>`;
+        }).join("")
+      : "<tr><th>Speaker</th><th>Year</th><th></th></tr>" +
+        game.results.map((r) => {
+          const c = byId[r.id];
+          return `<tr><td>${c.speaker}</td><td>${c.year ?? c.answer.decade}</td><td class="pts">${r.score.total}</td></tr>`;
+        }).join(""),
     buildRecord: (cues) => ({
       format: LOG_FORMAT,
-      mode: "classic",
+      mode: game.mode,
       started: game.started,
       finished: new Date().toISOString(),
       settings: {

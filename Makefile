@@ -28,7 +28,7 @@ PORT ?= 8000
 # make serve PORT=8001  -> another port, if 8000 is taken
 serve:
 ifneq ($(MODE),)
-	@case "$(MODE)" in classic|match) ;; *) echo "MODE must be classic or match" >&2; exit 2;; esac
+	@case "$(MODE)" in classic|match|language) ;; *) echo "MODE must be classic, match, or language" >&2; exit 2;; esac
 	@echo "Open http://localhost:$(PORT)/?mode=$(MODE)"
 endif
 	$(PY) -m pipeline.static_server -p $(PORT)

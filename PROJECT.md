@@ -4,7 +4,7 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev>, with 20 reviewed clips and both game modes. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and two game modes. A third, Guess the language, is built (branch `languages`) and waits for French, Russian, and Mandarin clips. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
 
 ## Architecture
 
@@ -16,7 +16,9 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed clips and both game 
 ## Key decisions
 
 **Corpus and audio**
-- US and UK only for now. `USSR/Russia` is one country label, because separate labels would give away the decade.
+- Every clip has a required `language`. Match and Guess the clip play English (US and UK) only: in another language, the country and often the decade would be given away. Guess the language plays everything.
+- Mandarin comes from mainland China only, so each non-English language maps to one country.
+- `USSR/Russia` is one country label, because separate labels would give away the decade.
 - Every clip is normalized to -23 LUFS, so loudness can't give a clip away.
 - `yt-dlp --force-keyframes-at-cuts` is required: without it, cuts start at the previous keyframe and pick up seconds of theme music.
 - Each clip keeps a cached block of its source audio (±60 s) in `sources/`, so uploads that vanish don't lose clips, and re-cuts take seconds. `raw/<id>.json` records each cut, so editing times in `clips.csv` triggers a re-cut.
@@ -26,13 +28,14 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed clips and both game 
 **Game rules**
 - Match difficulty counts differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (those are easy to hear). Easy is 3+, medium 2, hard 1.
 - No clip plays twice in a Match game, because a heard clip is recognizable by its opening. So a game is at most half as many rounds as there are clips. Pairing is a randomized backtracking search with restarts, which keeps the full easy-to-hard ramp.
-- Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts).
+- Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts), and it's shown for English only, the language it was calibrated on.
+- Guess the language takes rounds from each language in turn: English is the biggest set, so a draw from the whole pool would make "English" the safe guess. It opens at three languages; with two it's a coin flip. One point per round.
 
 **Site and data**
 - Cloudflare Pages + D1: one deploy for the site and its API, a generous free tier, and SQL for stats.
 - Fonts are self-hosted, so visitors' browsers contact no third party.
 - Pages answers HTTP Range requests with the whole file, and Safari may not play audio from such a server, so a function serves `/audio/*` with proper `206` responses.
-- Each browser keeps a lasting random player ID. A 10-round Match game plays all 20 clips, so later games are replays of familiar clips; the stats count **each player's first game only** (`make stats ALL=1` includes replays). Because a lasting ID can count as personal data, the privacy note says plainly that one is kept, rather than claiming "no personal data".
+- Each browser keeps a lasting random player ID. A 10-round Match game plays all 20 English clips, so later games are replays of familiar clips; the stats count **each player's first game only** (`make stats ALL=1` includes replays). The language game counts separately: a player's first language game counts even after a Match game, since it plays mostly other clips. Because a lasting ID can count as personal data, the privacy note says plainly that one is kept, rather than claiming "no personal data".
 - Rounds are sent as they're answered, because many players won't finish or save.
 - The feedback form asks for no contact details, so there's no email on the site and no way to reply.
 - Defences against fake play data are cheap ones: impossible rounds are rejected, and a final score counts only if its rounds add up. A real per-sender rate limit isn't available to Pages Functions; it would mean moving the API to a Worker.
@@ -61,7 +64,9 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 ## Next steps
 
+**Adding languages** (decided 2026-10-23): about 10 clips each of French, Russian (the 2 set-aside clips plus 8), and Mandarin (mainland China), aiming for 5 men and 5 women each and a spread of decades. Leads to check: INA's official YouTube channels (France, well dated); Gosteleradiofond and *Vremya*, NTV *Segodnya* (Russia); CCTV *Xinwen Lianbo* from 1978 (China, so no 1960s-70s). Watch for mains hum on old Soviet re-uploads and the *Xinwen Lianbo* music bed. News vs opinion doesn't matter for this mode, so genre balance isn't needed. Deploy after each language; the language card says "Coming soon" until there are three.
+
 1. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
 2. Compare trumpet and trombone on women's voices; possibly choose the default sound per clip.
 3. Transcript-based speaking rate.
-4. Other countries (the backburner has Soviet and Russian clips).
+4. Tone languages vs stress languages: a README paragraph once the language game has data.

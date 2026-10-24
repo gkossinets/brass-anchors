@@ -220,6 +220,15 @@ test("stats for geeks: labelled rows with units, plain-language hints, and dashe
   assert.deepEqual(geekStatsRows(null), []);
 });
 
+test("stats for geeks leave out the speaking rate for languages other than English", async () => {
+  const { geekStatsRows } = await import("./match-core.js");
+  const stats = { median_hz: 141, range_st: 10.8, sd_st: 3.5, syllables_per_s: 4.6,
+    pauses: 3, pauses_per_min: 12, mean_pause_s: 0.43, pause_pct: 13, duration_s: 15 };
+  assert.ok(geekStatsRows(stats, "en").some((r) => r.label.startsWith("Speaking rate")));
+  assert.ok(!geekStatsRows(stats, "zh").some((r) => r.label.startsWith("Speaking rate")));
+  assert.equal(geekStatsRows(stats, "fr").length, 5);
+});
+
 test("stats keep their decimals even for whole numbers (JSON turns 5.0 into 5)", async () => {
   const { geekStatsRows } = await import("./match-core.js");
   const rows = geekStatsRows({ median_hz: 190, range_st: 12, sd_st: 4, syllables_per_s: 5,
