@@ -1,6 +1,6 @@
 // "Match the description" rules: descriptions, distractor choice, difficulty, scoring.
 // Pure (no DOM), so it runs under `node --test` and in tools/check-pairs.mjs.
-import { shuffle } from "./quiz-core.js";
+import { shuffle, englishOnly } from "./quiz-core.js";
 
 /** Wording and scoring knobs; adjust here rather than in the game logic. */
 export const MATCH_CONFIG = {
@@ -94,8 +94,10 @@ export function candidateDistractors(correct, pool, level) {
     (level === "hard" || d.speaker !== correct.speaker));
 }
 
+// English only: see englishOnly in quiz-core.js.
 function eligible(clips, pure) {
-  return pure ? clips.filter((c) => c.recognizable !== "likely") : clips;
+  const english = englishOnly(clips);
+  return pure ? english.filter((c) => c.recognizable !== "likely") : english;
 }
 
 /** How many clips a match game with these settings can draw from (front-page status line). */

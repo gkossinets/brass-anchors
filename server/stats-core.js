@@ -4,6 +4,7 @@
 const LEVELS = ["easy", "medium", "hard"];
 const QUESTIONS = ["decade", "country", "genre", "station"];
 const FULL_POINTS = { decade: 2, country: 1, genre: 1, station: 1 }; // web/quiz-core.js POINTS
+const LANGUAGES = ["en", "fr", "ru", "zh"]; // web/quiz-core.js LANGUAGES
 
 /** Median of the numbers present (null and undefined skipped), or null if none. */
 export function median(values) {
@@ -54,6 +55,19 @@ function summarizeClassic(rounds) {
   return { byQuestion, byClip };
 }
 
+function summarizeLanguage(rounds) {
+  const tallied = tally(groupBy(rounds.map((r) => ({ ...r, right: r.guess?.language === r.language })), (r) => r.language));
+  const byLanguage = Object.fromEntries(LANGUAGES.filter((l) => tallied[l]).map((l) => [l, tallied[l]]));
+  const mistakenFor = {};
+  for (const r of rounds) {
+    const guessed = r.guess?.language;
+    if (guessed === undefined || guessed === r.language) continue;
+    const counts = (mistakenFor[r.language] ??= {});
+    counts[guessed] = (counts[guessed] ?? 0) + 1;
+  }
+  return { byLanguage, mistakenFor };
+}
+
 // Share of the questions asked that got full marks. Unlike points, it compares
 // rounds across variants that ask different questions.
 function exactShare(round) {
@@ -77,20 +91,23 @@ function scorePct(record) {
   return typeof total === "number" && max > 0 ? Math.round((100 * total) / max) : null;
 }
 
+// Match and Guess the clip play the same English clips; the language game mostly others.
+const clipFamily = (mode) => (mode === "language" ? "language" : "english");
+
 /**
- * Each player's first game: the one whose earliest event came first. Later games,
- * in either mode, replay clips the player has already heard (a 10-round Match game
- * plays all 20), so they'd make comparisons look easier than they are.
+ * Each player's first game of each clip family: the one whose earliest event came
+ * first. Later games replay clips the player has already heard (a 10-round Match
+ * game plays all 20 English clips), so they'd make comparisons look easier than they are.
  */
 function firstGames(events) {
   const startOf = {};
   for (const e of events) {
     const s = startOf[e.game];
-    if (!s || e.received_at < s.at) startOf[e.game] = { player: e.player, at: e.received_at };
+    if (!s || e.received_at < s.at) startOf[e.game] = { key: `${e.player} ${clipFamily(e.mode)}`, at: e.received_at };
   }
   const first = {};
-  for (const [game, { player, at }] of Object.entries(startOf)) {
-    if (!first[player] || at < first[player].at) first[player] = { game, at };
+  for (const [game, { key, at }] of Object.entries(startOf)) {
+    if (!first[key] || at < first[key].at) first[key] = { game, at };
   }
   return new Set(Object.values(first).map((f) => f.game));
 }
@@ -128,7 +145,7 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
   }
   const finishedGames = Object.values(latestGame);
   const roundsByGame = groupBy(rounds, (e) => e.game);
-  const scores = { match: [], classic: [] };
+  const scores = { match: [], classic: [], language: [] };
   let unbacked = 0;
   for (const e of finishedGames) {
     const p = scorePct(e.record);
@@ -153,6 +170,7 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
     skipped,
     match: summarizeMatch(rounds.filter((e) => e.mode === "match").map((e) => e.record)),
     classic: summarizeClassic(rounds.filter((e) => e.mode === "classic").map((e) => e.record)),
+    language: summarizeLanguage(rounds.filter((e) => e.mode === "language").map((e) => e.record)),
     notes,
   };
 }
@@ -192,6 +210,15 @@ export function formatReport(s, { topPairs = 10 } = {}) {
     for (const c of s.classic.byClip) lines.push(`  ${c.clip.padEnd(26)} ${String(c.n).padStart(5)}  ${c.meanPoints.toFixed(1).padStart(6)}  ${secs(c.medianMs).padStart(7)}`);
   }
 
+  const languages = Object.entries(s.language.byLanguage);
+  if (languages.length) {
+    lines.push("", "Guess the language         right   acc  median time  mistaken for");
+    for (const [lang, t] of languages) {
+      const wrong = Object.entries(s.language.mistakenFor[lang] ?? {}).sort((a, b) => b[1] - a[1]);
+      lines.push(`${row(lang, t)}  ${wrong.map(([g, n]) => `${g} ${n}`).join(", ")}`);
+    }
+  }
+
   if (s.notes.length) {
     lines.push("", "Notes");
     for (const n of s.notes) lines.push(`  ${n.at.slice(0, 16).replace("T", " ")}  ${n.mode}: ${n.text.replace(/\s+/g, " ")}`);
@@ -224,5 +251,6 @@ export function publicSummary(rows, { minAttempts = 3, top = 5 } = {}) {
     minAttempts,
     match: { byLevel: s.match.byLevel, hardByAttribute: s.match.hardByAttribute, ...pairs },
     classic: { byQuestion: s.classic.byQuestion, ...clips },
+    language: s.language,
   };
 }

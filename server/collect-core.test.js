@@ -98,3 +98,20 @@ test("difficulty must be a real level, not an inherited property name", () => {
   const r = round();
   assert.equal(parseEvent(body({ ...r, record: { ...r.record, difficulty: "constructor", points: 0, right: false } })).ok, false);
 });
+
+const languageRound = (over = {}) => ({ kind: "round", player: PLAYER, game: GAME, mode: "language",
+  record: { mode: "language", round: 1, clip_id: "fr_1970s_ortf_x", language: "fr", guess: { language: "fr" },
+    score: { language: 1, total: 1 }, ms_first_play_to_answer: 4000, ...over } });
+
+test("a language round is accepted when its point follows from the guess and the answer", () => {
+  assert.equal(parseEvent(body(languageRound())).ok, true);
+  assert.equal(parseEvent(body(languageRound({ guess: { language: "ru" }, score: { language: 0, total: 0 } }))).ok, true);
+});
+
+test("a language round can't claim a point for a wrong guess, or name a language the game doesn't have", () => {
+  assert.equal(parseEvent(body(languageRound({ guess: { language: "ru" } }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ score: { language: 0, total: 0 } }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ language: "de", guess: { language: "de" } }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ guess: {} , score: { total: 0 } }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ ms_first_play_to_answer: 10 }))).ok, false);
+});

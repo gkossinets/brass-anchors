@@ -7,8 +7,8 @@ import {
   buildMatchGame, scoreMatch, summarizeMatch, pairCoverage, decadeGap, weightedDifferences, matchPoolSize, matchMaxRounds, findPhrase,
 } from "./match-core.js";
 
-const clip = (id, country, decade, genre, speaker = id, recognizable = "unlikely", year = null) =>
-  ({ id, speaker, recognizable, year, answer: { country, decade, genre } });
+const clip = (id, country, decade, genre, speaker = id, recognizable = "unlikely", year = null, language = "en") =>
+  ({ id, speaker, recognizable, year, answer: { country, language, decade, genre } });
 
 // A small corpus with every kind of pair, including one speaker in two decades.
 const CORPUS = [
@@ -235,4 +235,21 @@ test("match pool size counts the clips a game can use; pure mode drops likely-re
 test("findPhrase completes the FIND caption: an article, then the description", () => {
   assert.equal(findPhrase(clip("a", "UK", "1970s", "news")), "a UK news report from the 1970s");
   assert.equal(findPhrase(clip("a", "US", "2010s", "opinion")), "a US opinion piece from the 2010s");
+});
+
+test("Match plays English clips only: the language would give the description away", () => {
+  const foreign = [
+    clip("fr70n", "France", "1970s", "news", "fr70n", "unlikely", 1975, "fr"),
+    clip("ru80n", "USSR/Russia", "1980s", "news", "ru80n", "unlikely", 1985, "ru"),
+  ];
+  const corpus = [...CORPUS, ...foreign];
+  assert.equal(matchPoolSize(corpus), CORPUS.length);
+  assert.equal(matchMaxRounds(corpus), matchMaxRounds(CORPUS));
+  for (let seed = 1; seed <= 20; seed++) {
+    const { rounds } = buildMatchGame(corpus, { rounds: 4, rng: seededRng(seed) });
+    assert.equal(rounds.length, 4);
+    for (const r of rounds) {
+      assert.ok(![r.correct.id, r.distractor.id].some((id) => id === "fr70n" || id === "ru80n"));
+    }
+  }
 });

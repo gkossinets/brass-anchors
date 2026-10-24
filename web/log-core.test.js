@@ -35,9 +35,10 @@ test("round records share one shape across modes", () => {
   assert.deepEqual(classic.clip_ids, ["a"]);
 });
 
-test("the mode comes only from the URL: classic, match, or none for the front page", () => {
+test("the mode comes only from the URL: classic, match, language, or none for the front page", () => {
   assert.equal(modeFromSearch("?mode=match"), "match");
   assert.equal(modeFromSearch("?mode=classic"), "classic");
+  assert.equal(modeFromSearch("?mode=language"), "language");
   assert.equal(modeFromSearch("?mode=MATCH"), "match");
   assert.equal(modeFromSearch(""), null);
   assert.equal(modeFromSearch("?mode=bogus"), null);

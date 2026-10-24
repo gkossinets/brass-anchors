@@ -2,10 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
-  scoreRound, filterClips, questionsFor, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark } from "./quiz-core.js";
+  scoreRound, filterClips, questionsFor, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark,
+  englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES } from "./quiz-core.js";
 
-const clip = (id, country, decade, genre, station, recognizable = "unlikely") =>
-  ({ id, answer: { country, decade, genre, station }, recognizable });
+const clip = (id, country, decade, genre, station, recognizable = "unlikely", language = "en") =>
+  ({ id, answer: { country, language, decade, genre, station }, recognizable });
 
 const CLIPS = [
   clip("a", "US", "1970s", "news", "CBS"),
@@ -66,11 +67,11 @@ test("scoring: 2 exact decade, 1 adjacent, 1 country, 1 genre, 1 station", () =>
   const answer = { decade: "1970s", country: "US", genre: "news", station: "CBS" };
   assert.deepEqual(
     scoreRound(answer, { decade: "1970s", country: "US", genre: "news", station: "CBS" }),
-    { decade: 2, country: 1, genre: 1, station: 1, total: 5 },
+    { decade: 2, country: 1, genre: 1, station: 1, language: 0, total: 5 },
   );
   assert.deepEqual(
     scoreRound(answer, { decade: "1980s", country: "UK", genre: "opinion", station: "BBC" }),
-    { decade: 1, country: 0, genre: 0, station: 0, total: 1 },
+    { decade: 1, country: 0, genre: 0, station: 0, language: 0, total: 1 },
   );
   assert.equal(scoreRound(answer, { decade: "1990s" }).decade, 0);
   assert.equal(scoreRound(answer, {}).total, 0, "unasked questions score zero");
@@ -139,4 +140,86 @@ test("guessMark: right, one off (decade only), wrong, or unanswered, never colou
   assert.deepEqual(guessMark("decade", "1950s", 0), { kind: "bad", mark: "✕" });
   assert.deepEqual(guessMark("country", "US", 1), { kind: "good", mark: "✓" });
   assert.deepEqual(guessMark("country", "UK", 0), { kind: "bad", mark: "✕" });
+});
+
+// Four languages, unevenly stocked the way the real corpus is: twice as much English.
+const MIXED = [
+  ...["e1", "e2", "e3", "e4", "e5", "e6"].map((id) => clip(id, "US", "1990s", "news", "CBS")),
+  clip("f1", "France", "1970s", "news", "ORTF", "unlikely", "fr"),
+  clip("f2", "France", "1980s", "news", "TF1", "likely", "fr"),
+  clip("f3", "France", "2000s", "opinion", "TF1", "unlikely", "fr"),
+  clip("r1", "USSR/Russia", "1980s", "news", "Central Television", "unlikely", "ru"),
+  clip("r2", "USSR/Russia", "1990s", "news", "NTV", "unlikely", "ru"),
+  clip("r3", "USSR/Russia", "2010s", "news", "Channel One", "unlikely", "ru"),
+  clip("z1", "China", "1980s", "news", "CCTV", "unlikely", "zh"),
+  clip("z2", "China", "2000s", "news", "CCTV", "unlikely", "zh"),
+  clip("z3", "China", "2010s", "news", "CCTV", "unlikely", "zh"),
+];
+
+test("the description and decade games play English clips only", () => {
+  for (const variant of ["classic", "news-or-opinion"]) {
+    const ids = filterClips(MIXED, { variant }).map((c) => c.id);
+    assert.deepEqual(ids, ["e1", "e2", "e3", "e4", "e5", "e6"]);
+  }
+  assert.deepEqual(filterClips(MIXED, { variant: "same-chair", country: "France" }), []);
+  assert.deepEqual(englishOnly(MIXED).map((c) => c.answer.country), Array(6).fill("US"));
+});
+
+test("the language game draws on every language, and pure mode still applies", () => {
+  assert.equal(filterClips(MIXED, { variant: "language" }).length, 15);
+  assert.ok(!filterClips(MIXED, { variant: "language", pure: true }).some((c) => c.id === "f2"));
+});
+
+test("the language game asks one question worth 1 point, with no bonus", () => {
+  assert.deepEqual(questionsFor("language"), ["language"]);
+  assert.equal(maxScorePerRound("language"), 1);
+  assert.equal(pointsNote("language"), "1 pt");
+  const answer = MIXED[6].answer;
+  assert.equal(scoreRound(answer, { language: "fr" }).total, 1);
+  assert.equal(scoreRound(answer, { language: "en" }).total, 0);
+  assert.equal(scoreRound(answer, {}).language, 0);
+});
+
+test("language buttons: every language in the corpus, in a fixed order, with names", () => {
+  assert.deepEqual(languageOptions(MIXED), ["en", "fr", "ru", "zh"]);
+  assert.deepEqual(languageOptions(MIXED.slice(0, 12)), ["en", "fr", "ru"]);
+  assert.equal(displayAnswer("language", "zh"), "Mandarin");
+  assert.equal(displayAnswer("language", "en"), "English");
+});
+
+test("language rounds are spread evenly across languages, so always guessing English doesn't pay", () => {
+  for (let seed = 1; seed <= 50; seed++) {
+    const rounds = pickLanguageRounds(MIXED, 8, seededRng(seed));
+    assert.equal(rounds.length, 8);
+    assert.equal(new Set(rounds.map((c) => c.id)).size, 8);
+    const counts = {};
+    for (const c of rounds) counts[c.answer.language] = (counts[c.answer.language] ?? 0) + 1;
+    assert.deepEqual(Object.values(counts), [2, 2, 2, 2]);
+  }
+});
+
+test("language rounds: an uneven count differs by at most one per language, then the bigger pools fill in", () => {
+  const counts = (rounds) => {
+    const out = { en: 0, fr: 0, ru: 0, zh: 0 };
+    for (const c of rounds) out[c.answer.language] += 1;
+    return Object.values(out).sort();
+  };
+  assert.deepEqual(counts(pickLanguageRounds(MIXED, 10, seededRng(3))), [2, 2, 3, 3]);
+  // Only English has more than 3 clips, so a 15-round game uses all of them.
+  assert.deepEqual(counts(pickLanguageRounds(MIXED, 15, seededRng(3))), [3, 3, 3, 6]);
+  assert.equal(pickLanguageRounds(MIXED, 40, seededRng(3)).length, 15);
+});
+
+test("language rounds come in shuffled order, not one language after another", () => {
+  const orders = new Set();
+  for (let seed = 1; seed <= 20; seed++) {
+    orders.add(pickLanguageRounds(MIXED, 4, seededRng(seed)).map((c) => c.answer.language).join());
+  }
+  assert.ok(orders.size > 5);
+});
+
+test("the language game needs clips in at least three languages", () => {
+  assert.equal(MIN_LANGUAGES, 3);
+  assert.equal(languageCount(MIXED), 4);
+  assert.equal(languageCount(englishOnly(MIXED)), 1);
 });

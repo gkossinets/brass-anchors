@@ -47,7 +47,7 @@ test("only each player's first game counts: later games replay clips they've hea
   assert.deepEqual([s.players, s.games, s.counted, s.replays], [2, 3, 2, 1]);
 });
 
-test("first means first overall: a Guess the clip game after a Match game is a replay too", () => {
+test("first means first across the English modes: a Guess the clip game after a Match game is a replay too", () => {
   // Both modes use the same clips, so the second game is familiar whichever mode it is.
   const s = summarize(asPlayer("ann",
     matchRound("m1", 1, "easy", true, 3000),
@@ -162,7 +162,7 @@ test("final scores are percentages of each finished game's maximum, latest recor
     { ...finished("g1", "match", 1, 2, { cues: "notes on save" }), received_at: "2026-10-23T11:00:00Z" },
     row("game", "g4", { mode: "match", cues: "" }), // no summary: older client, left out
   ]);
-  assert.deepEqual(s.scores, { match: [50, 100], classic: [18] });
+  assert.deepEqual(s.scores, { match: [50, 100], classic: [18], language: [] });
 });
 
 test("the public summary has no notes and no player ids", () => {
@@ -216,4 +216,49 @@ test("a game's score counts only when every round arrived and they add up to its
   ]);
   assert.deepEqual(s.scores.match, [67]);
   assert.equal(s.unbacked, 3);
+});
+
+// ---------- Guess the language ----------
+
+const languageRound = (game, round, language, guessed, ms = 4000, clip = `${language}_clip`) =>
+  row("round", game, { mode: "language", round, clip_id: clip, language, guess: { language: guessed },
+    score: { language: guessed === language ? 1 : 0, total: guessed === language ? 1 : 0 }, ms_first_play_to_answer: ms });
+
+test("language rounds: share right for each language, in a fixed order, and what each was mistaken for", () => {
+  const s = summarize([
+    languageRound("g1", 1, "ru", "ru", 3000), languageRound("g1", 2, "fr", "ru", 5000),
+    languageRound("g1", 3, "fr", "fr", 7000), languageRound("g1", 4, "en", "en", 2000),
+    languageRound("g1", 5, "fr", "ru", 9000), languageRound("g1", 6, "zh", "zh", 1000),
+  ]);
+  assert.deepEqual(Object.keys(s.language.byLanguage), ["en", "fr", "ru", "zh"]);
+  assert.deepEqual(s.language.byLanguage.fr, { n: 3, right: 1, medianMs: 7000 });
+  assert.deepEqual(s.language.mistakenFor, { fr: { ru: 2 } });
+});
+
+test("language games have their own score distribution", () => {
+  const s = summarize([languageRound("g1", 1, "ru", "ru"), languageRound("g1", 2, "fr", "en"), finished("g1", "language", 1, 2)]);
+  assert.deepEqual(s.scores.language, [50]);
+});
+
+test("a player's first language game counts even after a Match game: it plays mostly other clips", () => {
+  const s = summarize(asPlayer("ann",
+    matchRound("m1", 1, "easy", true, 3000),
+    languageRound("l1", 1, "ru", "ru"),
+    languageRound("l2", 1, "fr", "en")));
+  assert.equal(s.match.byLevel.easy.n, 1);
+  assert.deepEqual(s.language.byLanguage, { ru: { n: 1, right: 1, medianMs: 4000 } }, "the second language game is a replay");
+  assert.equal(s.replays, 1);
+});
+
+test("a Match game after a language game is still that player's first Match game", () => {
+  const s = summarize(asPlayer("ann", languageRound("l1", 1, "ru", "ru"), matchRound("m1", 1, "easy", true, 3000)));
+  assert.equal(s.match.byLevel.easy.n, 1);
+});
+
+test("the public summary and the report include the language game", () => {
+  const rows = [languageRound("g1", 1, "fr", "ru"), languageRound("g1", 2, "ru", "ru")];
+  const p = publicSummary(rows);
+  assert.deepEqual(p.language.mistakenFor, { fr: { ru: 1 } });
+  assert.equal(p.language.byLanguage.ru.right, 1);
+  assert.match(formatReport(summarize(rows)), /Guess the language[\s\S]*fr\s+0\/1/);
 });

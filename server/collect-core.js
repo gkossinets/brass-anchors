@@ -14,7 +14,8 @@ const MAX_CLASSIC_ROUND_POINTS = 5; // decade 2 + country 1 + genre 1 + station 
 const MIN_ANSWER_MS = 1000;
 const MAX_ANSWER_MS = 60 * 60 * 1000;
 const CLIP_ID = /^[a-z0-9_]{1,64}$/;
-const MODES = ["classic", "match"];
+const MODES = ["classic", "match", "language"];
+const LANGUAGES = ["en", "fr", "ru", "zh"]; // web/quiz-core.js LANGUAGES
 // Player and game ids are crypto.randomUUID() values made in the browser.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -47,7 +48,9 @@ export function parseEvent(text) {
   if (kind === "round") {
     round = record.round;
     if (!Number.isInteger(round) || round < 1 || round > MAX_ROUNDS) return fail("round number out of range");
-    const problem = mode === "match" ? matchRoundProblem(record) : classicRoundProblem(record);
+    const problem = mode === "match" ? matchRoundProblem(record)
+      : mode === "language" ? languageRoundProblem(record)
+      : classicRoundProblem(record);
     if (problem) return fail(problem);
   }
   if (typeof record.cues === "string" && record.cues.length > MAX_NOTES_CHARS) return fail("notes too long");
@@ -73,6 +76,14 @@ function classicRoundProblem(r) {
   const total = r.score?.total;
   if (!Number.isInteger(total) || total < 0 || total > MAX_CLASSIC_ROUND_POINTS) return "score out of range";
   // Null when the player answered without pressing Play.
+  if (r.ms_first_play_to_answer !== null && !plausibleMs(r.ms_first_play_to_answer)) return "implausible answer time";
+  return null;
+}
+
+function languageRoundProblem(r) {
+  if (!CLIP_ID.test(r.clip_id ?? "")) return "bad clip id";
+  if (!LANGUAGES.includes(r.language) || !LANGUAGES.includes(r.guess?.language)) return "unknown language";
+  if (r.score?.total !== (r.guess.language === r.language ? 1 : 0)) return "score doesn't match the guess";
   if (r.ms_first_play_to_answer !== null && !plausibleMs(r.ms_first_play_to_answer)) return "implausible answer time";
   return null;
 }

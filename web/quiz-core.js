@@ -6,15 +6,21 @@ export const DECADES = ["1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2
 // sound different.
 export const GENRES = ["news", "opinion"];
 const GENRE_LABELS = { news: "News", opinion: "Opinion" };
+// Button order for the language game; the buttons never move between rounds.
+export const LANGUAGES = ["en", "fr", "ru", "zh"];
+const LANGUAGE_LABELS = { en: "English", fr: "French", ru: "Russian", zh: "Mandarin" };
+// With two languages the game is a coin flip, so it waits for a third.
+export const MIN_LANGUAGES = 3;
 
 const QUESTIONS = {
   "classic": ["decade", "country", "genre"],
   "news-or-opinion": ["genre"],
   "same-chair": ["decade"],
+  "language": ["language"],
 };
 // Country is worth 1 while the corpus is US/UK only: a two-way choice is a coin
 // flip and shouldn't earn as much as an exact decade.
-export const POINTS = { decade: 2, country: 1, genre: 1, station: 1 };
+export const POINTS = { decade: 2, country: 1, genre: 1, station: 1, language: 1 };
 
 /** mulberry32: small seedable PRNG so tests and replays are deterministic. */
 export function seededRng(seed) {
@@ -84,7 +90,8 @@ export function scoreRound(answer, guess) {
   const country = guess.country === answer.country ? POINTS.country : 0;
   const genre = guess.genre === answer.genre ? POINTS.genre : 0;
   const station = guess.station === answer.station ? POINTS.station : 0;
-  return { decade, country, genre, station, total: decade + country + genre + station };
+  const language = guess.language !== undefined && guess.language === answer.language ? POINTS.language : 0;
+  return { decade, country, genre, station, language, total: decade + country + genre + station + language };
 }
 
 export function questionsFor(variant) {
@@ -101,11 +108,48 @@ export function maxScorePerRound(variant) {
   return main + (hasBonus(variant) ? POINTS.station : 0);
 }
 
+/**
+ * The clips the description and decade games play. Their questions (country,
+ * decade, news or opinion) would be given away by the language, so they stay English.
+ */
+export function englishOnly(clips) {
+  return clips.filter((c) => c.answer.language === "en");
+}
+
 /** Apply the game variant's clip restrictions. */
 export function filterClips(clips, { variant, country, pure = false }) {
-  return clips.filter((c) =>
+  const pool = variant === "language" ? clips : englishOnly(clips);
+  return pool.filter((c) =>
     (!pure || c.recognizable !== "likely") &&
     (variant !== "same-chair" || c.answer.country === country));
+}
+
+/** How many languages these clips cover. */
+export function languageCount(clips) {
+  return new Set(clips.map((c) => c.answer.language)).size;
+}
+
+/** The languages these clips cover, in LANGUAGES order. */
+export function languageOptions(clips) {
+  const present = new Set(clips.map((c) => c.answer.language));
+  return LANGUAGES.filter((l) => present.has(l));
+}
+
+/**
+ * Up to n clips for the language game, taken from each language in turn, so the
+ * counts differ by at most one until a language runs out. Drawing from the whole
+ * pool instead would make English, the biggest set, the safe guess.
+ */
+export function pickLanguageRounds(clips, n, rng = Math.random) {
+  const byLanguage = shuffle(languageOptions(clips), rng)
+    .map((l) => shuffle(clips.filter((c) => c.answer.language === l), rng));
+  const picked = [];
+  while (picked.length < n && byLanguage.some((pool) => pool.length)) {
+    for (const pool of byLanguage) {
+      if (picked.length < n && pool.length) picked.push(pool.pop());
+    }
+  }
+  return shuffle(picked, rng);
 }
 
 /** Shuffled clips for one game, never repeating; fewer than n if the corpus is small. */
@@ -121,7 +165,9 @@ export function initialTimbre(remembered, offered) {
 
 /** How an answer value is shown on buttons and in the reveal table. */
 export function displayAnswer(question, value) {
-  return question === "genre" ? (GENRE_LABELS[value] ?? value) : value;
+  if (question === "genre") return GENRE_LABELS[value] ?? value;
+  if (question === "language") return LANGUAGE_LABELS[value] ?? value;
+  return value;
 }
 
 /** The points note beside a question's title ("2 pts, 1 if a decade off"). */
