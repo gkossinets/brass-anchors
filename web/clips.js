@@ -152,6 +152,10 @@ function showTip(mark, event) {
 
 function wire() {
   document.addEventListener("click", (e) => {
+    // A tap on a dot pins its name (phones can't hover); a tap anywhere else clears it.
+    const mark = e.target.closest(".clip-mark");
+    if (mark) { showTip(mark, e); return; }
+    $("chart-tip").hidden = true;
     const g = e.target.closest("[data-game]");
     if (g) { game = g.dataset.game; renderHardest(); return; }
     const b = e.target.closest("[data-by]");
@@ -163,12 +167,13 @@ function wire() {
       renderGroups();
     }
   });
+  // Hover is for mice; a touch fires pointerout as soon as the finger lifts.
   $("charts").addEventListener("pointerover", (e) => {
     const mark = e.target.closest(".clip-mark");
-    if (mark) showTip(mark, e);
+    if (mark && e.pointerType === "mouse") showTip(mark, e);
   });
   $("charts").addEventListener("pointerout", (e) => {
-    if (e.target.closest(".clip-mark")) $("chart-tip").hidden = true;
+    if (e.pointerType === "mouse" && e.target.closest(".clip-mark")) $("chart-tip").hidden = true;
   });
   let resizeTimer;
   window.addEventListener("resize", () => {
