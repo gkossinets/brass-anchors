@@ -108,6 +108,12 @@ export function hasBonus(variant) {
   return variant === "classic" || variant === "one-country";
 }
 
+/** Text beside Reveal: a count while answers are missing, then nothing. A longer line
+ * would wrap the row on phones and move the button just as it lights up. */
+export function roundHint(answered, total) {
+  return answered < total ? `${answered} of ${total} answered.` : "";
+}
+
 export function maxScorePerRound(variant) {
   const main = questionsFor(variant).reduce((sum, q) => sum + POINTS[q], 0);
   return main + (hasBonus(variant) ? POINTS.station : 0);

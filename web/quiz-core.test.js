@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
   scoreRound, filterClips, questionsFor, clipVariant, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark,
-  englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES } from "./quiz-core.js";
+  englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES, roundHint } from "./quiz-core.js";
 
 const clip = (id, country, decade, genre, station, recognizable = "unlikely", language = "en") =>
   ({ id, answer: { country, language, decade, genre, station }, recognizable });
@@ -224,4 +224,10 @@ test("the language game needs clips in at least three languages", () => {
   assert.equal(MIN_LANGUAGES, 3);
   assert.equal(languageCount(MIXED), 4);
   assert.equal(languageCount(englishOnly(MIXED)), 1);
+});
+
+test("round hint counts answers, then goes blank: a lit Reveal button says enough", () => {
+  assert.equal(roundHint(0, 1), "0 of 1 answered.");
+  assert.equal(roundHint(2, 3), "2 of 3 answered.");
+  assert.equal(roundHint(3, 3), "");
 });
