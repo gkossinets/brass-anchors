@@ -3,7 +3,7 @@ import { formatTime, parseTime, sourceTime, changedFields, statusCounts } from "
 
 const $ = (id) => document.getElementById(id);
 const form = $("form");
-const FIELDS = ["review_status", "review_notes", "start", "end", "speaker", "sex", "genre", "country", "decade",
+const FIELDS = ["review_status", "review_notes", "start", "end", "speaker", "sex", "genre", "country", "language", "decade",
   "year", "station", "program", "recognizable", "date_confidence", "notes"];
 
 let clips = [];

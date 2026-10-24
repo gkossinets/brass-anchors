@@ -6,12 +6,13 @@ import re
 import tempfile
 from pathlib import Path
 
-from pipeline.clips import GENRES, parse_timestamp
+from pipeline.clips import GENRES, LANGUAGES, parse_timestamp
 
 REVIEW_COLUMNS = ["review_status", "review_notes"]
 REVIEW_STATUSES = ("", "unreviewed", "approved", "needs_fix", "rejected")
 CHOICES = {
     "genre": GENRES,
+    "language": LANGUAGES,
     "review_status": REVIEW_STATUSES,
     "sex": ("", "m", "f"),
     "recognizable": ("", "unlikely", "maybe", "likely"),

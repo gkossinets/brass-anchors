@@ -9,6 +9,8 @@ from pipeline.config import DEFAULT_PITCH_RANGE, PITCH_RANGE_BY_SEX
 
 # What the clip is doing, not the speaker's job: reporting news or arguing a view.
 GENRES = ("news", "opinion")
+# ISO 639-1 codes. The English clips play in every mode; the others only in "Guess the language".
+LANGUAGES = ("en", "fr", "ru", "zh")
 
 
 @dataclass(frozen=True)
@@ -20,6 +22,7 @@ class Clip:
     start: str
     end: str
     country: str
+    language: str
     decade: str
     year: int | None
     genre: str
@@ -70,7 +73,7 @@ def load_clips(path: Path) -> list[Clip]:
         Clips in file order.
 
     Raises:
-        ValueError: A row's genre isn't one of GENRES.
+        ValueError: A row's genre isn't one of GENRES, or its language one of LANGUAGES.
     """
     clips = []
     with open(path, newline="", encoding="utf-8") as f:
@@ -81,12 +84,16 @@ def load_clips(path: Path) -> list[Clip]:
             genre = row["genre"].strip()
             if genre not in GENRES:
                 raise ValueError(f"{row['id']}: genre {genre!r} must be one of {GENRES}")
+            language = (row.get("language") or "").strip()
+            if language not in LANGUAGES:
+                raise ValueError(f"{row['id']}: language {language!r} must be one of {LANGUAGES}")
             clips.append(Clip(
                 id=row["id"].strip(),
                 url=row["url"].strip(),
                 start=row["start"].strip(),
                 end=row["end"].strip(),
                 country=row["country"].strip(),
+                language=language,
                 decade=row["decade"].strip(),
                 year=int(year) if year else None,
                 genre=genre,

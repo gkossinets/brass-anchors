@@ -3,10 +3,10 @@ from pathlib import Path
 from pipeline.build_manifest import build_manifest, youtube_link
 from pipeline.clips import load_clips, parse_timestamp
 
-CSV = """id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence
-us_a,https://www.youtube.com/watch?v=AAA,00:03:12,00:03:27,US,1970s,1974,news,CBS,CBS Evening News,Walter Cronkite,m,maybe,,high
-ru_b,https://youtu.be/BBB,1:05,1:20,USSR,1980s,,opinion,Central TV,Mezhdunarodnaya Panorama,Valentin Zorin,m,unlikely,,low
-uk_c,https://www.youtube.com/watch?v=CCC,10,25,UK,2020s,2022,opinion,TalkTV,Piers Morgan Uncensored,Piers Morgan,m,likely,,medium
+CSV = """id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence
+us_a,https://www.youtube.com/watch?v=AAA,00:03:12,00:03:27,US,en,1970s,1974,news,CBS,CBS Evening News,Walter Cronkite,m,maybe,,high
+ru_b,https://youtu.be/BBB,1:05,1:20,USSR,ru,1980s,,opinion,Central TV,Mezhdunarodnaya Panorama,Valentin Zorin,m,unlikely,,low
+uk_c,https://www.youtube.com/watch?v=CCC,10,25,UK,en,2020s,2022,opinion,TalkTV,Piers Morgan Uncensored,Piers Morgan,m,likely,,medium
 """
 
 
@@ -36,7 +36,7 @@ def test_manifest_contains_answers_audio_paths_and_link(tmp_path):
     first = m["clips"][0]
     assert first["id"] == "us_a"
     assert first["answer"] == {
-        "decade": "1970s", "country": "US", "genre": "news", "station": "CBS",
+        "decade": "1970s", "country": "US", "language": "en", "genre": "news", "station": "CBS",
     }
     assert first["audio"] == {
         "original": "audio/original/us_a.mp3",
@@ -70,6 +70,23 @@ def test_load_clips_rejects_genres_outside_news_and_opinion(tmp_path):
     p = tmp_path / "clips.csv"
     p.write_text(CSV.replace(",1974,news,CBS,", ",1974,anchor,CBS,"))
     with pytest.raises(ValueError, match="us_a.*anchor"):
+        load_clips(p)
+
+
+def test_load_clips_reads_the_language(tmp_path):
+    assert [c.language for c in load_clips(write_csv(tmp_path))] == ["en", "ru", "en"]
+
+
+def test_load_clips_rejects_a_missing_or_unknown_language(tmp_path):
+    import pytest
+
+    # Without a language a clip would land in the wrong games, so it's an error, not a default.
+    p = tmp_path / "clips.csv"
+    p.write_text(CSV.replace(",US,en,", ",US,,"))
+    with pytest.raises(ValueError, match="us_a.*language"):
+        load_clips(p)
+    p.write_text(CSV.replace(",USSR,ru,", ",USSR,russian,"))
+    with pytest.raises(ValueError, match="ru_b.*russian"):
         load_clips(p)
 
 

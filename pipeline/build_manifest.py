@@ -46,6 +46,7 @@ def clip_entry(clip: Clip, thumbnail: bool = False, stats: dict | None = None) -
         "answer": {
             "decade": clip.decade,
             "country": clip.country,
+            "language": clip.language,
             "genre": clip.genre,
             "station": clip.station,
         },

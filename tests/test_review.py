@@ -6,9 +6,9 @@ import pytest
 
 from pipeline.review import context_window, read_rows, update_clip, validate_changes
 
-CSV = """id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling
-a,https://youtu.be/A,00:01:00,00:01:15,US,1970s,1978,news,CBS,CBS Evening News,Walter Cronkite,m,maybe,"has ""quotes"", commas",high
-b,https://youtu.be/B,10,25,UK,2010s,2019,news,BBC,Newsnight,Emily Maitlis,f,maybe,,high,100,380
+CSV = """id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling
+a,https://youtu.be/A,00:01:00,00:01:15,US,en,1970s,1978,news,CBS,CBS Evening News,Walter Cronkite,m,maybe,"has ""quotes"", commas",high
+b,https://youtu.be/B,10,25,UK,en,2010s,2019,news,BBC,Newsnight,Emily Maitlis,f,maybe,,high,100,380
 """
 
 
@@ -51,6 +51,7 @@ def test_update_unknown_clip_raises(clips_csv):
 
 @pytest.mark.parametrize("changes, message", [
     ({"genre": "anchor"}, "genre"),
+    ({"language": "de"}, "language"),
     ({"review_status": "maybe"}, "review_status"),
     ({"sex": "x"}, "sex"),
     ({"recognizable": "very"}, "recognizable"),

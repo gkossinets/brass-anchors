@@ -29,8 +29,8 @@ def test_fetch_clip_cuts_from_the_cached_block_and_keeps_old_audio_on_failure(tm
 
     csv_path = tmp_path / "clips.csv"
     csv_path.write_text(
-        "id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence\n"
-        "c,https://youtu.be/X,00:01:40,00:01:55,US,1970s,1978,news,CBS,CBS,W,m,maybe,,high\n")
+        "id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence\n"
+        "c,https://youtu.be/X,00:01:40,00:01:55,US,en,1970s,1978,news,CBS,CBS,W,m,maybe,,high\n")
     clip = load_clips(csv_path)[0]
     calls = []
 
@@ -63,8 +63,8 @@ def test_refresh_recuts_only_clips_whose_times_changed_and_clears_their_stale_ou
     from pipeline.clips import load_clips
     from pipeline.fetch import refresh
 
-    header = "id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence\n"
-    row = "{id},https://youtu.be/{id},{start},{end},US,1970s,1978,news,CBS,CBS,W,m,maybe,,high\n"
+    header = "id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence\n"
+    row = "{id},https://youtu.be/{id},{start},{end},US,en,1970s,1978,news,CBS,CBS,W,m,maybe,,high\n"
     csv_path = tmp_path / "clips.csv"
 
     def write_csv(a_start: str) -> list:
@@ -105,8 +105,8 @@ def test_refresh_recuts_a_raw_file_with_no_record_of_its_times(tmp_path):
 
     csv_path = tmp_path / "clips.csv"
     csv_path.write_text(
-        "id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence\n"
-        "a,https://youtu.be/a,00:01:40,00:01:55,US,1970s,1978,news,CBS,CBS,W,m,maybe,,high\n")
+        "id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence\n"
+        "a,https://youtu.be/a,00:01:40,00:01:55,US,en,1970s,1978,news,CBS,CBS,W,m,maybe,,high\n")
     raw = tmp_path / "raw"
     raw.mkdir()
     sf.write(raw / "a.wav", np.zeros(800), 8000)  # unknown provenance

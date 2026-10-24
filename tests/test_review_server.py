@@ -10,8 +10,8 @@ from pipeline.review import read_rows
 from pipeline.review_server import ReviewConfig, make_server
 from pipeline.sources import SourceUnavailable
 
-CSV = """id,url,start,end,country,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence
-a,https://youtu.be/A,00:01:00,00:01:15,US,1970s,1978,news,CBS,CBS Evening News,Walter Cronkite,m,maybe,,high
+CSV = """id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence
+a,https://youtu.be/A,00:01:00,00:01:15,US,en,1970s,1978,news,CBS,CBS Evening News,Walter Cronkite,m,maybe,,high
 """
 
 
