@@ -92,7 +92,7 @@ Each speaker's picture is `thumbnails/<speaker>.png`, named as in the `speaker` 
 - A local vision model in Ollama (`gemma4:latest`, or set `BRASS_VISION_MODEL`) rejects photos, posters, graphics and footage of newsmakers.
 - Without Ollama, it uses the most frequent face, unchecked.
 
-On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
+On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. On the Russian clips it got 8 of 10 right; one of the misses was a photo of the person in the report. So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
 
 ### Reviewing clips
 

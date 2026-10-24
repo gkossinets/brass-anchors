@@ -47,7 +47,11 @@ Live at <https://brass-anchors.pages.dev>, with 20 reviewed English clips and tw
 | news | 1 | 3 | 1 | 5 | 1 | 2 | 1 |
 | opinion | – | – | – | 1 | 1 | 2 | 2 |
 
-5 men and 5 women each for the US and UK. Set-aside clips (Soviet/Russian, a second Fiona Bruce) are in `backburner/clips.csv`.
+The table counts English clips only: 5 men and 5 women each for the US and UK.
+
+Russian (added 2026-10-23, awaiting review): 5 men and 5 women, one each from the 1960s and 2020s and two from each decade between, except the 1970s, which has none. The official Soviet TV archive on YouTube has few 1970s anchors on camera. Sources are mostly official uploads (the state TV archive, *Vesti Nedeli*, TV Rain).
+
+Set-aside clips are in `backburner/clips.csv`: a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
 Curation pitfalls, worth checking on each new clip's diagnostic plot:
 - Censor bleeps, music beds, and mains hum: the pitch tracker latches onto them. `extract_contour` warns about steady tones. Official uploads are usually cleaner than re-uploads.
