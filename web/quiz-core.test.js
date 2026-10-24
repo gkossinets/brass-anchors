@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
   scoreRound, filterClips, questionsFor, clipVariant, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, buttonLabel, pointsNote, guessMark,
-  englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES, roundHint } from "./quiz-core.js";
+  englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES, roundHint, canReveal } from "./quiz-core.js";
 
 const clip = (id, country, decade, genre, station, recognizable = "unlikely", language = "en") =>
   ({ id, answer: { country, language, decade, genre, station }, recognizable });
@@ -234,7 +234,18 @@ test("the language game needs clips in at least three languages", () => {
 });
 
 test("round hint counts answers, then goes blank: a lit Reveal button says enough", () => {
-  assert.equal(roundHint(0, 1), "0 of 1 answered.");
-  assert.equal(roundHint(2, 3), "2 of 3 answered.");
-  assert.equal(roundHint(3, 3), "");
+  assert.equal(roundHint(0, 1, true), "0 of 1 answered.");
+  assert.equal(roundHint(2, 3, true), "2 of 3 answered.");
+  assert.equal(roundHint(3, 3, true), "");
+});
+
+test("round hint asks for a play first, even once every question is answered", () => {
+  assert.equal(roundHint(0, 1, false), "Play the clip, then answer.");
+  assert.equal(roundHint(1, 1, false), "Play the clip, then answer.");
+});
+
+test("Reveal needs the clip played and every question answered", () => {
+  assert.equal(canReveal(1, 1, true), true);
+  assert.equal(canReveal(1, 1, false), false);
+  assert.equal(canReveal(2, 3, true), false);
 });

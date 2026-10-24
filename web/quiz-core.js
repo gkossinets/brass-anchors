@@ -110,8 +110,14 @@ export function hasBonus(variant) {
 
 /** Text beside Reveal: a count while answers are missing, then nothing. A longer line
  * would wrap the row on phones and move the button just as it lights up. */
-export function roundHint(answered, total) {
+export function roundHint(answered, total, played) {
+  if (!played) return "Play the clip, then answer.";
   return answered < total ? `${answered} of ${total} answered.` : "";
+}
+
+/** A guess made without hearing the clip isn't a guess about the voice, so Reveal waits for a play. */
+export function canReveal(answered, total, played) {
+  return played && answered === total;
 }
 
 export function maxScorePerRound(variant) {

@@ -3,7 +3,7 @@
 import {
   GENRES, decadeOptions, countryOptions, stationOptions, scoreRound,
   filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, buttonLabel, pointsNote, guessMark,
-  englishOnly, languageOptions, pickLanguageRounds, roundHint,
+  englishOnly, languageOptions, pickLanguageRounds, roundHint, canReveal,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
@@ -107,6 +107,7 @@ function showRound() {
     if (play(clip.audio[game.timbre], $("play"), $("progress-bar"), "Play", $("spectrogram"), clock)) {
       heard.add(game.timbre);
       plays.played(clip.id);
+      onChange();
     }
   };
 
@@ -129,13 +130,14 @@ function showRound() {
   bonus.hidden = true;
   $("reveal").disabled = true;
 
-  const onChange = () => {
+  function onChange() {
     const answered = questions.filter((q) => guess[q] !== undefined).length;
     const done = answered === questions.length;
-    $("reveal").disabled = !done;
+    const played = heard.size > 0;
+    $("reveal").disabled = !canReveal(answered, questions.length, played);
     if (done && hasBonus(game.variant) && bonus.hidden) bonus.hidden = false;
-    $("round-hint").textContent = roundHint(answered, questions.length);
-  };
+    $("round-hint").textContent = roundHint(answered, questions.length, played);
+  }
   onChange();
   for (const q of questions) renderQuestion(qs, q, clip, guess, onChange);
   if (hasBonus(game.variant)) renderQuestion(bonus, "station", clip, guess, () => {});
