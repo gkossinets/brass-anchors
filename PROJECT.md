@@ -68,7 +68,7 @@ French (reviewed 2026-10-24): 5 men and 5 women, one each from the 1960s, 1970s,
 
 Russian (reviewed 2026-10-24, times trimmed in review): 5 men and 5 women, one each from the 1960s and 2020s and two from each decade between, except the 1970s, which has none. The official Soviet TV archive on YouTube has few 1970s anchors on camera. Sources are mostly official uploads (the state TV archive, *Vesti Nedeli*, TV Rain).
 
-Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1980s (Du Xian, 1989-06-04), then two each from the 1990s, 2000s, and 2020s, and three from the 2010s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. No man from the 1980s could be named: Xue Fei speaks only a few lines in the one named 1989 broadcast, and the uploads with longer readings by a man don't say who he is. Two clips are politically charged, and that was accepted: Du Xian's is the June 4, 1989 broadcast, famous for her slow, mournful delivery, and Pan Tao's is about the 1911 Revolution anniversary, ending on a line against separatists. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
+Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1990s (Xing Zhibin, 1996), three from the 2000s, four from the 2010s, and two from the 2020s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. Solemn readings were replaced (2026-10-24) because their slow, pause-heavy delivery came from the occasion, not the language, and dominated the clip stats standouts: Luo Jing's 1997 reading of Deng Xiaoping's death notice (43% silent) gave way to his 2008 newscast, and Du Xian's June 4, 1989 broadcast to Ouyang Xiadan (2019). That cost the 1980s: no other anchor from before 1996 could be named (Xue Fei speaks only a few lines in the one named 1989 broadcast; a 1991 upload credited to Zhang Hongmin is someone else's voice-over). Pan Tao's clip is about the 1911 Revolution anniversary, ending on a line against separatists; that was accepted. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
 
 Set-aside clips are in `backburner/clips.csv`: a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
@@ -91,7 +91,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 **Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24).
 
-1. A named Mandarin man from the 1980s, to replace one of the three 2010s clips. Leads: the 1988-07-13 and 1989-05-17 broadcasts have long readings by an unnamed man; a named 1980s source for Xue Fei, Zhao Zhongxiang, or a young Luo Jing would settle it.
+1. Named Mandarin anchors from the 1980s and 1990s reading ordinary news, to even out the decades (2010s has four clips). Leads: the 1988-07-13, 1989-05-17, and 1995-06-26 broadcasts have readings by unnamed anchors; an upload titled "1996 3 25 海霞" has Hai Xia in 1996 (she's the 2020s clip now).
 2. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
 3. Transcript-based speaking rate.
 4. Tone languages vs stress languages: a README paragraph once the language game has data, now that Mandarin (a tone language) is in.
