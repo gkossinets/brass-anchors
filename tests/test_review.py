@@ -25,17 +25,30 @@ def test_update_changes_only_the_named_row_and_fields(clips_csv):
     assert rows[0]["speaker"] == "Walter Cronkite Jr."
     assert rows[0]["genre"] == "opinion"
     assert rows[0]["notes"] == 'has "quotes", commas'
-    assert rows[1] == dict(zip(header, next(csv.reader(io.StringIO(CSV.splitlines()[2])))), **{"review_status": "", "review_notes": ""})
+    assert rows[1] == dict(zip(header, next(csv.reader(io.StringIO(CSV.splitlines()[2])))), **{"review_status": "", "review_notes": "", "thumbnail_ok": ""})
 
 
 def test_review_columns_are_added_once_at_the_end(clips_csv):
     update_clip(clips_csv, "b", {"review_status": "approved", "review_notes": "sounds right"})
     update_clip(clips_csv, "a", {"review_status": "needs_fix"})
     header, rows = read_rows(clips_csv)
-    assert header[-2:] == ["review_status", "review_notes"]
+    assert header[-3:] == ["review_status", "review_notes", "thumbnail_ok"]
     assert header.count("review_status") == 1
     assert rows[1]["review_status"] == "approved"
     assert rows[1]["pitch_ceiling"] == "380"
+
+
+def test_thumbnail_approval_is_saved_and_can_be_withdrawn(clips_csv):
+    update_clip(clips_csv, "a", {"thumbnail_ok": "yes"})
+    assert read_rows(clips_csv)[1][0]["thumbnail_ok"] == "yes"
+    update_clip(clips_csv, "a", {"thumbnail_ok": ""})
+    assert read_rows(clips_csv)[1][0]["thumbnail_ok"] == ""
+
+
+def test_update_rejects_a_field_clips_csv_has_no_column_for(clips_csv):
+    # Otherwise the value would be dropped silently on write.
+    with pytest.raises(ValueError, match="thumbnail_okay"):
+        update_clip(clips_csv, "a", {"thumbnail_okay": "yes"})
 
 
 def test_update_reports_whether_the_segment_moved(clips_csv):
@@ -61,6 +74,7 @@ def test_update_unknown_clip_raises(clips_csv):
     ({"start": "00:00:00", "end": "00:00:40"}, "40"),
     ({"id": "renamed"}, "id"),
     ({"year": "nineteen"}, "year"),
+    ({"thumbnail_ok": "maybe"}, "thumbnail_ok"),
 ])
 def test_validation_rejects_bad_values(changes, message):
     current = {"start": "00:01:00", "end": "00:01:15"}

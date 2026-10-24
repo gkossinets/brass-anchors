@@ -3,7 +3,7 @@ import { formatTime, parseTime, sourceTime, changedFields, statusCounts } from "
 
 const $ = (id) => document.getElementById(id);
 const form = $("form");
-const FIELDS = ["review_status", "review_notes", "start", "end", "speaker", "sex", "genre", "country", "language", "decade",
+const FIELDS = ["review_status", "review_notes", "thumbnail_ok", "start", "end", "speaker", "sex", "genre", "country", "language", "decade",
   "year", "station", "program", "recognizable", "date_confidence", "notes"];
 
 let clips = [];
@@ -73,6 +73,7 @@ function showDetail() {
     if (c.media[kind]) el.src = c.media[kind]; else el.removeAttribute("src");
   }
   $("portrait").hidden = !c.media.thumbnails;
+  $("thumbnail-ok-box").hidden = !c.media.thumbnails;
   if (c.media.thumbnails) $("portrait").src = c.media.thumbnails; else $("portrait").removeAttribute("src");
   $("diagnostic").src = c.media.diagnostics ?? "";
   $("diag-link").href = c.media.diagnostics ?? "#";
@@ -86,6 +87,8 @@ function showDetail() {
     const value = c[field] ?? "";
     if (field === "review_status") {
       for (const r of form.querySelectorAll('input[name="review_status"]')) r.checked = r.value === value;
+    } else if (field === "thumbnail_ok") {
+      form.elements.thumbnail_ok.checked = value === "yes";
     } else {
       form.elements[field].value = value;
     }

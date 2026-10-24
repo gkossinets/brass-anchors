@@ -8,12 +8,14 @@ from pathlib import Path
 
 from pipeline.clips import GENRES, LANGUAGES, parse_timestamp
 
-REVIEW_COLUMNS = ["review_status", "review_notes"]
+# thumbnail_ok: "yes" once a speaker picture picked from the video has been checked by eye.
+REVIEW_COLUMNS = ["review_status", "review_notes", "thumbnail_ok"]
 REVIEW_STATUSES = ("", "unreviewed", "approved", "needs_fix", "rejected")
 CHOICES = {
     "genre": GENRES,
     "language": LANGUAGES,
     "review_status": REVIEW_STATUSES,
+    "thumbnail_ok": ("", "yes"),
     "sex": ("", "m", "f"),
     "recognizable": ("", "unlikely", "maybe", "likely"),
     "date_confidence": ("", "high", "medium", "low"),
@@ -86,6 +88,9 @@ def update_clip(path: Path, clip_id: str, changes: dict[str, str]) -> bool:
     row = next((r for r in rows if r["id"] == clip_id), None)
     if row is None:
         raise KeyError(clip_id)
+    unknown = [f for f in changes if f not in header]
+    if unknown:
+        raise ValueError(f"clips.csv has no column {', '.join(unknown)}")
     validate_changes(row, changes)
     moved = any(
         field in changes and parse_timestamp(changes[field]) != parse_timestamp(row[field])

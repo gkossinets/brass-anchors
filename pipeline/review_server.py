@@ -22,7 +22,7 @@ from pipeline.clips import load_clips, parse_timestamp
 from pipeline.config import CLIPS_CSV, PROCESSED_DIR, RAW_DIR, ROOT, SOURCES_DIR, WEB_DIR
 from pipeline.extract_contour import flat_pitch_runs
 from pipeline.fetch import clear_outputs, fetch_clip
-from pipeline.review import context_window, read_rows, update_clip, validate_changes
+from pipeline.review import REVIEW_COLUMNS, context_window, read_rows, update_clip, validate_changes
 from pipeline.sources import SourceUnavailable, covers, cut_from_source, ensure_source, load_meta
 from pipeline.static_server import RangeRequestHandler
 
@@ -147,8 +147,8 @@ class ReviewHandler(RangeRequestHandler):
         if self.path.split("?")[0] == "/api/clips":
             _, rows = read_rows(self.config.csv_path)
             for row in rows:
-                row.setdefault("review_status", "")
-                row.setdefault("review_notes", "")
+                for column in REVIEW_COLUMNS:
+                    row.setdefault(column, "")
             self._json(200, {"clips": [self._clip(r) for r in rows]})
         else:
             super().do_GET()

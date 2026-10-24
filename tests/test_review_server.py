@@ -72,6 +72,7 @@ def test_lists_clips_with_their_csv_fields(server):
     assert [c["id"] for c in clips] == ["a"]
     assert clips[0]["speaker"] == "Walter Cronkite"
     assert clips[0]["review_status"] == ""
+    assert clips[0]["thumbnail_ok"] == ""
 
 
 def test_lists_the_speaker_picture_so_picked_ones_can_be_checked(server):
