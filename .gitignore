@@ -29,3 +29,6 @@ __pycache__/
 backburner/raw/
 backburner/processed/
 backburner/sources/
+
+# Brainstorming companion mockups
+.superpowers/
