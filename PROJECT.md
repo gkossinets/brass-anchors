@@ -4,7 +4,7 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. A clip stats page (`clips.html`) compares the clips' speech measurements by language, decade, and sex, and lists each game's hardest clips (built 2026-10-24; design and plan in `docs/superpowers/`). Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
 
 All work is on `main`; the other branches and the `feature-ui` worktree were deleted on 2026-10-24. The old design spec, `design/broadcast-brass.md`, is no longer on any branch (its last commit is `eeb85c9`, recoverable until git prunes it).
 
@@ -12,7 +12,7 @@ All work is on `main`; the other branches and the `feature-ui` worktree were del
 
 - **Pipeline** (`pipeline/`, Python): `clips.csv` → cached source audio → normalized clips → pitch and loudness contours → instrument renders → MP3s → `web/quiz.json` (answers, audio paths, speech stats). `make review` is a local page for checking and editing clips; it has its own plain stylesheet (`web/review.css`), not the game's.
 - **Game** (`web/`): static HTML and vanilla ES modules, no build step. Game rules live in pure `*-core.js` modules with tests beside them; the DOM modules are thin.
-- **Server** (`functions/`, `server/`): Cloudflare Pages functions for `/api/log` (play data), `/api/stats` (the results page), `/api/feedback`, and ranged `/audio/*`. Checks and summaries are pure modules in `server/`, tested.
+- **Server** (`functions/`, `server/`): Cloudflare Pages functions for `/api/log` (play data), `/api/stats` (the results page), `/api/clip-stats` (the clip stats page's hardest clips), `/api/feedback`, and ranged `/audio/*`. Checks and summaries are pure modules in `server/`, tested.
 - **Deploy**: `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses) and uploads it. `make stats` and `make feedback` read the live database.
 
 ## Key decisions
@@ -50,6 +50,8 @@ All work is on `main`; the other branches and the `feature-ui` worktree were del
 - Pages answers HTTP Range requests with the whole file, and Safari may not play audio from such a server, so a function serves `/audio/*` with proper `206` responses.
 - Each browser keeps a lasting random player ID. A 10-round Match game plays all 20 English clips, so later games are replays of familiar clips; the stats count **each player's first game only** (`make stats ALL=1` includes replays). The language game counts separately: a player's first language game counts even after a Match game, since it plays mostly other clips. Because a lasting ID can count as personal data, the privacy note says plainly that one is kept, rather than claiming "no personal data".
 - Rounds are sent as they're answered, because many players won't finish or save.
+- The clip stats page counts every game for its hardest-clips lists, replays included, unlike the results page: the owner wanted it to fill quickly. One list per game, because the games miss at very different rates and Match and Guess the clip play English only: pooled, the list would be all English clips. A miss: the wrong language; in Guess the clip, any asked question scored zero (a decade one off isn't a miss; the bonus doesn't count); in Match, a wrong pick counts against the clip that fit.
+- The clip stats page charts pitch for women and men apart, always: pitch differs far more by sex than by language. Speaking rate stays off it (calibrated on English only).
 - The feedback form asks for no contact details, so there's no email on the site and no way to reply.
 - Defences against fake play data are cheap ones: impossible rounds are rejected, and a final score counts only if its rounds add up. A real per-sender rate limit isn't available to Pages Functions; it would mean moving the API to a Worker.
 

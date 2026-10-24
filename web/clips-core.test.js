@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MEASURES, measuresFor, parseBy, groupOf, groupOrder, groupRows, standouts, axis } from "./clips-core.js";
+import { MEASURES, measuresFor, parseBy, groupOf, groupOrder, groupRows, standouts, axis, chartCaption, formatValue } from "./clips-core.js";
 
 const clip = (id, language, country, decade, sex, stats) =>
   ({ id, speaker: id.toUpperCase(), sex, year: 2000, answer: { language, country, decade }, stats });
@@ -84,4 +84,18 @@ test("axis leaves room on both sides and has three ticks at its ends and middle"
   assert.deepEqual([a.ticks[0], a.ticks[2]], [a.lo, a.hi]);
   const b = axis([4, 37]);
   assert.ok(b.lo < 4 && b.hi > 37 && b.lo >= 0);
+});
+
+test("a chart's caption names the highest and lowest group, skipping groups with no value", () => {
+  const rows = groupRows(CLIPS, "language");
+  const range = MEASURES.find((m) => m.id === "range");
+  assert.equal(chartCaption(rows, range), "Highest: English UK, 12.0 st. Lowest: French, 9.0 st.");
+  const women = MEASURES.find((m) => m.id === "pitch_f");
+  assert.equal(chartCaption(rows, women), "Only French has a value.");
+  assert.equal(chartCaption([], range), "");
+});
+
+test("values are formatted with the measure's digits and unit", () => {
+  assert.equal(formatValue(0.4, MEASURES.find((m) => m.id === "pause_len")), "0.40 s");
+  assert.equal(formatValue(null, MEASURES[0]), "—");
 });

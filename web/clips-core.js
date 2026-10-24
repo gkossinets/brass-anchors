@@ -75,6 +75,22 @@ export function groupRows(clips, by) {
   });
 }
 
+/** "16.9 st", "0.40 s", "—" for no value. */
+export function formatValue(value, measure) {
+  return value === null || value === undefined ? "—" : `${value.toFixed(measure.digits)}${measure.unit}`;
+}
+
+/** A chart's one-line caption from its group medians: the highest and lowest group. */
+export function chartCaption(rows, measure) {
+  const withValue = rows.filter((r) => r.medians[measure.id] !== null && r.medians[measure.id] !== undefined);
+  if (withValue.length === 0) return "";
+  if (withValue.length === 1) return `Only ${withValue[0].group} has a value.`;
+  const sorted = [...withValue].sort((a, b) => b.medians[measure.id] - a.medians[measure.id]);
+  const [top, bottom] = [sorted[0], sorted[sorted.length - 1]];
+  return `Highest: ${top.group}, ${formatValue(top.medians[measure.id], measure)}. ` +
+    `Lowest: ${bottom.group}, ${formatValue(bottom.medians[measure.id], measure)}.`;
+}
+
 const STANDOUTS = [
   { label: "Widest pitch range", key: "range_st", most: true },
   { label: "Narrowest pitch range", key: "range_st", most: false },
@@ -84,13 +100,13 @@ const STANDOUTS = [
   { label: "Longest pauses", key: "mean_pause_s", most: true },
 ];
 
-/** The record-holders over every clip: {label, clip, value}. */
+/** The record-holders over every clip: {label, key (the stats field), clip, value}. */
 export function standouts(clips) {
   return STANDOUTS.flatMap(({ label, key, most }) => {
     const withValue = clips.filter((c) => typeof c.stats?.[key] === "number");
     if (withValue.length === 0) return [];
     const best = withValue.reduce((a, b) => (most ? b.stats[key] > a.stats[key] : b.stats[key] < a.stats[key]) ? b : a);
-    return [{ label, clip: best, value: best.stats[key] }];
+    return [{ label, key, clip: best, value: best.stats[key] }];
   });
 }
 
@@ -103,7 +119,7 @@ function niceStep(x) {
 /** A chart axis with room on both sides of the data: round ends, a tick at each end and the middle. */
 export function axis(values) {
   const min = Math.min(...values), max = Math.max(...values);
-  const step = niceStep(Math.max(max - min, 1) / 4);
+  const step = niceStep(Math.max(max - min, 1) / 6);
   let lo = Math.floor(min / step) * step;
   if (lo >= min) lo -= step;
   let hi = Math.ceil(max / step) * step;
