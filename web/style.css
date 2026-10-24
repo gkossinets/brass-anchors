@@ -426,9 +426,12 @@ textarea {
   .modes, .cards { grid-template-columns: 1fr; }
   /* Tighter spacing on phones, so a round's Reveal button shows without scrolling;
      the narrower panel padding also keeps the round label on one line. */
-  .screen { gap: 16px; padding-top: 16px; }
+  .topbar { padding-bottom: 12px; }
+  .screen { gap: 16px; padding-top: 12px; }
   .panel { padding: 16px; }
   .action-row.ruled { padding-top: 16px; }
+  /* "Round 10 of 10 · Guess the language" on one line down to 360px-wide phones. */
+  .panel-top .eyebrow { font-size: 12px; letter-spacing: 0.04em; }
   .seg { width: 20px; }
   .options-row .push { margin-left: 0; }
   .lt-prompt, .lt-who { flex-basis: 100%; }
