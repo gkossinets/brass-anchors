@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Corpus coverage for "Match the description": run with `make check-pairs`.
+// Corpus coverage for "Match the clue": run with `make check-pairs`.
 // Uses the game's own rules (web/match-core.js), so the report and the game agree.
 import { readFileSync } from "node:fs";
 import { pairCoverage, LEVELS, MATCH_CONFIG } from "../web/match-core.js";

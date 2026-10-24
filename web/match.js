@@ -1,4 +1,4 @@
-// "Match the description" screens. Rules live in match-core.js.
+// "Match the clue" screens. Rules live in match-core.js.
 import { displayAnswer } from "./quiz-core.js";
 import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch } from "./match-core.js";
 import { geeksHtml } from "./geeks.js";
@@ -217,7 +217,7 @@ function finish() {
     ids: game.ids,
     mode: "match",
     scorePct: Math.round((100 * s.total) / s.max),
-    meta: `Match the description · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
+    meta: `Match the clue · ${game.results.length} round${game.results.length === 1 ? "" : "s"}`,
     tableHtml: closeRows ? `<tr><th>Closest pairs</th><th></th></tr>${closeRows}` : "",
     buildRecord: (cues) => ({
       format: LOG_FORMAT,

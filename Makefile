@@ -28,7 +28,7 @@ manifest:
 PORT ?= 8000
 
 # make serve            -> front page with the mode selector
-# make serve MODE=match -> prints a link that starts "Match the description" directly
+# make serve MODE=match -> prints a link that starts "Match the clue" directly
 # make serve PORT=8001  -> another port, if 8000 is taken
 serve:
 ifneq ($(MODE),)
@@ -37,7 +37,7 @@ ifneq ($(MODE),)
 endif
 	$(PY) -m pipeline.static_server -p $(PORT)
 
-# Coverage of easy/medium/hard pairs for "Match the description"
+# Coverage of easy/medium/hard pairs for "Match the clue"
 check-pairs:
 	node tools/check-pairs.mjs
 

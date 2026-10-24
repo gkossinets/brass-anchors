@@ -201,7 +201,7 @@ export function formatReport(s, { topPairs = 10 } = {}) {
 
   const levels = Object.entries(s.match.byLevel);
   if (levels.length) {
-    lines.push("", "Match the description      right   acc  median time");
+    lines.push("", "Match the clue             right   acc  median time");
     for (const [level, t] of levels) lines.push(row(level, t));
     const attrs = Object.entries(s.match.hardByAttribute);
     if (attrs.length) {

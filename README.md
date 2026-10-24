@@ -19,7 +19,7 @@ Prosody is how something is said rather than what is said: the rise and fall of 
 The front page lists them easiest first.
 
 - **Guess the language** (easy): hear one clip and name its language: English, French, Russian, or Mandarin. Rounds are spread evenly across languages. It opens once the corpus has clips in at least three languages.
-- **Match the description** (moderate): read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. One point per right pick. Behind the scenes, the pairs get closer as the game goes on: early clips differ in country, decade, and news vs opinion, later ones in only one of those. The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
+- **Match the clue** (moderate): read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. One point per right pick. Behind the scenes, the pairs get closer as the game goes on: early clips differ in country, decade, and news vs opinion, later ones in only one of those. The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
 - **Guess the clip** (advanced): hear one clip and guess its decade, country, and whether it's news or opinion, with a station bonus. The front page picks clips from both countries or just the UK or the US; with one country, the country question is left out.
 
 Match and Guess the clip play English clips only, since the language would give their questions away.
@@ -76,7 +76,7 @@ Changing a clip's times in `clips.csv` and running `make audio` re-cuts just tha
 `id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling,review_status,review_notes`
 
 - `start`, `end`: `HH:MM:SS`, `MM:SS`, or seconds, with optional decimals
-- `language`: `en`, `fr`, `ru`, or `zh` (Mandarin); required. Only English clips play in Match the description and Guess the clip
+- `language`: `en`, `fr`, `ru`, or `zh` (Mandarin); required. Only English clips play in Match the clue and Guess the clip
 - `genre`: `news` (reporting) or `opinion` (arguing a view). Label what the clip does, not the speaker's job
 - `sex`: `m` or `f`; sets the pitch-tracking range (60-300 Hz or 100-500 Hz) unless `pitch_floor` and `pitch_ceiling` are given
 - `recognizable`: `unlikely`, `maybe`, or `likely` (recorded for analysis; every clip plays)
@@ -100,7 +100,7 @@ On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong p
 
 `make review` serves a review page at <http://localhost:8001/review.html> (localhost only). For each clip: the original and the trombone, the pitch plot, and ±5 s of context around the cut with **Set start/end here** to choose boundaries by ear. Edits and a review status save straight into `clips.csv`; changed times re-cut and rebuild the clip in a few seconds, and the game updates.
 
-`make check-pairs` reports how many easy, medium, and hard pairs the corpus supports for Match the description.
+`make check-pairs` reports how many easy, medium, and hard pairs the corpus supports for Match the clue.
 
 ## Deploying
 

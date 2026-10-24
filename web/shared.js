@@ -148,7 +148,7 @@ function exportSaved() {
  * collecting, the record is sent as the game finishes (for the score
  * distribution) and again on Save with the notes; the stats keep the latest.
  * `mode` and `scorePct` let the results page mark where this game falls;
- * `meta` is the line under the score ("Match the description · 5 rounds").
+ * `meta` is the line under the score ("Match the clue · 5 rounds").
  */
 export function showEnd({ score, tableHtml, buildRecord, ids, mode, scorePct, meta }) {
   stopAudio();

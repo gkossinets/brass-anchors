@@ -1,4 +1,4 @@
-// "Match the description" rules: descriptions, distractor choice, difficulty, scoring.
+// "Match the clue" rules: descriptions, distractor choice, difficulty, scoring.
 // Difficulty only shapes the game (closer pairs later on); players never see it,
 // and every right pick scores one point.
 // Pure (no DOM), so it runs under `node --test` and in tools/check-pairs.mjs.
