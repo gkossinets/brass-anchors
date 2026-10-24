@@ -127,15 +127,14 @@ function showRound() {
   const bonus = $("bonus");
   qs.innerHTML = "";
   bonus.innerHTML = "";
-  bonus.hidden = true;
+  // Shown from the start: appearing mid-round, it pushed Reveal down under the finger.
+  bonus.hidden = !hasBonus(game.variant);
   $("reveal").disabled = true;
 
   function onChange() {
     const answered = questions.filter((q) => guess[q] !== undefined).length;
-    const done = answered === questions.length;
     const played = heard.size > 0;
     $("reveal").disabled = !canReveal(answered, questions.length, played);
-    if (done && hasBonus(game.variant) && bonus.hidden) bonus.hidden = false;
     $("round-hint").textContent = roundHint(answered, questions.length, played);
   }
   onChange();
