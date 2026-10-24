@@ -2,7 +2,7 @@
 // buttons to answer. Game rules live in quiz-core.js.
 import {
   GENRES, decadeOptions, countryOptions, stationOptions, scoreRound,
-  filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, pointsNote, guessMark,
+  filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, buttonLabel, pointsNote, guessMark,
   englishOnly, languageOptions, pickLanguageRounds, roundHint,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
@@ -72,10 +72,17 @@ function optionsFor(question, clip) {
 function renderQuestion(container, question, clip, guess, onChange) {
   const set = document.createElement("fieldset");
   set.className = `question${question === "station" ? " bonus" : ""}`;
-  set.innerHTML = `<legend>${LABELS[question]} <span class="pts-note">${pointsNote(question)}</span></legend><div class="options"></div>`;
+  set.innerHTML = `<legend>${LABELS[question]} <span class="pts-note">${pointsNote(question)}</span></legend>` +
+    `<div class="options${question === "language" ? " one-row" : ""}"></div>`;
   for (const opt of optionsFor(question, clip)) {
     const b = document.createElement("button");
-    b.textContent = displayAnswer(question, opt);
+    b.textContent = buttonLabel(question, opt);
+    const name = displayAnswer(question, opt);
+    if (name !== b.textContent) {
+      // The code alone ("ZH") is cryptic to a screen reader and to a pointer hovering it.
+      b.setAttribute("aria-label", name);
+      b.title = name;
+    }
     b.setAttribute("aria-pressed", "false");
     b.onclick = () => {
       guess[question] = opt;

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
-  scoreRound, filterClips, questionsFor, clipVariant, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, pointsNote, guessMark,
+  scoreRound, filterClips, questionsFor, clipVariant, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, buttonLabel, pointsNote, guessMark,
   englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES, roundHint } from "./quiz-core.js";
 
 const clip = (id, country, decade, genre, station, recognizable = "unlikely", language = "en") =>
@@ -187,6 +187,13 @@ test("language buttons: every language in the corpus, in a fixed order, with nam
   assert.deepEqual(languageOptions(MIXED.slice(0, 12)), ["en", "fr", "ru"]);
   assert.equal(displayAnswer("language", "zh"), "Mandarin");
   assert.equal(displayAnswer("language", "en"), "English");
+});
+
+test("language buttons show a short code; other buttons show the usual label", () => {
+  assert.equal(buttonLabel("language", "zh"), "ZH");
+  assert.equal(buttonLabel("language", "en"), "EN");
+  assert.equal(buttonLabel("genre", "news"), "News");
+  assert.equal(buttonLabel("decade", "1990s"), "1990s");
 });
 
 test("language rounds are spread evenly across languages, so always guessing English doesn't pay", () => {

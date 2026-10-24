@@ -179,6 +179,12 @@ export function displayAnswer(question, value) {
   return value;
 }
 
+/** A button's text: language buttons show a short code (EN, ZH) so all of them fit one row. */
+export function buttonLabel(question, value) {
+  if (question === "language") return value.toUpperCase();
+  return displayAnswer(question, value);
+}
+
 /** The points note beside a question's title ("2 pts, 1 if a decade off"). */
 export function pointsNote(question) {
   const pts = POINTS[question];

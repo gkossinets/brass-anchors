@@ -330,6 +330,8 @@ input[type="number"] { width: 72px; }
 .options { display: flex; flex-wrap: wrap; gap: 10px; }
 .options button { flex: 1 1 90px; border-width: 1px; font-size: 18px; letter-spacing: 0.02em; text-transform: none; }
 .options button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+/* Language codes: equal buttons across the full width, however many languages there are. */
+.options.one-row { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
 
 .reveal-head { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-end; justify-content: space-between; }
 .lt-points { padding: 12px 18px; font-size: 32px; letter-spacing: 0; }
@@ -395,7 +397,6 @@ input[type="number"] { width: 72px; }
 /* Reveal screens: a smaller caption, so the cards and their stats sit higher. */
 #screen-match-reveal .lt-tag, #screen-reveal .lt-tag { padding: 10px 16px; }
 #screen-match-reveal .lt-prompt { padding: 8px 20px; font-size: clamp(22px, 2.6vw, 30px); }
-.reveal-corner { display: flex; align-items: center; gap: 20px; }
 .reveal-cards .card > * { min-width: 0; }
 .reveal-cards .card-actions .progress { flex: 1 1 80px; }
 
@@ -444,6 +445,10 @@ textarea {
   .lt-points { font-size: 26px; }
   .lt-who { flex: 1 1 0; min-width: 0; gap: 12px; padding: 8px 12px; }
   #reveal-thumb { width: 44px; height: 44px; }
+  .answer-table { font-size: 17px; }
+  .answer-table th[scope="row"] { font-size: 18px; }
+  .answer-table th, .answer-table td { padding: 8px; }
+  .answer-table th:first-child { padding-left: 0; }
   .reveal-body { grid-template-columns: 1fr; gap: 16px; }
   .push-right { align-self: stretch; }
 }
