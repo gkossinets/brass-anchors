@@ -34,11 +34,12 @@ test("clip labels name the speaker, station, and year", () => {
 });
 
 test("page params: mode defaults to match; your score only when it's a sensible number", () => {
-  assert.deepEqual(pageParams(""), { mode: "match", you: null });
+  // Guess the language by default: it comes first on the front page.
+  assert.deepEqual(pageParams(""), { mode: "language", you: null });
   assert.deepEqual(pageParams("?mode=classic&you=64"), { mode: "classic", you: 64 });
-  assert.deepEqual(pageParams("?mode=language&you=90"), { mode: "language", you: 90 });
-  assert.deepEqual(pageParams("?mode=karaoke&you=900"), { mode: "match", you: null });
-  assert.deepEqual(pageParams("?you=abc"), { mode: "match", you: null });
+  assert.deepEqual(pageParams("?mode=match&you=90"), { mode: "match", you: 90 });
+  assert.deepEqual(pageParams("?mode=karaoke&you=900"), { mode: "language", you: null });
+  assert.deepEqual(pageParams("?you=abc"), { mode: "language", you: null });
 });
 
 test("pct rounds a share to a whole percentage", () => {
@@ -47,6 +48,6 @@ test("pct rounds a share to a whole percentage", () => {
 });
 
 test("what a language was mistaken for: most often first, by name", () => {
-  assert.equal(mistakenForText({ fr: 1, ru: 3 }), "Russian 3, French 1");
+  assert.equal(mistakenForText({ fr: 1, ru: 3 }), "Russian\u00a03, French\u00a01", "a name and its count stay on one line");
   assert.equal(mistakenForText(undefined), "—");
 });

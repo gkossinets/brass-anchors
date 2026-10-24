@@ -1,7 +1,8 @@
 // Helpers for the results page (stats.html). Pure (no DOM), so it runs under `node --test`.
 import { displayAnswer } from "./quiz-core.js";
 
-const MODES = ["match", "classic", "language"];
+// In front-page order; the first is the default.
+const MODES = ["language", "match", "classic"];
 
 /** Ten 10-point bins of final scores (whole percentages); 100% goes in the top bin. */
 export function histogram(scores) {
@@ -42,7 +43,7 @@ export function clipLabel(id, clipsById) {
 /** Which mode's results to show, and the player's own score if the end screen passed one. */
 export function pageParams(search) {
   const params = new URLSearchParams(search);
-  const mode = MODES.includes(params.get("mode")) ? params.get("mode") : "match";
+  const mode = MODES.includes(params.get("mode")) ? params.get("mode") : MODES[0];
   const raw = params.get("you");
   const you = raw !== null && /^\d{1,3}$/.test(raw) && Number(raw) <= 100 ? Number(raw) : null;
   return { mode, you };
@@ -55,5 +56,6 @@ export function pct(part, whole) {
 /** "Russian 3, French 1": the wrong guesses for one language, most common first. */
 export function mistakenForText(counts) {
   const wrong = Object.entries(counts ?? {}).sort((a, b) => b[1] - a[1]);
-  return wrong.length ? wrong.map(([l, n]) => `${displayAnswer("language", l)} ${n}`).join(", ") : "—";
+  // A no-break space keeps each name with its count when a narrow table wraps the list.
+  return wrong.length ? wrong.map(([l, n]) => `${displayAnswer("language", l)}\u00a0${n}`).join(", ") : "—";
 }

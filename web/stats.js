@@ -12,10 +12,12 @@ const QUESTION_LABELS = { decade: "Decade", country: "Country", genre: "News or 
 const { mode, you } = pageParams(location.search);
 let clipsById = {};
 
-function rows(headers, body, empty) {
+// Columns after the first are numbers (right-aligned, no wrapping) unless listed in `text`.
+function rows(headers, body, empty, { text = [] } = {}) {
   if (body.length === 0) return `<tr><td class="muted">${empty}</td></tr>`;
-  return `<tr>${headers.map((h, i) => `<th${i ? ' class="num"' : ""}>${h}</th>`).join("")}</tr>` +
-    body.map((cells) => `<tr>${cells.map((c, i) => `<td${i ? ' class="num"' : ""}>${c}</td>`).join("")}</tr>`).join("");
+  const cls = (i) => (i === 0 ? "" : text.includes(i) ? ' class="text"' : ' class="num"');
+  return `<tr>${headers.map((h, i) => `<th${cls(i)}>${h}</th>`).join("")}</tr>` +
+    body.map((cells) => `<tr>${cells.map((c, i) => `<td${cls(i)}>${c}</td>`).join("")}</tr>`).join("");
 }
 
 function kpi(value, label) {
@@ -162,7 +164,7 @@ function renderClassic(c, minAttempts) {
 function renderLanguage(l) {
   const body = Object.entries(l.byLanguage).map(([lang, t]) =>
     [displayAnswer("language", lang), pct(t.right, t.n), t.n, mistakenForText(l.mistakenFor[lang])]);
-  $("language-table").innerHTML = rows(["Language", "Right", "Rounds", "Mistaken for"], body, "No rounds played yet.");
+  $("language-table").innerHTML = rows(["Language", "Right", "Rounds", "Mistaken for"], body, "No rounds played yet.", { text: [3] });
 }
 
 // ---------- boot ----------
@@ -185,7 +187,7 @@ Promise.all([
   if (mode === "match") renderMatch(data.match, data.minAttempts);
   else if (mode === "language") renderLanguage(data.language ?? { byLanguage: {}, mistakenFor: {} });
   else renderClassic(data.classic, data.minAttempts);
-  $("footnote").textContent = "Only each player's first game counts (in the language game, their first language game): " +
+  $("footnote").textContent = "Only each player's first finished game counts (in the language game, their first finished language game): " +
     "later games replay clips they've already heard. " +
     "Time is the median from the first Play to the answer. Right = share of rounds answered correctly; " +
     "Exact = share of answers with full marks. Anonymous: no names or notes are shown.";

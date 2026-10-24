@@ -510,6 +510,8 @@ table.data th:last-child, table.data td:last-child { padding-right: 0; }
 table.data th { font: 400 12px/1.3 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border-top: 0; }
 table.data td.num { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
 table.data th.num { text-align: right; }
+/* A text column in a table of numbers ("Mistaken for"): left-aligned, free to wrap. */
+table.data .text { text-align: left; padding-left: 16px; }
 
 @media (max-width: 760px) {
   .result-grid { grid-template-columns: 1fr; }
