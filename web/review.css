@@ -1,16 +1,62 @@
+/* The review tool is a local workbench, not part of the game, so it doesn't load
+   style.css: plain system fonts and near-native controls, light or dark with the system. */
+:root {
+  color-scheme: light dark;
+  --bg: #FFFFFF;
+  --fg: #1A1A1A;
+  --muted: #666666;
+  --line: #D0D0D0;
+  --card: #F4F4F4;
+  --accent: #2F6FD6;
+  --good: #1E7A4A;
+  --part: #B07A00;
+  --bad: #B4432C;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1C1C1E;
+    --fg: #EDEDED;
+    --muted: #A0A0A0;
+    --line: #444444;
+    --card: #2A2A2C;
+    --accent: #6EA0F0;
+    --good: #6FCF97;
+    --part: #E0B040;
+    --bad: #F08A74;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.4 system-ui, sans-serif; }
+a { color: var(--accent); }
+h1, h2 { font-weight: 600; }
+.muted { color: var(--muted); }
+.error, .warn { color: var(--bad); }
+
+button {
+  font: inherit; color: var(--fg); background: var(--card);
+  border: 1px solid var(--line); border-radius: 4px; padding: 4px 10px; cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
+input, select, textarea {
+  font: inherit; color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 4px; padding: 4px 6px; margin: 0;
+}
+
 .review { max-width: 1200px; margin: 0 auto; padding: 16px; }
 .review-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 16px; margin-bottom: 12px; }
-.review-head h1 { font-size: 1.3rem; }
+.review-head h1 { margin: 0; font-size: 1.3rem; }
 .review-body { display: grid; grid-template-columns: 260px 1fr; gap: 20px; align-items: start; }
 @media (max-width: 760px) { .review-body { grid-template-columns: 1fr; } }
 
 nav ul { list-style: none; margin: 0; padding: 0; max-height: calc(100vh - 90px); overflow-y: auto; position: sticky; top: 8px; }
 nav li button {
-  width: 100%; text-align: left; border: none; border-radius: 4px; background: none;
+  width: 100%; text-align: left; border: none; background: none;
   padding: 6px 8px; display: flex; gap: 8px; align-items: baseline;
-  /* Undo the game's big centred uppercase buttons from style.css. */
-  justify-content: flex-start; min-height: 0; text-transform: none; letter-spacing: normal;
-  font: 400 14px/1.3 var(--body);
 }
 nav li button.current { background: var(--card); outline: 1px solid var(--accent); }
 nav li small { color: var(--muted); }
@@ -22,10 +68,9 @@ nav li small { color: var(--muted); }
 #detail h2 { margin: 0; font-size: 1.15rem; }
 .title-row { display: flex; gap: 12px; align-items: center; }
 #portrait { width: 64px; height: 64px; object-fit: cover; border-radius: 3px; }
-.thumbnail-ok { margin-left: auto; white-space: nowrap; color: var(--muted); font-size: 0.9rem; }
-.thumbnail-ok[hidden] { display: none; }
+.thumbnail-ok { margin-left: auto; white-space: nowrap; color: var(--muted); }
 .players { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
-.players label { display: grid; gap: 4px; color: var(--muted); font-size: 0.85rem; }
+.players label { display: grid; gap: 4px; color: var(--muted); font-size: 0.9rem; }
 .players audio, #audio-context { width: 100%; }
 #diagnostic { width: 100%; border-radius: 4px; display: block; }
 
@@ -33,13 +78,10 @@ nav li small { color: var(--muted); }
 .context p { margin: 6px 0; }
 
 form { display: grid; gap: 12px; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
-.grid label, .wide { display: grid; gap: 4px; font-size: 0.85rem; color: var(--muted); }
-input, select, textarea {
-  font: inherit; color: var(--fg); background: var(--card);
-  border: 1px solid var(--line); border-radius: 4px; padding: 5px 7px; margin: 0;
-}
+.grid label, .wide { display: grid; gap: 4px; font-size: 0.9rem; color: var(--muted); }
 .status label { display: inline-block; margin-right: 14px; }
 .status textarea { width: 100%; margin-top: 8px; }
-.warn { color: var(--bad); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 pre { white-space: pre-wrap; font-size: 0.8rem; max-height: 240px; overflow: auto; }
