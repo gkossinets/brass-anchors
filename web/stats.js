@@ -164,7 +164,7 @@ function renderClassic(c, minAttempts) {
 function renderLanguage(l) {
   const body = Object.entries(l.byLanguage).map(([lang, t]) =>
     [displayAnswer("language", lang), pct(t.right, t.n), t.n, mistakenForText(l.mistakenFor[lang])]);
-  $("language-table").innerHTML = rows(["Language", "Right", "Rounds", "Mistaken for"], body, "No rounds played yet.", { text: [3] });
+  $("language-table").innerHTML = rows(["Language", "Correct", "Rounds", "Mistaken for"], body, "No rounds played yet.", { text: [3] });
 }
 
 // ---------- boot ----------
@@ -189,7 +189,7 @@ Promise.all([
   else renderClassic(data.classic, data.minAttempts);
   $("footnote").textContent = "Only each player's first finished game counts (in the language game, their first finished language game): " +
     "later games replay clips they've already heard. " +
-    "Time is the median from the first Play to the answer. Right = share of rounds answered correctly; " +
+    "Time is the median from the first Play to the answer. Right and Correct = share of rounds answered correctly; " +
     "Exact = share of answers with full marks. Anonymous: no names or notes are shown.";
   $("stats-status").hidden = true;
   $("stats-body").hidden = false;
