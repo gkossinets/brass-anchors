@@ -4,13 +4,13 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 40 reviewed clips: 20 English, 10 French, 10 Russian. Three games on the front page, easiest first: Guess the language (English, French, or Russian), Match the clue (formerly Match the description), and Guess the clip. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
 
-All work is on `main`; the other branches were deleted on 2026-10-24. The old design spec, `design/broadcast-brass.md`, is no longer on any branch (its last commit is `eeb85c9`, recoverable until git prunes it).
+All work is on `main`; the other branches and the `feature-ui` worktree were deleted on 2026-10-24. The old design spec, `design/broadcast-brass.md`, is no longer on any branch (its last commit is `eeb85c9`, recoverable until git prunes it).
 
 ## Architecture
 
-- **Pipeline** (`pipeline/`, Python): `clips.csv` → cached source audio → normalized clips → pitch and loudness contours → instrument renders → MP3s → `web/quiz.json` (answers, audio paths, speech stats). `make review` is a local page for checking and editing clips.
+- **Pipeline** (`pipeline/`, Python): `clips.csv` → cached source audio → normalized clips → pitch and loudness contours → instrument renders → MP3s → `web/quiz.json` (answers, audio paths, speech stats). `make review` is a local page for checking and editing clips; it has its own plain stylesheet (`web/review.css`), not the game's.
 - **Game** (`web/`): static HTML and vanilla ES modules, no build step. Game rules live in pure `*-core.js` modules with tests beside them; the DOM modules are thin.
 - **Server** (`functions/`, `server/`): Cloudflare Pages functions for `/api/log` (play data), `/api/stats` (the results page), `/api/feedback`, and ranged `/audio/*`. Checks and summaries are pure modules in `server/`, tested.
 - **Deploy**: `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses) and uploads it. `make stats` and `make feedback` read the live database.
@@ -20,6 +20,8 @@ All work is on `main`; the other branches were deleted on 2026-10-24. The old de
 **Corpus and audio**
 - Every clip has a required `language`. Match and Guess the clip play English (US and UK) only: in another language, the country and often the decade would be given away. Guess the language plays everything.
 - Mandarin comes from mainland China only, so each non-English language maps to one country.
+- Every speaker must be named by a source, not guessed. *Xinwen Lianbo* anchors don't say their names on air, so a Mandarin clip needs on-screen name captions (common 2005-2013), an upload title or description naming the anchor, or a description naming the man-and-woman pair, in which case the voice's sex says which one is speaking. A face match against a named upload is the fallback (Kang Hui, Hai Xia), and it's recorded in the clip's notes.
+- No anchor-commentary formats with a music bed (CCTV's *Zhubo Shuo Lianbo*): the pitch tracker follows the music, and the trombone goes wrong. Two such clips were replaced with ordinary newscast readings.
 - `USSR/Russia` is one country label, because separate labels would give away the decade.
 - Speaker pictures come from a hand-made screenshot when there is one; otherwise they're picked from the clip's video (the face that keeps returning to the same spot, with a local vision model rejecting graphics and newsmakers). Picks are wrong often enough (2 of 20 on the English clips) that each needs a tick in the review page's thumbnail OK box.
 - Every clip is normalized to -23 LUFS, so loudness can't give a clip away.
@@ -33,6 +35,10 @@ All work is on `main`; the other branches were deleted on 2026-10-24. The old de
 - Game names follow one pattern, "verb the noun", and each fits on one line of its front-page card. That's why Match the description became Match the clue; the card text still says "Read a description". The URL stays `?mode=match`.
 - Guess the clip has one setting, clips from the UK, the US, or both, instead of three variants. With one country picked, the country question is left out. Station options come only from the clips the game plays, so a French or Russian station can't turn up as an obvious wrong answer.
 - There's no "pure" mode (leaving out recognizable voices): it was rarely worth its checkbox.
+- Reveal waits until the clip has been played, in every game (Match already required both clips): a guess made without listening says nothing about the voice and skews the stats. Answers can still be picked first.
+- The station bonus in Guess the clip shows from the start of the round. It used to appear once the main questions were answered, which pushed Reveal down just as a phone player reached for it.
+- Language buttons show codes (EN, FR, RU, ZH) in one row of equal buttons; the full names were too wide for one row on a phone. Screen readers and the hover title get the full name, and the reveal table spells it out.
+- On every reveal, Next sits below the answer, flush right beside the round's score, where Reveal sits on the round screen; the original voice comes after. Mocks of the options considered are in `design/mobile/`.
 - Match scores one point per right pick (log format 3 on). It used to multiply by difficulty (1-3), but players couldn't tell the levels apart, so the labels went too. Match stats restart with format 3: older Match games stay in the database but are left out of the results. Difficulty still orders the pairs, closest last. It counts differences: country 1, news/opinion 1, decade 1, or 2 when the clips are 3 or more decades apart (those are easy to hear). Easy is 3+, medium 2, hard 1.
 - No clip plays twice in a Match game, because a heard clip is recognizable by its opening. So a game is at most half as many rounds as there are clips. Pairing is a randomized backtracking search with restarts, which keeps the full easy-to-hard ramp.
 - Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts), and it's shown for English only, the language it was calibrated on.
@@ -60,12 +66,16 @@ French (reviewed 2026-10-24): 5 men and 5 women, one each from the 1960s, 1970s,
 
 Russian (reviewed 2026-10-24, times trimmed in review): 5 men and 5 women, one each from the 1960s and 2020s and two from each decade between, except the 1970s, which has none. The official Soviet TV archive on YouTube has few 1970s anchors on camera. Sources are mostly official uploads (the state TV archive, *Vesti Nedeli*, TV Rain).
 
+Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1980s (Du Xian, 1989-06-04), then two each from the 1990s, 2000s, and 2020s, and three from the 2010s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. No man from the 1980s could be named: Xue Fei speaks only a few lines in the one named 1989 broadcast, and the uploads with longer readings by a man don't say who he is. Two clips are politically charged, and that was accepted: Du Xian's is the June 4, 1989 broadcast, famous for her slow, mournful delivery, and Pan Tao's is about the 1911 Revolution anniversary, ending on a line against separatists. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
+
 Set-aside clips are in `backburner/clips.csv`: a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
 Curation pitfalls, worth checking on each new clip's diagnostic plot:
 - Censor bleeps, music beds, and mains hum: the pitch tracker latches onto them. `extract_contour` warns about steady tones. Official uploads are usually cleaner than re-uploads.
 - Transcript timestamps can hide ad jingles and drift by seconds.
 - Median pitch is a poor guide to sex: Fiona Bruce sits around 145-150 Hz.
+- Uploads disagree about who anchored: one title for the 1989-06-04 broadcast names Zhang Hongmin, but other uploads and the record say Xue Fei. Check names against a second source.
+- Automatic speaker pictures went wrong 2 times in 9 on the Mandarin clips (a co-anchor; a politician in the report), so check every pick.
 
 ## Known limitations
 
@@ -77,8 +87,9 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 ## Next steps
 
-**Adding languages** (decided 2026-10-23): French and Russian are done and live. Mandarin (mainland China) is next: about 10 clips, aiming for 5 men and 5 women and a spread of decades. Lead: CCTV *Xinwen Lianbo* from 1978 (so no 1960s-70s); watch for its music bed. News vs opinion doesn't matter for this mode, so genre balance isn't needed. Once Mandarin is in, the language card's text and the README need a fourth language.
+**Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24).
 
-1. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
-2. Transcript-based speaking rate.
-3. Tone languages vs stress languages: a README paragraph once the language game has data.
+1. A named Mandarin man from the 1980s, to replace one of the three 2010s clips. Leads: the 1988-07-13 and 1989-05-17 broadcasts have long readings by an unnamed man; a named 1980s source for Xue Fei, Zhao Zhongxiang, or a young Luo Jing would settle it.
+2. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
+3. Transcript-based speaking rate.
+4. Tone languages vs stress languages: a README paragraph once the language game has data, now that Mandarin (a tone language) is in.

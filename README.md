@@ -12,19 +12,19 @@ Prosody is how something is said rather than what is said: the rise and fall of 
 - **Country**: American and British English have different intonation, the patterns of rising and falling pitch across a sentence.
 - **News vs opinion**: reading the news has a steady rhythm, with pitch drifting down through each sentence and resetting at the next. Arguing an opinion is less regular in speed, pitch, and pauses.
 
-"Stats for geeks" shows some of these measurements for each clip. With 20 clips, and only one speaker behind each clip, the results are a hint rather than proof; the play data from the deployed site will show which differences people can actually hear.
+"Stats for geeks" shows some of these measurements for each clip. With 20 English clips, and only one speaker behind each clip, the results are a hint rather than proof; the play data from the deployed site will show which differences people can actually hear.
 
 ## Game modes
 
 The front page lists them easiest first.
 
-- **Guess the language** (easier): hear one clip and name its language: English, French, Russian, or Mandarin. Rounds are spread evenly across languages. It opens once the corpus has clips in at least three languages.
+- **Guess the language** (easier): hear one clip and name its language: English, French, Russian, or Mandarin (buttons EN, FR, RU, ZH). Rounds are spread evenly across languages. It opens once the corpus has clips in at least three languages.
 - **Match the clue** (moderate): read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. One point per right pick. Behind the scenes, the pairs get closer as the game goes on: early clips differ in country, decade, and news vs opinion, later ones in only one of those. The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
 - **Guess the clip** (advanced): hear one clip and guess its decade, country, and whether it's news or opinion, with a station bonus. The front page picks clips from both countries or just the UK or the US; with one country, the country question is left out.
 
 Match and Guess the clip play English clips only, since the language would give their questions away.
 
-The front page also sets the number of rounds (10 by default). The sound can be switched on every round screen.
+The front page also sets the number of rounds (10 by default). The sound can be switched on every round screen. In every game the answer stays hidden until the clip has been played.
 
 On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by how alike the two clips were (Match), and the easiest and hardest comparisons (Match) or clips (Guess the clip), and how often each language is named correctly and what it's mistaken for.
 
@@ -62,7 +62,7 @@ Every stage skips outputs that already exist, so reruns are cheap. Pass `-f` to 
 | `pipeline.fetch` (`fetch`) | `clips.csv` | `sources/<id>.*`: the section ±60 s, downloaded once; `raw/<id>.wav`: the exact section |
 | `pipeline.trim_normalize` (`normalize`) | `raw/` | `processed/original/`: mono, 22.05 kHz, 50 ms fades, -23 LUFS |
 | `pipeline.extract_contour` (`contours`) | `processed/original/` | `processed/contours/<id>.npz`, and `processed/diagnostics/<id>.png` (spectrogram with the pitch track) |
-| `pipeline.synth` (`synth`) | contours | `processed/{trombone,brass,hum}/` |
+| `pipeline.synth` (`synth`) | contours | `processed/{trombone,hum}/` |
 | `pipeline.encode` (`encode`) | the WAVs above | an MP3 beside each (48 kbit/s CBR); re-encoded when a WAV changes |
 | `pipeline.thumbnails` (`thumbs`) | `thumbnails/<Speaker>.png` | `processed/thumbnails/<id>.jpg` (optional speaker pictures) |
 | `pipeline.build_manifest` (`manifest`) | `clips.csv`, audio, contours | `web/quiz.json`, including each clip's speech stats |
@@ -73,7 +73,7 @@ Changing a clip's times in `clips.csv` and running `make audio` re-cuts just tha
 
 ### clips.csv
 
-`id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling,review_status,review_notes`
+`id,url,start,end,country,language,decade,year,genre,station,program,speaker,sex,recognizable,notes,date_confidence,pitch_floor,pitch_ceiling,review_status,review_notes,thumbnail_ok`
 
 - `start`, `end`: `HH:MM:SS`, `MM:SS`, or seconds, with optional decimals
 - `language`: `en`, `fr`, `ru`, or `zh` (Mandarin); required. Only English clips play in Match the clue and Guess the clip
@@ -82,6 +82,7 @@ Changing a clip's times in `clips.csv` and running `make audio` re-cuts just tha
 - `recognizable`: `unlikely`, `maybe`, or `likely` (recorded for analysis; every clip plays)
 - `date_confidence`: `high`, `medium`, or `low`
 - `review_status`: empty, `unreviewed`, `approved`, `needs_fix`, or `rejected`; rejected clips are left out of the game
+- `thumbnail_ok`: `yes` once the speaker picture has been checked on the review page
 - Rows whose `id` starts with `#` are ignored
 
 `backburner/clips.csv` holds clips set aside from the game; the pipeline reads only `clips.csv`.
@@ -94,7 +95,7 @@ Each speaker's picture is `thumbnails/<speaker>.png`, named as in the `speaker` 
 - A local vision model in Ollama (`gemma4:latest`, or set `BRASS_VISION_MODEL`) rejects photos, posters, graphics and footage of newsmakers.
 - Without Ollama, it uses the most frequent face, unchecked.
 
-On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. On the Russian clips it got 8 of 10 right; one of the misses was a photo of the person in the report. So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
+On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. On the Russian clips it got 8 of 10 right; one of the misses was a photo of the person in the report. On the first 9 Mandarin clips it got 5 right, left 2 blank, and picked the wrong person twice (a co-anchor, and a politician in the report). So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
 
 ### Reviewing clips
 
@@ -141,6 +142,7 @@ web/         the game (and the local review page)
 server/      validation, schema, and stats for collected play data
 functions/   Cloudflare Pages functions: /api/log, /api/stats, /api/feedback, and ranged /audio/*
 tools/       check-pairs and stats command-line reports
+design/      HTML mocks of the visual design and of layout options (open design/mobile/index.html)
 tests/       pytest suite (JavaScript tests sit beside their modules as *.test.js)
 ```
 
