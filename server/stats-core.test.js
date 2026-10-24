@@ -207,14 +207,14 @@ test("classic clips are ranked the same way: hardest and easiest, enough attempt
   assert.deepEqual(p.classic.easiest.map((c) => c.clip), ["easy_clip"]);
 });
 
-test("a game's score counts only when every round arrived and they add up to its total", () => {
+test("a game's score counts only when its rounds arrived and they add up to its total", () => {
   const rounds = (game, pts) => pts.map((p, i) => row("round", game, { format: 3, mode: "match", round: i + 1, difficulty: "easy",
     right: p > 0, points: p, ms_first_play_to_answer: 3000, correct_id: "a", distractor_id: "b" }));
   const s = summarize([
     ...rounds("real", [1, 0, 1]), finished("real", "match", 2, 3),
     finished("forged", "match", 10, 10),                                   // no rounds at all
     ...rounds("inflated", [1, 0, 0]), finished("inflated", "match", 3, 3), // claims more than its rounds
-    ...rounds("gappy", [1, 1]).filter((r) => r.round !== 1), finished("gappy", "match", 1, 2), // round 1 missing
+    ...rounds("gappy", [1, 1, 1]).filter((r) => r.round === 3), finished("gappy", "match", 1, 3), // rounds 1 and 2 missing
   ]);
   assert.deepEqual(s.scores.match, [67]);
   assert.equal(s.unbacked, 3);
@@ -275,4 +275,45 @@ test("the public summary and the report include the language game", () => {
   assert.deepEqual(p.language.mistakenFor, { fr: { ru: 1 } });
   assert.equal(p.language.byLanguage.ru.right, 1);
   assert.match(formatReport(summarize(rows)), /Guess the language[\s\S]*fr\s+0\/1/);
+});
+
+// ---------- abandoned games and lost rounds ----------
+
+const langRound = (game, round, right) => row("round", game, { mode: "language", round, clip_id: `c${round}`, language: "fr",
+  guess: { language: right ? "fr" : "ru" }, score: { language: right ? 1 : 0, total: right ? 1 : 0 }, ms_first_play_to_answer: 4000 });
+const langGame = (game, results, { lose = [] } = {}) => [
+  ...results.map((right, i) => langRound(game, i + 1, right)).filter((r) => !lose.includes(r.round)),
+  finished(game, "language", results.filter(Boolean).length, results.length,
+    { rounds: results.map((right, i) => ({ round: i + 1, score: { total: right ? 1 : 0 } })) }),
+];
+
+test("a game abandoned before a finished one doesn't make the finished one a replay", () => {
+  const s = summarize(asPlayer("ann",
+    langRound("tryout", 1, true),                       // one round, then left
+    ...langGame("full", [true, false, true, true])));
+  assert.deepEqual(s.scores.language, [75]);
+  assert.equal(s.language.byLanguage.fr.n, 4, "the abandoned game's round is left out");
+  assert.deepEqual([s.counted, s.replays], [1, 1]);
+});
+
+test("with no finished game, the first game started still counts", () => {
+  const s = summarize(asPlayer("ann", langRound("a", 1, true), { ...langRound("b", 1, false), received_at: "2099-01-01T00:00:00.000Z" }));
+  assert.deepEqual(s.language.byLanguage.fr, { n: 1, right: 1, medianMs: 4000 });
+});
+
+test("a finished game after another finished game is still a replay", () => {
+  const s = summarize(asPlayer("ann", ...langGame("first", [true, true]), ...langGame("second", [false, false])));
+  assert.deepEqual(s.scores.language, [100]);
+});
+
+test("one lost round is tolerated when the rest adds up; two lost rounds or an impossible total are not", () => {
+  const s = summarize([
+    ...asPlayer("p1", ...langGame("one-lost", [true, false, true, true, false], { lose: [2] })),  // 3 of 5, round 2 scored 0
+    ...asPlayer("p2", ...langGame("lost-a-point", [true, true, false], { lose: [1] })),        // 2 of 3, lost round scored 1
+    ...asPlayer("p3", ...langGame("two-lost", [true, true, true, true], { lose: [1, 2] })),
+    ...asPlayer("p4", ...langGame("too-high", [false, false, false], { lose: [3] }).map((r) =>
+      r.kind === "game" ? { ...r, payload: JSON.stringify({ ...JSON.parse(r.payload), summary: { total: 2, max: 3 } }) } : r)),
+  ]);
+  assert.deepEqual(s.scores.language, [60, 67]);
+  assert.equal(s.unbacked, 2);
 });

@@ -77,13 +77,21 @@ function exactShare(round) {
   return asked.filter((q) => round.score?.[q] === FULL_POINTS[q]).length / asked.length;
 }
 
-// A claimed final score counts only if every round from 1 up arrived and their points add up
-// to it, so one forged "100%" record can't move the distribution.
+// A claimed final score counts only if its rounds arrived and their points add up to it, so
+// one forged "100%" record can't move the distribution. One round may be missing (a phone can
+// drop a send), provided the total lies between the arrived points and what the lost round
+// could have added.
+const MAX_LOST_ROUNDS = 1;
 function backedByRounds(record, roundEvents) {
-  const n = roundEvents.length;
-  if (n === 0 || roundEvents.some((e) => e.round < 1 || e.round > n)) return false;
+  const expected = Array.isArray(record.rounds) && record.rounds.length
+    ? record.rounds.length
+    : Math.max(0, ...roundEvents.map((e) => e.round));
+  if (expected === 0 || roundEvents.some((e) => e.round < 1 || e.round > expected)) return false;
+  const lost = expected - roundEvents.length;
+  if (lost < 0 || lost > MAX_LOST_ROUNDS) return false;
   const points = roundEvents.reduce((sum, e) => sum + (e.record.points ?? e.record.score?.total ?? 0), 0);
-  return points === record.summary.total;
+  const total = record.summary.total;
+  return total >= points && total <= points + (lost * record.summary.max) / expected;
 }
 
 // A finished game's score as a whole percentage of its maximum; null for records without one.
@@ -105,19 +113,25 @@ function oldScoringMatchGames(events) {
 const clipFamily = (mode) => (mode === "language" ? "language" : "english");
 
 /**
- * Each player's first game of each clip family: the one whose earliest event came
- * first. Later games replay clips the player has already heard (a 10-round Match
- * game plays all 20 English clips), so they'd make comparisons look easier than they are.
+ * Each player's first game of each clip family. Later games replay clips the player
+ * has already heard (a 10-round Match game plays all 20 English clips), so they'd make
+ * comparisons look easier than they are. The first *finished* game counts when there is
+ * one: a game abandoned after a round or two shouldn't make the next full game a replay.
+ * Otherwise the first game started counts.
  */
 function firstGames(events) {
-  const startOf = {};
+  const startOf = Object.create(null);
+  const finished = new Set(events.filter((e) => e.kind === "game").map((e) => e.game));
   for (const e of events) {
     const s = startOf[e.game];
     if (!s || e.received_at < s.at) startOf[e.game] = { key: `${e.player} ${clipFamily(e.mode)}`, at: e.received_at };
   }
-  const first = {};
+  const first = Object.create(null);
+  // A finished game beats an unfinished one; between two of the same kind, the earlier start wins.
+  const better = (a, b) => (a.done !== b.done ? a.done : a.at < b.at);
   for (const [game, { key, at }] of Object.entries(startOf)) {
-    if (!first[key] || at < first[key].at) first[key] = { game, at };
+    const candidate = { game, at, done: finished.has(game) };
+    if (!first[key] || better(candidate, first[key])) first[key] = candidate;
   }
   return new Set(Object.values(first).map((f) => f.game));
 }
