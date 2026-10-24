@@ -72,6 +72,8 @@ function showDetail() {
     el.pause();
     if (c.media[kind]) el.src = c.media[kind]; else el.removeAttribute("src");
   }
+  $("portrait").hidden = !c.media.thumbnails;
+  if (c.media.thumbnails) $("portrait").src = c.media.thumbnails; else $("portrait").removeAttribute("src");
   $("diagnostic").src = c.media.diagnostics ?? "";
   $("diag-link").href = c.media.diagnostics ?? "#";
 

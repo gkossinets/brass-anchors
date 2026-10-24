@@ -1,9 +1,9 @@
 PY := .venv/bin/python
 
-.PHONY: audio fetch normalize contours synth encode thumbs manifest serve review check-pairs test site site-dev deploy db-setup stats feedback
+.PHONY: audio fetch normalize contours synth encode portraits thumbs manifest serve review check-pairs test site site-dev deploy db-setup stats feedback
 
 # Full pipeline; every stage skips work that's already done, so reruns are cheap.
-audio: fetch normalize contours synth encode thumbs manifest
+audio: fetch normalize contours synth encode portraits thumbs manifest
 
 fetch:
 	$(PY) -m pipeline.fetch
@@ -15,6 +15,10 @@ synth:
 	$(PY) -m pipeline.synth
 encode:
 	$(PY) -m pipeline.encode
+# Speaker pictures picked from the clip's video, for speakers without a screenshot in thumbnails/
+portraits:
+	$(PY) -m pipeline.portraits
+
 thumbs:
 	$(PY) -m pipeline.thumbnails
 manifest:

@@ -6,4 +6,6 @@ praat-parselmouth
 pyloudnorm
 matplotlib
 pillow
+# 4.x: 5.0 no longer ships the face-detection models
+opencv-python-headless<5
 pytest

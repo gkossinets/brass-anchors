@@ -17,6 +17,8 @@ nav li small { color: var(--muted); }
 .dot.rejected { background: var(--bad); }
 
 #detail h2 { margin: 0; font-size: 1.15rem; }
+.title-row { display: flex; gap: 12px; align-items: center; }
+#portrait { width: 64px; height: 64px; object-fit: cover; border-radius: 3px; }
 .players { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
 .players label { display: grid; gap: 4px; color: var(--muted); font-size: 0.85rem; }
 .players audio, #audio-context { width: 100%; }

@@ -26,7 +26,7 @@ from pipeline.review import context_window, read_rows, update_clip, validate_cha
 from pipeline.sources import SourceUnavailable, covers, cut_from_source, ensure_source, load_meta
 from pipeline.static_server import RangeRequestHandler
 
-MEDIA_KINDS = {"original": "wav", "trombone": "wav", "diagnostics": "png"}
+MEDIA_KINDS = {"original": "wav", "trombone": "wav", "diagnostics": "png", "thumbnails": "jpg"}
 
 
 @dataclass

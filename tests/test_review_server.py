@@ -74,6 +74,15 @@ def test_lists_clips_with_their_csv_fields(server):
     assert clips[0]["review_status"] == ""
 
 
+def test_lists_the_speaker_picture_so_picked_ones_can_be_checked(server):
+    base, csv_path, _ = server
+    thumbs = csv_path.parent / "processed" / "thumbnails"
+    thumbs.mkdir(parents=True)
+    (thumbs / "a.jpg").write_bytes(b"jpg")
+    media = get(f"{base}/api/clips")["clips"][0]["media"]
+    assert media["thumbnails"].startswith("audio/thumbnails/a.jpg?v=")
+
+
 def test_serves_the_review_page(server):
     base, _, _ = server
     with urllib.request.urlopen(f"{base}/review.html") as r:

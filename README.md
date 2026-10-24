@@ -86,7 +86,13 @@ Changing a clip's times in `clips.csv` and running `make audio` re-cuts just tha
 
 ### Speaker pictures
 
-Put a screenshot of each speaker in `thumbnails/`, named as in the `speaker` column (`Walter Cronkite.png`). `make audio` makes small JPEGs for the reveal and warns about clips without a picture.
+Each speaker's picture is `thumbnails/<speaker>.png`, named as in the `speaker` column (`Walter Cronkite.png`). For speakers without one, `make portraits` (part of `make audio`) picks a frame from the clip's video:
+- It samples frames from 20 s before the clip to 20 s after.
+- It ranks faces by how often they come back to the same spot. Anchors return to their spot shot after shot, while the people in a report come and go.
+- A local vision model in Ollama (`gemma4:latest`, or set `BRASS_VISION_MODEL`) rejects photos, posters, graphics and footage of newsmakers.
+- Without Ollama, it uses the most frequent face, unchecked.
+
+On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
 
 ### Reviewing clips
 
