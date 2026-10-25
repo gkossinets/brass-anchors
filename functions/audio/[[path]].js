@@ -1,10 +1,10 @@
 // /audio/*: static audio with HTTP Range support, which Pages lacks (see server/range.js).
-import { withRange } from "../../server/range.js";
+import { notModified, withRange } from "../../server/range.js";
 
 export async function onRequestGet({ request, env }) {
   // Fetch the whole file from the static assets (no Range header), then slice it.
   const asset = await env.ASSETS.fetch(new Request(request.url));
-  return withRange(request.headers.get("Range"), asset);
+  return notModified(request.headers.get("If-None-Match"), asset) ?? withRange(request.headers.get("Range"), asset);
 }
 
 export async function onRequestHead(context) {

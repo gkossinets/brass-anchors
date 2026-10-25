@@ -38,3 +38,23 @@ export async function withRange(rangeHeader, asset) {
   headers.set("Content-Length", String(span.end - span.start + 1));
   return new Response(body.slice(span.start, span.end + 1), { status: 206, headers });
 }
+
+// Headers a 304 must repeat so the browser can keep using and revalidating its copy.
+const KEPT_ON_304 = ["ETag", "Cache-Control", "Last-Modified", "Vary"];
+
+/**
+ * A 304 for a browser that already holds this version of the asset, or null to send it.
+ * Pages answers conditional requests itself, but /audio/* fetches the asset without the
+ * browser's headers (to slice ranges), so the check happens here. The audio keeps
+ * max-age=0: a re-cut clip has a new ETag and reaches players at once.
+ */
+export function notModified(ifNoneMatch, asset) {
+  const etag = asset.headers.get("ETag");
+  if (!asset.ok || !etag || !ifNoneMatch) return null;
+  const strip = (tag) => tag.trim().replace(/^W\//, "");
+  const held = ifNoneMatch.split(",").map(strip);
+  if (!held.includes("*") && !held.includes(strip(etag))) return null;
+  const headers = new Headers();
+  for (const name of KEPT_ON_304) if (asset.headers.has(name)) headers.set(name, asset.headers.get(name));
+  return new Response(null, { status: 304, headers });
+}

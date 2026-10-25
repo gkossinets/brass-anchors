@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { parseRange, withRange } from "./range.js";
+import { parseRange, withRange, notModified } from "./range.js";
 
 test("parseRange handles start-end, open-ended, and suffix ranges", () => {
   assert.deepEqual(parseRange("bytes=0-99", 1000), { start: 0, end: 99 });
@@ -46,4 +46,24 @@ test("withRange answers 416 for an impossible range and leaves errors alone", as
   assert.equal(r.headers.get("Content-Range"), "bytes */50");
   const missing = await withRange("bytes=0-1", new Response("not found", { status: 404 }));
   assert.equal(missing.status, 404);
+});
+
+const tagged = (etag) => new Response("mp3 bytes", { headers: { ETag: etag, "Content-Type": "audio/mpeg", "Cache-Control": "public, max-age=0, must-revalidate" } });
+
+test("notModified: a browser holding the current version gets an empty 304", async () => {
+  const res = notModified('"abc"', tagged('"abc"'));
+  assert.equal(res.status, 304);
+  assert.equal(res.headers.get("ETag"), '"abc"');
+  assert.equal(res.headers.get("Cache-Control"), "public, max-age=0, must-revalidate");
+  assert.equal(await res.text(), "");
+});
+
+test("notModified: lists, weak tags, and * match; anything else means send the file", () => {
+  assert.equal(notModified('"x", "abc"', tagged('"abc"')).status, 304);
+  assert.equal(notModified('W/"abc"', tagged('"abc"')).status, 304);
+  assert.equal(notModified("*", tagged('"abc"')).status, 304);
+  assert.equal(notModified('"old"', tagged('"abc"')), null);   // the clip was re-cut
+  assert.equal(notModified(null, tagged('"abc"')), null);
+  assert.equal(notModified('"abc"', new Response("x")), null); // no ETag to compare
+  assert.equal(notModified('"abc"', new Response("gone", { status: 404, headers: { ETag: '"abc"' } })), null);
 });
