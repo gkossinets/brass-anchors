@@ -131,13 +131,13 @@ export function axis(values) {
 }
 
 /**
- * The language mistakes as a confusion matrix: rows (what it was) and columns (what was said)
- * both in the game's language order, so the table reads the same however the errors arrived.
- * A count is null where no one made that mistake; the diagonal is always null (right guesses aren't tallied).
+ * Language guesses as a confusion matrix: rows (what it was) and columns (what was said)
+ * both in the game's language order, so the table reads the same however the guesses arrived.
+ * Right guesses sit on the diagonal; a count is null where no one made that guess.
  */
-export function confusionMatrix(mistakenFor) {
+export function confusionMatrix(guessedAs) {
   return {
     languages: LANGUAGES,
-    counts: LANGUAGES.map((truth) => LANGUAGES.map((guess) => mistakenFor[truth]?.[guess] ?? null)),
+    counts: LANGUAGES.map((truth) => LANGUAGES.map((guess) => guessedAs[truth]?.[guess] ?? null)),
   };
 }

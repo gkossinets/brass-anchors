@@ -45,15 +45,15 @@ function renderHardest() {
   note.textContent = `Counts every game, replays included. ${game === "match"
     ? "A wrong pick counts against the clip that fit the description."
     : game === "classic" ? "A round counts as missed when any question scored nothing; a decade one off still scores." : ""}`;
-  if (game === "language") renderMistaken(difficulty.language.mistakenFor);
+  if (game === "language") renderGuesses(difficulty.language.guessedAs ?? {});
 }
 
-function renderMistaken(mistakenFor) {
-  if (Object.keys(mistakenFor).length === 0) return;
-  const { languages, counts } = confusionMatrix(mistakenFor);
+function renderGuesses(guessedAs) {
+  if (Object.keys(guessedAs).length === 0) return;
+  const { languages, counts } = confusionMatrix(guessedAs);
   const name = (l) => escape(displayAnswer("language", l));
   $("mistaken").innerHTML = `<tr><th>It was</th>${languages.map((g) => `<th class="num">Said ${name(g)}</th>`).join("")}</tr>` +
-    languages.map((t, i) => `<tr><td>${name(t)}</td>${counts[i].map((n) => `<td class="num">${n ?? "—"}</td>`).join("")}</tr>`).join("");
+    languages.map((t, i) => `<tr><td>${name(t)}</td>${counts[i].map((n, j) => `<td class="num${i === j ? " right-guess" : ""}">${n ?? "—"}</td>`).join("")}</tr>`).join("");
   $("mistaken-box").hidden = false;
 }
 

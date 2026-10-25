@@ -23,7 +23,16 @@ test("language misses: a wrong language guess", () => {
     languageRound("g3", 1, "fr_a", "fr", "ru"),
   ]);
   assert.deepEqual(d.language.hardest[0], { clip: "fr_a", n: 3, missed: 2 });
-  assert.equal(d.language.mistakenFor.fr.ru, 2);
+  assert.equal(d.language.guessedAs.fr.ru, 2);
+});
+
+test("language guesses count the right ones too, for a full confusion matrix", () => {
+  const d = clipDifficulty([
+    languageRound("g1", 1, "fr_a", "fr", "fr"),
+    languageRound("g2", 1, "fr_a", "fr", "ru"),
+    languageRound("g3", 1, "ru_a", "ru", "ru"),
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(d.language.guessedAs)), { fr: { fr: 1, ru: 1 }, ru: { ru: 1 } });
 });
 
 test("classic misses: a question scored zero; a decade one off is not a miss; the bonus is ignored", () => {
@@ -98,7 +107,7 @@ test("clip ids the manifest no longer has are still listed", () => {
 
 test("no rows: empty lists, not errors", () => {
   const d = clipDifficulty([]);
-  assert.deepEqual([d.language.hardest, d.match.hardest, d.classic.hardest, d.language.mistakenFor, d.rounds], [[], [], [], {}, 0]);
+  assert.deepEqual([d.language.hardest, d.match.hardest, d.classic.hardest, JSON.stringify(d.language.guessedAs), d.rounds], [[], [], [], "{}", 0]);
 });
 
 test("a clip id named like an inherited property is tallied like any other, without touching Object.prototype", () => {

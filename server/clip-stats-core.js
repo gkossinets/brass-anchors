@@ -1,7 +1,7 @@
 // Which clips players miss most, one list per game, for the clip stats page (/api/clip-stats).
 // Every game counts, replays included: unlike the results page, this list is meant to fill
 // quickly, and a clip that stays hard on a second hearing is still hard. Pure, for `node --test`.
-import { countedRounds, summarize } from "./stats-core.js";
+import { countedRounds } from "./stats-core.js";
 
 const MAIN_QUESTIONS = ["decade", "country", "genre"]; // the station bonus doesn't count
 
@@ -30,9 +30,22 @@ function hardest(records, rule, minAttempts, top) {
     .slice(0, top);
 }
 
+// What language each language was guessed as, right guesses included, so the page can draw
+// a full confusion matrix: guessedAs[truth][guess] = rounds.
+function guessedAs(records) {
+  const counts = Object.create(null);
+  for (const r of records) {
+    const guess = r.guess?.language;
+    if (!r.language || !guess) continue;
+    const row = (counts[r.language] ??= Object.create(null));
+    row[guess] = (row[guess] ?? 0) + 1;
+  }
+  return counts;
+}
+
 /**
- * Each game's hardest clips ({clip, n, missed}, hardest first) from event rows, plus which
- * languages Guess the language players mistake for which. Aggregates only: no player or game ids.
+ * Each game's hardest clips ({clip, n, missed}, hardest first) from event rows, plus what each
+ * language was guessed as in Guess the language. Aggregates only: no player or game ids.
  */
 export function clipDifficulty(rows, { minAttempts = 3, top = 5 } = {}) {
   const rounds = countedRounds(rows, { firstGamesOnly: false });
@@ -42,7 +55,7 @@ export function clipDifficulty(rows, { minAttempts = 3, top = 5 } = {}) {
     rounds: rounds.length,
     language: {
       hardest: hardest(recordsOf("language"), MISS_RULES.language, minAttempts, top),
-      mistakenFor: summarize(rows, { firstGamesOnly: false }).language.mistakenFor,
+      guessedAs: guessedAs(recordsOf("language")),
     },
     match: { hardest: hardest(recordsOf("match"), MISS_RULES.match, minAttempts, top) },
     classic: { hardest: hardest(recordsOf("classic"), MISS_RULES.classic, minAttempts, top) },

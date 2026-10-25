@@ -100,13 +100,13 @@ test("values are formatted with the measure's digits and unit", () => {
   assert.equal(formatValue(null, MEASURES[0]), "—");
 });
 
-test("the mistaken-for table is square, in the game's language order, whatever order errors arrived in", () => {
-  const m = confusionMatrix({ zh: { ru: 2 }, fr: { zh: 1, en: 3 } });
+test("the guesses table is square, in the game's language order, with right guesses on the diagonal", () => {
+  const m = confusionMatrix({ zh: { ru: 2, zh: 5 }, fr: { zh: 1, en: 3, fr: 7 } });
   assert.deepEqual(m.languages, ["en", "fr", "ru", "zh"]);
   assert.deepEqual(m.counts, [
     [null, null, null, null],
-    [3, null, null, 1],
+    [3, 7, null, 1],
     [null, null, null, null],
-    [null, null, 2, null],
+    [null, null, 2, 5],
   ]);
 });
