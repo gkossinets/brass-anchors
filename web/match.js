@@ -3,7 +3,7 @@ import { displayAnswer } from "./quiz-core.js";
 import { MATCH_CONFIG, buildMatchGame, findPhrase, scoreMatch, summarizeMatch } from "./match-core.js";
 import { geeksHtml } from "./geeks.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
-import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
+import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader, resetAudioStart, audioStartMs, onAudioFailure } from "./shared.js";
 import { formatClock } from "./display-core.js";
 import { newGameIds, send } from "./collect.js";
 
@@ -44,6 +44,8 @@ export function startMatch(corpus, timbreList, settings) {
     started: new Date().toISOString(),
     ids: newGameIds(),
   };
+  // game.round, not game.index: the index moves on at the reveal, while the original still plays.
+  onAudioFailure((failure) => send("audio", game.ids, { mode: "match", round: game.round, ...failure }));
   if (game.rounds.length === 0) {
     $("match-prompt").textContent = "Not enough clips for this game.";
     show("match");
@@ -78,6 +80,8 @@ function cardStatus(card) {
 
 function showRound() {
   stopAudio();
+  resetAudioStart();
+  game.round = game.index + 1;
   const round = game.rounds[game.index];
   const plays = createPlayLog();
   const heard = new Set();
@@ -125,6 +129,7 @@ function pick(side, round, plays, heard) {
     plays: plays.counts(),
     msToAnswer,
     timbre: game.timbre,
+    msAudioStart: audioStartMs(),
   }, {
     difficulty: round.level,
     requested_difficulty: round.requestedLevel,

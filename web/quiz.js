@@ -6,7 +6,7 @@ import {
   englishOnly, languageOptions, pickLanguageRounds, roundHint, canReveal,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
-import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader } from "./shared.js";
+import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader, resetAudioStart, audioStartMs, onAudioFailure } from "./shared.js";
 import { formatClock } from "./display-core.js";
 import { geeksHtml } from "./geeks.js";
 import { newGameIds, send } from "./collect.js";
@@ -56,6 +56,8 @@ export function startClassic(settings) {
     timbre_at_start: settings.timbre,
     ids: newGameIds(),
   };
+  // game.round, not game.index: the index moves on at the reveal, while the original still plays.
+  onAudioFailure((failure) => send("audio", game.ids, { mode: game.mode, round: game.round, ...failure }));
   showRound();
 }
 
@@ -96,6 +98,8 @@ function renderQuestion(container, question, clip, guess, onChange) {
 
 function showRound() {
   stopAudio();
+  resetAudioStart();
+  game.round = game.index + 1;
   const clip = game.clips[game.index];
   const questions = questionsFor(game.variant);
   const guess = {};
@@ -153,7 +157,7 @@ function showReveal(clip, guess, heard, plays) {
   const asked = [...questionsFor(game.variant), ...(hasBonus(game.variant) ? ["station"] : [])];
   game.results.push({ id: clip.id, score });
   const record = roundRecord(game.mode, {
-    round: game.index + 1, clipIds: [clip.id], plays: plays.counts(), msToAnswer, timbre: game.timbre,
+    round: game.index + 1, clipIds: [clip.id], plays: plays.counts(), msToAnswer, timbre: game.timbre, msAudioStart: audioStartMs(),
   }, {
     clip_id: clip.id, guess: { ...guess }, score, timbres_heard: [...heard],
     // The language game's stats tally by the answer, which the round record otherwise lacks.

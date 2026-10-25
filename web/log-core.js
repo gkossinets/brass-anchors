@@ -27,7 +27,7 @@ export function createPlayLog(now = Date.now) {
  * One round, in the same shape for every mode: shared fields first, then the
  * mode's own (classic and language: guess and score; match: difficulty, pair, pick).
  */
-export function roundRecord(mode, { round, clipIds, plays, msToAnswer, timbre }, extra = {}) {
+export function roundRecord(mode, { round, clipIds, plays, msToAnswer, timbre, msAudioStart = null }, extra = {}) {
   return {
     format: LOG_FORMAT,
     mode,
@@ -36,6 +36,9 @@ export function roundRecord(mode, { round, clipIds, plays, msToAnswer, timbre },
     plays,
     ms_first_play_to_answer: msToAnswer,
     timbre,
+    // From pressing Play to sound, for the round's first play: how fast clips load for players.
+    // A field added within format 3; older rounds lack it.
+    ms_audio_start: msAudioStart,
     ...extra,
   };
 }

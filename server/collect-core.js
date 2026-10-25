@@ -6,7 +6,7 @@ export const MAX_BODY_BYTES = 64 * 1024;
 export const MAX_NOTES_CHARS = 4000;
 export const MAX_ROUNDS = 100;
 
-const KINDS = ["round", "game"];
+const KINDS = ["round", "game", "audio"];
 // Mirrors MATCH_CONFIG.points in web/match-core.js and POINTS in web/quiz-core.js.
 const LEVEL_POINTS = { easy: 1, medium: 2, hard: 3 };
 const MAX_CLASSIC_ROUND_POINTS = 5; // decade 2 + country 1 + genre 1 + station bonus 1
@@ -17,6 +17,12 @@ const MAX_ANSWER_MS = 60 * 60 * 1000;
 const CLIP_ID = /^(?!(?:__proto__|constructor|prototype)$)[a-z0-9_]{1,64}$/;
 const MODES = ["classic", "match", "language"];
 const LANGUAGES = ["en", "fr", "ru", "zh"]; // web/quiz-core.js LANGUAGES
+const AUDIO_VERSIONS = ["trombone", "hum", "original"]; // pipeline/encode.py KINDS
+// A media error name (web/audio-core.js) or a DOMException name from a rejected play().
+const AUDIO_ERROR = /^[A-Za-z]{1,40}$/;
+const CONNECTIONS = ["slow-2g", "2g", "3g", "4g"]; // navigator.connection.effectiveType
+// Longer than this from Play to sound, nobody waited.
+const MAX_AUDIO_START_MS = 10 * 60 * 1000;
 // Player and game ids are crypto.randomUUID() values made in the browser.
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -46,12 +52,18 @@ export function parseEvent(text) {
   if (record.mode !== mode) return fail("record mode differs from event mode");
 
   let round = null;
+  if (kind === "audio") {
+    round = record.round;
+    if (!Number.isInteger(round) || round < 1 || round > MAX_ROUNDS) return fail("round number out of range");
+    const problem = audioProblem(record);
+    if (problem) return fail(problem);
+  }
   if (kind === "round") {
     round = record.round;
     if (!Number.isInteger(round) || round < 1 || round > MAX_ROUNDS) return fail("round number out of range");
-    const problem = mode === "match" ? matchRoundProblem(record)
+    const problem = audioStartProblem(record) ?? (mode === "match" ? matchRoundProblem(record)
       : mode === "language" ? languageRoundProblem(record)
-      : classicRoundProblem(record);
+      : classicRoundProblem(record));
     if (problem) return fail(problem);
   }
   if (typeof record.cues === "string" && record.cues.length > MAX_NOTES_CHARS) return fail("notes too long");
@@ -88,5 +100,21 @@ function languageRoundProblem(r) {
   if (!LANGUAGES.includes(r.language) || !LANGUAGES.includes(r.guess?.language)) return "unknown language";
   if (r.score?.total !== (r.guess.language === r.language ? 1 : 0)) return "score doesn't match the guess";
   if (r.ms_first_play_to_answer !== null && !plausibleMs(r.ms_first_play_to_answer)) return "implausible answer time";
+  return null;
+}
+
+// Rounds from before the field have none; null means no play started.
+function audioStartProblem(r) {
+  const ms = r.ms_audio_start;
+  if (ms === undefined || ms === null) return null;
+  return typeof ms === "number" && ms >= 0 && ms <= MAX_AUDIO_START_MS ? null : "implausible audio start time";
+}
+
+function audioProblem(r) {
+  if (!CLIP_ID.test(r.clip_id ?? "")) return "bad clip id";
+  if (!AUDIO_VERSIONS.includes(r.version)) return "unknown audio version";
+  if (!AUDIO_ERROR.test(r.error ?? "")) return "bad audio error name";
+  if (typeof r.recovered !== "boolean") return "recovered is not true or false";
+  if (r.connection !== null && !CONNECTIONS.includes(r.connection)) return "unknown connection type";
   return null;
 }

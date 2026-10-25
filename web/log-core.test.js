@@ -45,3 +45,9 @@ test("the mode comes only from the URL: classic, match, language, or none for th
   assert.equal(modeFromSearch("?mode=bogus"), null);
   assert.equal(modeFromSearch("?other=1&mode=match"), "match");
 });
+
+test("a round records how long its first play took to start, null when none started", () => {
+  const shared = { round: 1, clipIds: ["a"], plays: {}, msToAnswer: null, timbre: "trombone" };
+  assert.equal(roundRecord("classic", { ...shared, msAudioStart: 240 }).ms_audio_start, 240);
+  assert.equal(roundRecord("classic", shared).ms_audio_start, null);
+});

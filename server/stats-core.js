@@ -164,6 +164,36 @@ function uniqueRounds(events) {
   });
 }
 
+// Nearest rank: the value a tenth of rounds are at or above, for p = 0.9.
+function percentile(values, p) {
+  const xs = values.filter((v) => typeof v === "number").sort((a, b) => a - b);
+  return xs.length ? xs[Math.ceil(p * xs.length) - 1] : null;
+}
+
+/**
+ * Clips that failed to load (one event per press of Play that failed, recovered after the
+ * retry or not) and how long the first play of each round took to start. Every game counts,
+ * replays included: a replay loads audio like any other game.
+ * The failure count is a lower limit: a clip that fails over a dropped connection often
+ * can't send its report either (see PROJECT.md, Known limitations).
+ */
+function summarizeAudio(all) {
+  const failures = all.filter((e) => e.kind === "audio");
+  const byClip = groupBy(failures, (e) => `${e.record.clip_id} ${e.record.version}`);
+  const failedClips = Object.entries(byClip)
+    .map(([key, list]) => { const [clip, version] = key.split(" "); return { clip, version, n: list.length }; })
+    .sort((a, b) => b.n - a.n || a.clip.localeCompare(b.clip));
+  const starts = uniqueRounds(all).map((e) => e.record.ms_audio_start).filter((ms) => typeof ms === "number");
+  return {
+    failures: failures.length,
+    recovered: failures.filter((e) => e.record.recovered === true).length,
+    failedClips,
+    timed: starts.length,
+    medianStartMs: median(starts),
+    p90StartMs: percentile(starts, 0.9),
+  };
+}
+
 /** The round events summarize counts ({...row, record}), for other summaries of the same rows. */
 export function countedRounds(rows, { firstGamesOnly = true } = {}) {
   const { all } = parseRows(rows);
@@ -217,6 +247,7 @@ export function summarize(rows, { firstGamesOnly = true } = {}) {
     match: summarizeMatch(rounds.filter((e) => e.mode === "match" && !oldMatch.has(e.game)).map((e) => e.record)),
     classic: summarizeClassic(rounds.filter((e) => e.mode === "classic").map((e) => e.record)),
     language: summarizeLanguage(rounds.filter((e) => e.mode === "language").map((e) => e.record)),
+    audio: summarizeAudio(all),
     notes,
   };
 }
@@ -264,6 +295,13 @@ export function formatReport(s, { topPairs = 10 } = {}) {
       const wrong = Object.entries(s.language.mistakenFor[lang] ?? {}).sort((a, b) => b[1] - a[1]);
       lines.push(`${row(lang, t)}  ${wrong.map(([g, n]) => `${g} ${n}`).join(", ")}`);
     }
+  }
+
+  const a = s.audio;
+  if (a.failures || a.timed) {
+    lines.push("", "Audio", `  ${plural(a.failures, "load failure")}` + (a.failures ? ` (${a.recovered} recovered after a retry)` : ""));
+    if (a.timed) lines.push(`  start-up: median ${secs(a.medianStartMs)}, slowest tenth ${secs(a.p90StartMs)} and over (${plural(a.timed, "round")} timed)`);
+    for (const c of a.failedClips) lines.push(`  ${c.clip} ${c.version}: ${c.n}`);
   }
 
   if (s.notes.length) {

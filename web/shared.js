@@ -3,6 +3,7 @@ import { initialTimbre } from "./quiz-core.js";
 import { collecting, send } from "./collect.js";
 import { startSpectrogram, clearSpectrogram } from "./visualizer.js";
 import { roundSegments, splitScore } from "./display-core.js";
+import { mediaErrorName, playRejection, clipOfSrc, createLoadTracker } from "./audio-core.js";
 
 export { clearSpectrogram };
 export const $ = (id) => document.getElementById(id);
@@ -15,11 +16,35 @@ const TIMBRE_KEY = "brass-anchors.timbre";
 const audio = new Audio();
 let current = null; // { button, label, status } of whatever is playing
 
+// How long the round's first play took to start (ms), and where failures are reported.
+// Each game resets the timing per round and sets the reporter for its own ids and mode.
+let roundStartMs = null;
+let reportFailure = null;
+
+/** Forget the last round's start-up time; call when a round begins. */
+export function resetAudioStart() {
+  roundStartMs = null;
+}
+
+/** Milliseconds from Play to sound for this round's first play, or null if none started. */
+export function audioStartMs() {
+  return roundStartMs;
+}
+
+/** `report({clip_id, version, error, recovered, connection})` is called once per failed load. */
+export function onAudioFailure(report) {
+  reportFailure = report;
+}
+
+const LOAD_FAILED = "Couldn't load. Tap to try again";
+
 /**
  * Play `src`, or stop it if it's already playing.
  *
  * `status(seconds, duration, playing)`, if given, is called as playback moves,
  * starts, and stops, so a screen can show "Playing · 0:07" or a timer.
+ *
+ * A clip that fails to load is retried once; the failure is reported either way.
  *
  * @returns {boolean} true if this call started playback (callers count plays on true).
  */
@@ -36,15 +61,54 @@ export function play(src, button, bar, label, canvas, status = null) {
   audio.src = src;
   audio.dataset.src = src;
   audio.currentTime = 0;
+  const pressed = performance.now();
+  const tracker = createLoadTracker();
   const report = (playing) => status?.(audio.currentTime, audio.duration, playing);
+  const send = (error, recovered) => {
+    const clip = clipOfSrc(src);
+    if (clip) reportFailure?.({ ...clip, error, recovered, connection: navigator.connection?.effectiveType ?? null });
+  };
+  // Stale events from a clip the player has since stopped or switched away from don't count.
+  const isCurrent = () => audio.dataset.src === src && audio.hasAttribute("src");
+  const failed = (error, attempt) => {
+    if (!isCurrent()) return;
+    const next = tracker.failed(error, attempt);
+    if (next === "retry") {
+      tracker.retrying();
+      audio.load();
+      start();
+    } else if (next === "give-up") {
+      send(error, false);
+      button.textContent = LOAD_FAILED;
+    }
+  };
+  // Each play() call's rejection belongs to the attempt that made it.
+  const start = () => {
+    const attempt = tracker.attempt();
+    audio.play().catch((err) => {
+      const kind = playRejection(err);
+      if (kind === "failure") failed(err.name, attempt);
+      else if (kind === "blocked" && isCurrent()) button.textContent = `Can't play: ${err.message}`;
+    });
+  };
   audio.ontimeupdate = () => {
     bar.style.width = `${100 * audio.currentTime / (audio.duration || 1)}%`;
     report(!audio.paused);
   };
   audio.onplay = () => { button.textContent = "Stop"; report(true); };
-  audio.onpause = audio.onended = () => { button.textContent = label; report(false); };
+  audio.onplaying = () => {
+    roundStartMs ??= Math.round(performance.now() - pressed);
+    const recoveredFrom = tracker.started();
+    if (recoveredFrom) send(recoveredFrom, true);
+  };
+  // A failure leaves the element paused; keep the failure message rather than the label.
+  audio.onpause = audio.onended = () => { if (button.textContent !== LOAD_FAILED) button.textContent = label; report(false); };
+  audio.onerror = () => {
+    const error = mediaErrorName(audio.error?.code);
+    if (error) failed(error, tracker.attempt());
+  };
   startSpectrogram(canvas, audio);
-  audio.play().catch((err) => { button.textContent = `Can't play: ${err.message}`; });
+  start();
   return true;
 }
 

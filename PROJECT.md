@@ -52,6 +52,7 @@ Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewe
 - The clip stats page charts pitch for women and men apart, always: pitch differs far more by sex than by language. Speaking rate stays off it (calibrated on English only).
 - The feedback form asks for no contact details, so there's no email on the site and no way to reply.
 - Defences against fake play data are cheap ones: impossible rounds are rejected, and a final score counts only if its rounds add up. A real per-sender rate limit isn't available to Pages Functions; it would mean moving the API to a Worker.
+- Audio (2026-10-25): `/audio/*` answers 304 when the browser already has the clip, and keeps `max-age=0` so a re-cut clip reaches players at once. A clip that fails to load is retried once, then the button says "Couldn't load. Tap to try again"; each failure is logged as an `audio` event, and each round records how long its first play took to start (`ms_audio_start`). `make stats` reports both.
 
 ## Corpus
 
@@ -84,6 +85,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 - A player who opens the results page straight away may not see their game counted yet, because the browser can delay sending the last round. A reload fixes it.
 - Tooltips (stat definitions) don't show on touch screens.
 - A patient script could still post plausible fake games.
+- The audio failure count in `make stats` is a lower limit, not proof that audio is reliable. The commonest cause on phones is a lost or weak connection, and that same connection has to carry the report (retried once, after 2 seconds). So the failures that hurt players most are the likeliest to go unrecorded. The start-up times on each round (`ms_audio_start`) are the better sign of slow loading. If it matters, failed reports could be kept in the browser and sent with the next event that gets through.
 
 ## Next steps
 

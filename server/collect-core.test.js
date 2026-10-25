@@ -131,3 +131,40 @@ test("clip ids can't be names every object inherits: one such row used to break 
   }
   assert.equal(parseEvent(body(languageRound({ clip_id: "fr_1970s_ortf_x" }))).ok, true);
 });
+
+const audio = (over = {}) => ({
+  kind: "audio", player: PLAYER, game: GAME, mode: "classic",
+  record: { mode: "classic", round: 4, clip_id: "us_a", version: "trombone", error: "network", recovered: false, connection: "4g" },
+  ...over,
+});
+const audioOk = (record) => parseEvent(body(audio({ record: { ...audio().record, ...record } }))).ok;
+
+test("an audio failure becomes a row with its round number", () => {
+  const out = parseEvent(body(audio()));
+  assert.equal(out.ok, true);
+  assert.equal(out.row.kind, "audio");
+  assert.equal(out.row.round, 4);
+});
+
+test("an audio failure must name a real clip version, error, and outcome", () => {
+  assert.equal(audioOk({ version: "hum" }), true);
+  assert.equal(audioOk({ version: "original", recovered: true, connection: null }), true);
+  assert.equal(audioOk({ error: "NotSupportedError" }), true, "a play() rejection carries the DOMException name");
+  assert.equal(audioOk({ version: "kazoo" }), false);
+  assert.equal(audioOk({ clip_id: "__proto__" }), false);
+  assert.equal(audioOk({ error: "x".repeat(41) }), false);
+  assert.equal(audioOk({ error: "<script>" }), false);
+  assert.equal(audioOk({ recovered: "yes" }), false);
+  assert.equal(audioOk({ connection: "fiber-to-the-moon" }), false);
+  assert.equal(audioOk({ round: 0 }), false);
+});
+
+test("a round may say how long its first play took to start, within reason", () => {
+  const withStart = (ms) => parseEvent(body(round({ record: { ...round().record, format: 3, points: 1, ms_audio_start: ms } }))).ok;
+  assert.equal(withStart(240), true);
+  assert.equal(withStart(0), true);
+  assert.equal(withStart(null), true, "no play started");
+  assert.equal(withStart(-5), false);
+  assert.equal(withStart(10 * 60 * 1000 + 1), false);
+  assert.equal(withStart("fast"), false);
+});

@@ -317,3 +317,38 @@ test("one lost round is tolerated when the rest adds up; two lost rounds or an i
   assert.deepEqual(s.scores.language, [60, 67]);
   assert.equal(s.unbacked, 2);
 });
+
+const audioFailure = (game, round, clip, version, error, recovered) =>
+  row("audio", game, { mode: "classic", round, clip_id: clip, version, error, recovered, connection: null });
+const timedRound = (game, round, msStart) =>
+  row("round", game, { mode: "classic", round, clip_id: "c", guess: {}, score: { total: 0 }, ms_first_play_to_answer: 5000, ms_audio_start: msStart });
+
+test("audio: failures counted, recovered or not, across every game, replays included", () => {
+  const s = summarize([
+    { ...timedRound("g1", 1, 200), player: "p1" },
+    { ...timedRound("g2", 1, 300), player: "p1" }, // a replay: still counts for audio
+    { ...audioFailure("g2", 1, "us_a", "trombone", "network", true), player: "p1" },
+    { ...audioFailure("g2", 2, "us_a", "trombone", "network", false), player: "p1" },
+    { ...audioFailure("g1", 3, "fr_b", "original", "decode", false), player: "p1" },
+  ]);
+  assert.equal(s.audio.failures, 3);
+  assert.equal(s.audio.recovered, 1);
+  assert.deepEqual(s.audio.failedClips, [{ clip: "us_a", version: "trombone", n: 2 }, { clip: "fr_b", version: "original", n: 1 }]);
+});
+
+test("audio: start-up time median and slowest tenth over rounds that recorded one", () => {
+  const rows = [timedRound("g0", 1, null), timedRound("g0", 2, undefined)];
+  for (let i = 1; i <= 10; i++) rows.push(timedRound(`g${i}`, 1, i * 100));
+  const s = summarize(rows);
+  assert.equal(s.audio.timed, 10);
+  assert.equal(s.audio.medianStartMs, 550);
+  assert.equal(s.audio.p90StartMs, 900);
+});
+
+test("audio: no data reports nothing; failures and start-up times show in the report", () => {
+  const quiet = summarize([]);
+  assert.deepEqual([quiet.audio.failures, quiet.audio.timed, quiet.audio.medianStartMs], [0, 0, null]);
+  assert.ok(!formatReport(quiet).includes("Audio"));
+  const report = formatReport(summarize([timedRound("g1", 1, 250), audioFailure("g1", 2, "us_a", "hum", "network", true)]));
+  assert.match(report, /Audio\n  1 load failure \(1 recovered after a retry\)\n  start-up: median 0\.3 s, slowest tenth 0\.3 s and over \(1 round timed\)\n  us_a hum: 1/);
+});
