@@ -72,12 +72,12 @@ test("a round sent twice counts once", () => {
 
 test("clips with fewer than minAttempts plays are left out, and at most `top` are listed", () => {
   const rows = [languageRound("x1", 1, "rare", "fr", "ru"), languageRound("x2", 1, "rare", "fr", "ru")];
-  for (let c = 0; c < 12; c++) {
+  for (let c = 0; c < 8; c++) {
     for (let g = 0; g < 3; g++) rows.push(languageRound(`c${c}g${g}`, 1, `clip_${c}`, "ru", g < c % 3 ? "fr" : "ru"));
   }
   const d = clipDifficulty(rows);
   assert.equal(d.minAttempts, 3);
-  assert.equal(d.language.hardest.length, 10);
+  assert.equal(d.language.hardest.length, 5);
   assert.ok(!d.language.hardest.some((e) => e.clip === "rare"));
 });
 

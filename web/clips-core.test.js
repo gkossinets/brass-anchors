@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { MEASURES, measuresFor, parseBy, groupOf, groupOrder, groupRows, standouts, axis, chartCaption, formatValue } from "./clips-core.js";
+import { MEASURES, measuresFor, parseBy, groupOf, groupOrder, groupRows, standouts, axis, chartCaption, formatValue, confusionMatrix } from "./clips-core.js";
 
 const clip = (id, language, country, decade, sex, stats) =>
   ({ id, speaker: id.toUpperCase(), sex, year: 2000, answer: { language, country, decade }, stats });
@@ -98,4 +98,15 @@ test("a chart's caption names the highest and lowest group, skipping groups with
 test("values are formatted with the measure's digits and unit", () => {
   assert.equal(formatValue(0.4, MEASURES.find((m) => m.id === "pause_len")), "0.40 s");
   assert.equal(formatValue(null, MEASURES[0]), "—");
+});
+
+test("the mistaken-for table is square, in the game's language order, whatever order errors arrived in", () => {
+  const m = confusionMatrix({ zh: { ru: 2 }, fr: { zh: 1, en: 3 } });
+  assert.deepEqual(m.languages, ["en", "fr", "ru", "zh"]);
+  assert.deepEqual(m.counts, [
+    [null, null, null, null],
+    [3, null, null, 1],
+    [null, null, null, null],
+    [null, null, 2, null],
+  ]);
 });

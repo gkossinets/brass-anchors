@@ -34,7 +34,7 @@ function hardest(records, rule, minAttempts, top) {
  * Each game's hardest clips ({clip, n, missed}, hardest first) from event rows, plus which
  * languages Guess the language players mistake for which. Aggregates only: no player or game ids.
  */
-export function clipDifficulty(rows, { minAttempts = 3, top = 10 } = {}) {
+export function clipDifficulty(rows, { minAttempts = 3, top = 5 } = {}) {
   const rounds = countedRounds(rows, { firstGamesOnly: false });
   const recordsOf = (mode) => rounds.filter((e) => e.mode === mode).map((e) => e.record);
   return {

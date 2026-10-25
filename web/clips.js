@@ -1,6 +1,6 @@
 // Clip stats page: speech measurements by group, standouts, and each game's hardest clips.
 // Rules live in clips-core.js; this module only draws.
-import { measuresFor, parseBy, groupOf, groupRows, standouts, axis, chartCaption, formatValue, valueOf, MEASURES } from "./clips-core.js";
+import { measuresFor, parseBy, groupOf, groupRows, standouts, axis, chartCaption, formatValue, valueOf, MEASURES, confusionMatrix } from "./clips-core.js";
 import { displayAnswer } from "./quiz-core.js";
 
 const $ = (id) => document.getElementById(id);
@@ -49,12 +49,11 @@ function renderHardest() {
 }
 
 function renderMistaken(mistakenFor) {
-  const truths = Object.keys(mistakenFor);
-  if (truths.length === 0) return;
-  const guesses = [...new Set(truths.flatMap((t) => Object.keys(mistakenFor[t])))];
+  if (Object.keys(mistakenFor).length === 0) return;
+  const { languages, counts } = confusionMatrix(mistakenFor);
   const name = (l) => escape(displayAnswer("language", l));
-  $("mistaken").innerHTML = `<tr><th>It was</th>${guesses.map((g) => `<th class="num">Said ${name(g)}</th>`).join("")}</tr>` +
-    truths.map((t) => `<tr><td>${name(t)}</td>${guesses.map((g) => `<td class="num">${mistakenFor[t][g] ?? "—"}</td>`).join("")}</tr>`).join("");
+  $("mistaken").innerHTML = `<tr><th>It was</th>${languages.map((g) => `<th class="num">Said ${name(g)}</th>`).join("")}</tr>` +
+    languages.map((t, i) => `<tr><td>${name(t)}</td>${counts[i].map((n) => `<td class="num">${n ?? "—"}</td>`).join("")}</tr>`).join("");
   $("mistaken-box").hidden = false;
 }
 

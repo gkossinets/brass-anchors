@@ -1,6 +1,8 @@
 // Clip stats page rules: grouping clips, group medians, standouts, chart axes.
 // Pure (no DOM), so it runs under `node --test`.
 
+import { LANGUAGES } from "./quiz-core.js";
+
 /**
  * The measurements shown, from each clip's `stats`. Pitch is always split by sex
  * (it differs far more by sex than by language); `sex` limits a measure to one.
@@ -126,4 +128,16 @@ export function axis(values) {
   if (hi <= max) hi += step;
   lo = Math.max(0, lo);
   return { lo, hi, ticks: [lo, (lo + hi) / 2, hi] };
+}
+
+/**
+ * The language mistakes as a confusion matrix: rows (what it was) and columns (what was said)
+ * both in the game's language order, so the table reads the same however the errors arrived.
+ * A count is null where no one made that mistake; the diagonal is always null (right guesses aren't tallied).
+ */
+export function confusionMatrix(mistakenFor) {
+  return {
+    languages: LANGUAGES,
+    counts: LANGUAGES.map((truth) => LANGUAGES.map((guess) => mistakenFor[truth]?.[guess] ?? null)),
+  };
 }
