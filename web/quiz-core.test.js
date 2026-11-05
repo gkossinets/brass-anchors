@@ -187,14 +187,14 @@ test("the language game asks one question worth 1 point, with no bonus", () => {
 });
 
 test("language buttons: every language in the corpus, in a fixed order, with names", () => {
-  assert.deepEqual(languageOptions(MIXED), ["en", "fr", "ru", "zh", "tr"]);
+  assert.deepEqual(languageOptions(MIXED), ["en", "fr", "ru", "tr", "zh"]);
   assert.deepEqual(languageOptions(MIXED.slice(0, 12)), ["en", "fr", "ru"]);
   assert.equal(displayAnswer("language", "zh"), "Mandarin");
   assert.equal(displayAnswer("language", "en"), "English");
   assert.equal(displayAnswer("language", "tr"), "Turkish");
 });
 
-test("language buttons: four of the five languages, always including the answer, in the fixed order", () => {
+test("language buttons: four of the five languages, always including the answer, alphabetical by code", () => {
   // Four buttons keep chance at 1 in 4, as it was before Turkish, so old and new games compare.
   assert.equal(LANGUAGE_CHOICES, 4);
   const all = languageOptions(MIXED);
@@ -203,7 +203,7 @@ test("language buttons: four of the five languages, always including the answer,
     const opts = languageChoices("tr", all, seededRng(seed));
     assert.equal(opts.length, 4);
     assert.ok(opts.includes("tr"));
-    assert.deepEqual(opts, all.filter((l) => opts.includes(l)));
+    assert.deepEqual(opts, [...opts].sort());
     for (const l of opts) shown.add(l);
   }
   // Every wrong answer turns up some of the time.
@@ -214,6 +214,8 @@ test("language buttons: with four or fewer languages in the corpus, all of them 
   const four = ["en", "fr", "ru", "zh"];
   assert.deepEqual(languageChoices("ru", four, seededRng(1)), four);
   assert.deepEqual(languageChoices("en", ["en", "fr", "ru"], seededRng(1)), ["en", "fr", "ru"]);
+  // The button row reads EN FR TR ZH, never EN FR ZH TR.
+  assert.deepEqual(languageChoices("tr", ["en", "fr", "tr", "zh"], seededRng(1)), ["en", "fr", "tr", "zh"]);
 });
 
 test("language buttons show a short code; other buttons show the usual label", () => {

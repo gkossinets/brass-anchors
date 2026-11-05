@@ -21,7 +21,7 @@ export const MEASURES = [
 const PITCH = { id: "pitch", key: "median_hz", label: "Average pitch", short: "Pitch", unit: " Hz", digits: 0, inTable: true };
 
 const BYS = ["language", "decade", "sex"];
-const LANGUAGE_GROUPS = ["English US", "English UK", "French", "Russian", "Mandarin", "Turkish"];
+const LANGUAGE_GROUPS = ["English US", "English UK", "French", "Russian", "Turkish", "Mandarin"]; // LANGUAGES order (by code)
 const LANGUAGE_NAMES = { fr: "French", ru: "Russian", zh: "Mandarin", tr: "Turkish" };
 const SEX_GROUPS = { f: "Women", m: "Men" };
 

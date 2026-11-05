@@ -4,7 +4,7 @@
 const LEVELS = ["easy", "medium", "hard"];
 const QUESTIONS = ["decade", "country", "genre", "station"];
 const FULL_POINTS = { decade: 2, country: 1, genre: 1, station: 1 }; // web/quiz-core.js POINTS
-const LANGUAGES = ["en", "fr", "ru", "zh", "tr"]; // web/quiz-core.js LANGUAGES
+const LANGUAGES = ["en", "fr", "ru", "tr", "zh"]; // web/quiz-core.js LANGUAGES
 
 /** Median of the numbers present (null and undefined skipped), or null if none. */
 export function median(values) {

@@ -244,7 +244,7 @@ test("language rounds: share right for each language, in a fixed order, and what
     languageRound("g1", 3, "fr", "fr", 7000), languageRound("g1", 4, "en", "en", 2000),
     languageRound("g1", 5, "fr", "ru", 9000), languageRound("g1", 6, "zh", "zh", 1000), languageRound("g1", 7, "tr", "fr", 4000),
   ]);
-  assert.deepEqual(Object.keys(s.language.byLanguage), ["en", "fr", "ru", "zh", "tr"]);
+  assert.deepEqual(Object.keys(s.language.byLanguage), ["en", "fr", "ru", "tr", "zh"]);
   assert.deepEqual(s.language.byLanguage.fr, { n: 3, right: 1, medianMs: 7000 });
   assert.deepEqual(s.language.mistakenFor, { fr: { ru: 2 }, tr: { fr: 1 } });
 });

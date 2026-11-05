@@ -10,7 +10,7 @@ from pipeline.config import DEFAULT_PITCH_RANGE, PITCH_RANGE_BY_SEX
 # What the clip is doing, not the speaker's job: reporting news or arguing a view.
 GENRES = ("news", "opinion")
 # ISO 639-1 codes. The English clips play in every mode; the others only in "Guess the language".
-LANGUAGES = ("en", "fr", "ru", "zh", "tr")
+LANGUAGES = ("en", "fr", "ru", "tr", "zh")
 
 
 @dataclass(frozen=True)
