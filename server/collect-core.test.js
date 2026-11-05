@@ -114,6 +114,7 @@ const languageRound = (over = {}) => ({ kind: "round", player: PLAYER, game: GAM
 
 test("a language round is accepted when its point follows from the guess and the answer", () => {
   assert.equal(parseEvent(body(languageRound())).ok, true);
+  assert.equal(parseEvent(body(languageRound({ clip_id: "tr_1990s_trt_x", language: "tr", guess: { language: "tr" } }))).ok, true);
   assert.equal(parseEvent(body(languageRound({ guess: { language: "ru" }, score: { language: 0, total: 0 } }))).ok, true);
 });
 

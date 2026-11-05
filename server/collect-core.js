@@ -16,7 +16,7 @@ const MAX_ANSWER_MS = 60 * 60 * 1000;
 // Not a name every object inherits: summaries key objects by clip id.
 const CLIP_ID = /^(?!(?:__proto__|constructor|prototype)$)[a-z0-9_]{1,64}$/;
 const MODES = ["classic", "match", "language"];
-const LANGUAGES = ["en", "fr", "ru", "zh"]; // web/quiz-core.js LANGUAGES
+const LANGUAGES = ["en", "fr", "ru", "zh", "tr"]; // web/quiz-core.js LANGUAGES
 const AUDIO_VERSIONS = ["trombone", "hum", "original"]; // pipeline/encode.py KINDS
 // A media error name (web/audio-core.js) or a DOMException name from a rejected play().
 const AUDIO_ERROR = /^[A-Za-z]{1,40}$/;

@@ -159,6 +159,9 @@ const MIXED = [
   clip("z1", "China", "1980s", "news", "CCTV", "unlikely", "zh"),
   clip("z2", "China", "2000s", "news", "CCTV", "unlikely", "zh"),
   clip("z3", "China", "2010s", "news", "CCTV", "unlikely", "zh"),
+  clip("t1", "Turkey", "1990s", "news", "TRT", "unlikely", "tr"),
+  clip("t2", "Turkey", "2000s", "news", "TRT", "unlikely", "tr"),
+  clip("t3", "Turkey", "2010s", "news", "TRT", "unlikely", "tr"),
 ];
 
 test("the description and decade games play English clips only", () => {
@@ -169,7 +172,7 @@ test("the description and decade games play English clips only", () => {
 });
 
 test("the language game draws on every language", () => {
-  assert.equal(filterClips(MIXED, { variant: "language" }).length, 15);
+  assert.equal(filterClips(MIXED, { variant: "language" }).length, 18);
 });
 
 test("the language game asks one question worth 1 point, with no bonus", () => {
@@ -183,40 +186,42 @@ test("the language game asks one question worth 1 point, with no bonus", () => {
 });
 
 test("language buttons: every language in the corpus, in a fixed order, with names", () => {
-  assert.deepEqual(languageOptions(MIXED), ["en", "fr", "ru", "zh"]);
+  assert.deepEqual(languageOptions(MIXED), ["en", "fr", "ru", "zh", "tr"]);
   assert.deepEqual(languageOptions(MIXED.slice(0, 12)), ["en", "fr", "ru"]);
   assert.equal(displayAnswer("language", "zh"), "Mandarin");
   assert.equal(displayAnswer("language", "en"), "English");
+  assert.equal(displayAnswer("language", "tr"), "Turkish");
 });
 
 test("language buttons show a short code; other buttons show the usual label", () => {
   assert.equal(buttonLabel("language", "zh"), "ZH");
   assert.equal(buttonLabel("language", "en"), "EN");
+  assert.equal(buttonLabel("language", "tr"), "TR");
   assert.equal(buttonLabel("genre", "news"), "News");
   assert.equal(buttonLabel("decade", "1990s"), "1990s");
 });
 
 test("language rounds are spread evenly across languages, so always guessing English doesn't pay", () => {
   for (let seed = 1; seed <= 50; seed++) {
-    const rounds = pickLanguageRounds(MIXED, 8, seededRng(seed));
-    assert.equal(rounds.length, 8);
-    assert.equal(new Set(rounds.map((c) => c.id)).size, 8);
+    const rounds = pickLanguageRounds(MIXED, 10, seededRng(seed));
+    assert.equal(rounds.length, 10);
+    assert.equal(new Set(rounds.map((c) => c.id)).size, 10);
     const counts = {};
     for (const c of rounds) counts[c.answer.language] = (counts[c.answer.language] ?? 0) + 1;
-    assert.deepEqual(Object.values(counts), [2, 2, 2, 2]);
+    assert.deepEqual(Object.values(counts), [2, 2, 2, 2, 2]);
   }
 });
 
 test("language rounds: an uneven count differs by at most one per language, then the bigger pools fill in", () => {
   const counts = (rounds) => {
-    const out = { en: 0, fr: 0, ru: 0, zh: 0 };
+    const out = { en: 0, fr: 0, ru: 0, zh: 0, tr: 0 };
     for (const c of rounds) out[c.answer.language] += 1;
     return Object.values(out).sort();
   };
-  assert.deepEqual(counts(pickLanguageRounds(MIXED, 10, seededRng(3))), [2, 2, 3, 3]);
-  // Only English has more than 3 clips, so a 15-round game uses all of them.
-  assert.deepEqual(counts(pickLanguageRounds(MIXED, 15, seededRng(3))), [3, 3, 3, 6]);
-  assert.equal(pickLanguageRounds(MIXED, 40, seededRng(3)).length, 15);
+  assert.deepEqual(counts(pickLanguageRounds(MIXED, 12, seededRng(3))), [2, 2, 2, 3, 3]);
+  // Only English has more than 3 clips, so an 18-round game uses all of them.
+  assert.deepEqual(counts(pickLanguageRounds(MIXED, 18, seededRng(3))), [3, 3, 3, 3, 6]);
+  assert.equal(pickLanguageRounds(MIXED, 40, seededRng(3)).length, 18);
 });
 
 test("language rounds come in shuffled order, not one language after another", () => {
@@ -229,7 +234,7 @@ test("language rounds come in shuffled order, not one language after another", (
 
 test("the language game needs clips in at least three languages", () => {
   assert.equal(MIN_LANGUAGES, 3);
-  assert.equal(languageCount(MIXED), 4);
+  assert.equal(languageCount(MIXED), 5);
   assert.equal(languageCount(englishOnly(MIXED)), 1);
 });
 

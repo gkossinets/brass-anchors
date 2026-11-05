@@ -26,6 +26,7 @@ test("?by= picks the grouping; anything else means language", () => {
 test("English splits by country; other groupings use decade and sex", () => {
   assert.equal(groupOf(CLIPS[0], "language"), "English UK");
   assert.equal(groupOf(CLIPS[2], "language"), "French");
+  assert.equal(groupOf(clip("tr1", "tr", "Turkey", "1990s", "m", null), "language"), "Turkish");
   assert.equal(groupOf(CLIPS[2], "decade"), "2000s");
   assert.equal(groupOf(CLIPS[2], "sex"), "Women");
   assert.equal(groupOf(CLIPS[0], "sex"), "Men");
@@ -33,6 +34,7 @@ test("English splits by country; other groupings use decade and sex", () => {
 
 test("groups come in a fixed order: languages as listed, decades ascending, women then men", () => {
   assert.deepEqual(groupOrder(CLIPS, "language"), ["English UK", "French"]);
+  assert.deepEqual(groupOrder([clip("tr1", "tr", "Turkey", "1990s", "m", null), ...CLIPS], "language"), ["English UK", "French", "Turkish"]);
   assert.deepEqual(groupOrder([...CLIPS].reverse(), "decade"), ["1960s", "2000s"]);
   assert.deepEqual(groupOrder(CLIPS, "sex"), ["Women", "Men"]);
 });
@@ -102,11 +104,12 @@ test("values are formatted with the measure's digits and unit", () => {
 
 test("the guesses table is square, in the game's language order, with right guesses on the diagonal", () => {
   const m = confusionMatrix({ zh: { ru: 2, zh: 5 }, fr: { zh: 1, en: 3, fr: 7 } });
-  assert.deepEqual(m.languages, ["en", "fr", "ru", "zh"]);
+  assert.deepEqual(m.languages, ["en", "fr", "ru", "zh", "tr"]);
   assert.deepEqual(m.counts, [
-    [null, null, null, null],
-    [3, 7, null, 1],
-    [null, null, null, null],
-    [null, null, 2, 5],
+    [null, null, null, null, null],
+    [3, 7, null, 1, null],
+    [null, null, null, null, null],
+    [null, null, 2, 5, null],
+    [null, null, null, null, null],
   ]);
 });

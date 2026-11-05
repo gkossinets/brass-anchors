@@ -127,3 +127,9 @@ def test_manifest_keeps_none_values_in_stats(tmp_path):
            "pauses": 0, "pauses_per_min": 0, "mean_pause_s": None, "pause_pct": 0, "duration_s": 2.0}
     m = build_manifest(clips, has_audio=lambda cid: True, stats_for=lambda cid: raw)
     assert m["clips"][0]["stats"]["median_hz"] is None and m["clips"][0]["stats"]["pauses"] == 0
+
+
+def test_load_clips_accepts_turkish(tmp_path):
+    p = tmp_path / "clips.csv"
+    p.write_text(CSV.replace(",USSR,ru,", ",Turkey,tr,"))
+    assert [c.language for c in load_clips(p)] == ["en", "tr", "en"]

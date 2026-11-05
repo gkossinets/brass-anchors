@@ -7,8 +7,8 @@ export const DECADES = ["1950s", "1960s", "1970s", "1980s", "1990s", "2000s", "2
 export const GENRES = ["news", "opinion"];
 const GENRE_LABELS = { news: "News", opinion: "Opinion" };
 // Button order for the language game; the buttons never move between rounds.
-export const LANGUAGES = ["en", "fr", "ru", "zh"];
-const LANGUAGE_LABELS = { en: "English", fr: "French", ru: "Russian", zh: "Mandarin" };
+export const LANGUAGES = ["en", "fr", "ru", "zh", "tr"];
+const LANGUAGE_LABELS = { en: "English", fr: "French", ru: "Russian", zh: "Mandarin", tr: "Turkish" };
 // With two languages the game is a coin flip, so it waits for a third.
 export const MIN_LANGUAGES = 3;
 
