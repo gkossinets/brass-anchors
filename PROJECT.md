@@ -4,7 +4,7 @@ Status, architecture, the reasons behind non-obvious choices, and what's next. H
 
 ## Status
 
-Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewed clips: 20 English, 10 each of French, Russian, and Mandarin. Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. A clip stats page (`clips.html`) compares the clips' speech measurements by language, decade, and sex, and lists each game's hardest clips (built 2026-10-24). Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
+Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 60 reviewed clips: 20 English, 10 each of French, Russian, Mandarin, and Turkish (Turkish deployed 2026-11-05). Three games on the front page, easiest first: Guess the language (labelled "Easier"; English, French, Russian, Turkish, or Mandarin), Match the clue (formerly Match the description), and Guess the clip. A clip stats page (`clips.html`) compares the clips' speech measurements by language, decade, and sex, and lists each game's hardest clips (built 2026-10-24). Play data and feedback are collected in Cloudflare D1. Tests: `make test` (pytest and `node --test`), all passing.
 
 ## Architecture
 
@@ -93,7 +93,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 ## Next steps
 
-**Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24). Turkish (2026-11-05): code and ten clips in, all approved in review; not deployed.
+**Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24). Turkish: live (2026-11-05).
 
 1. Named Mandarin anchors from the 1980s and 1990s reading ordinary news, to even out the decades (2010s has four clips). Leads: the 1988-07-13, 1989-05-17, and 1995-06-26 broadcasts have readings by unnamed anchors; an upload titled "1996 3 25 海霞" has Hai Xia in 1996 (she's the 2020s clip now).
 2. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
