@@ -41,6 +41,7 @@ Live at <https://brass-anchors.pages.dev> (deployed 2026-10-24), with 50 reviewe
 - No clip plays twice in a Match game, because a heard clip is recognizable by its opening. So a game is at most half as many rounds as there are clips. Pairing is a randomized backtracking search with restarts, which keeps the full easy-to-hard ramp.
 - Stats for geeks use thresholds relative to each clip's own speech level, since recordings differ. The speaking rate is labelled rough (r = 0.57 against transcripts), and it's shown for English only, the language it was calibrated on.
 - Guess the language takes rounds from each language in turn: English is the biggest set, so a draw from the whole pool would make "English" the safe guess. It opens at three languages; with two it's a coin flip. One point per round.
+- Guess the language shows four buttons, the answer plus three others drawn at random, in the fixed order (decided 2026-11-05, with Turkish as the fifth language). Showing all five would drop chance from 1 in 4 to 1 in 5, and language games before and after Turkish would no longer compare. Each round logs the buttons it showed (`options`), since a miss can only land on a language that was shown; older rounds lack the field. The results page and clip stats still pool games from before and after; Turkish rounds start with Turkish.
 
 **Site and data**
 - Cloudflare Pages + D1: one deploy for the site and its API, a generous free tier, and SQL for stats.
@@ -69,6 +70,8 @@ Russian (reviewed 2026-10-24, times trimmed in review): 5 men and 5 women, one e
 
 Mandarin (reviewed 2026-10-24): 5 men and 5 women, all CCTV *Xinwen Lianbo*: one from the 1990s (Xing Zhibin, 1996), three from the 2000s, four from the 2010s, and two from the 2020s. Kang Hui's clip is a CCTV editorial, so it's labelled opinion. Solemn readings were replaced (2026-10-24) because their slow, pause-heavy delivery came from the occasion, not the language, and dominated the clip stats standouts: Luo Jing's 1997 reading of Deng Xiaoping's death notice (43% silent) gave way to his 2008 newscast, and Du Xian's June 4, 1989 broadcast to Ouyang Xiadan (2019). That cost the 1980s: no other anchor from before 1996 could be named (Xue Fei speaks only a few lines in the one named 1989 broadcast; a 1991 upload credited to Zhang Hongmin is someone else's voice-over). Pan Tao's clip is about the 1911 Revolution anniversary, ending on a line against separatists; that was accepted. Scouting downloads and transcripts are in `candidates/zh/` (git-ignored).
 
+Turkish (2026-11-05, awaiting review): 5 men and 5 women, a man and a woman from each decade from the 1980s to the 2020s: TRT (Mesut Mertcan 1984, Gülgün Feyman 1988, Nermin Tuğuşlu 1991), ATV (Ali Kırca 1996), Kanal D (Defne Samyeli 2001, Mehmet Ali Birand 2005), FOX (Fatih Portakal 2015, Gülbin Tosun 2020), Habertürk (Ece Üner 2017), and Cüneyt Özdemir's YouTube commentary (2026, the one opinion clip). Every speaker is named in the upload's title or description, or names themselves on air. No anchor from before the 1980s: the TRT newscasts that survive online from the 1960s and 1970s are only intros and announcements. Three are official uploads (FOX's NOW Haber and Habertürk channels, Özdemir's own); the rest come from archive and nostalgia channels. Reserves: Reha Muhtar (Show TV, 1999, `HljBzV1sqQ4` 15.7-34.1 s, on camera) and Nevşin Mengü (her YouTube commentary, 2026). Buket Aydın's 2019 Kanal D bulletin was dropped: it's mostly reporters' voice-overs. The pictures picked from video were wrong for 2 of 10 (Ece Üner's guest; Erdoğan in Gülbin Tosun's item), so those two are hand-made screenshots. Scouting files are in the session scratchpad, not the repo.
+
 Clips set aside (kept outside the repo): a second Fiona Bruce, Levitan's 1961 radio announcement (hum and a steady tone; the pitch tracker loses most of it), and Kirillov's 1985 clip (one clip per speaker; the 1967 one is used).
 
 Curation pitfalls, worth checking on each new clip's diagnostic plot:
@@ -76,6 +79,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 - Transcript timestamps can hide ad jingles and drift by seconds.
 - Median pitch is a poor guide to sex: Fiona Bruce sits around 145-150 Hz.
 - Uploads disagree about who anchored: one title for the 1989-06-04 broadcast names Zhang Hongmin, but other uploads and the record say Xue Fei. Check names against a second source.
+- A voice that measures implausibly high may come from a sped-up re-upload. Check the speed against something that isn't the voice: mains hum (50 Hz in Europe and Turkey) or the PAL line whine of digitized tapes (15625 Hz) moves up by the same factor. Download full-band audio for the whine; the scouting WAVs are 16 kHz. All ten Turkish uploads play at true speed (2026-11-05).
 - Automatic speaker pictures went wrong 2 times in 9 on the Mandarin clips (a co-anchor; a politician in the report), so check every pick.
 
 ## Known limitations
@@ -89,7 +93,7 @@ Curation pitfalls, worth checking on each new clip's diagnostic plot:
 
 ## Next steps
 
-**Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24).
+**Adding languages** (decided 2026-10-23): French, Russian, and Mandarin are done and live (2026-10-24). Turkish (2026-11-05): code and ten clips in, awaiting review in `make review`; not deployed.
 
 1. Named Mandarin anchors from the 1980s and 1990s reading ordinary news, to even out the decades (2010s has four clips). Leads: the 1988-07-13, 1989-05-17, and 1995-06-26 broadcasts have readings by unnamed anchors; an upload titled "1996 3 25 海霞" has Hai Xia in 1996 (she's the 2020s clip now).
 2. Older opinion clips (Eric Sevareid's CBS commentaries; *Firing Line* openings), keeping the 5/5/5/5 balance.
