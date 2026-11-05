@@ -24,6 +24,8 @@ The front page lists them easiest first.
 
 Match and Guess the clip play English clips only, since the language would give their questions away.
 
+The game has 60 clips: 20 in English (10 US, 10 UK) and 10 each in French, Russian, Mandarin, and Turkish, with as many women as men in each language.
+
 The front page also sets the number of rounds (10 by default). The sound can be switched on every round screen. In every game the answer stays hidden until the clip has been played.
 
 On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by how alike the two clips were (Match), and the easiest and hardest comparisons (Match) or clips (Guess the clip), and how often each language is named correctly and what it's mistaken for.
@@ -97,7 +99,7 @@ Each speaker's picture is `thumbnails/<speaker>.png`, named as in the `speaker` 
 - A local vision model in Ollama (`gemma4:latest`, or set `BRASS_VISION_MODEL`) rejects photos, posters, graphics and footage of newsmakers.
 - Without Ollama, it uses the most frequent face, unchecked.
 
-On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. On the Russian clips it got 8 of 10 right; one of the misses was a photo of the person in the report. On the first 9 Mandarin clips it got 5 right, left 2 blank, and picked the wrong person twice (a co-anchor, and a politician in the report). So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
+On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. On the Russian clips it got 8 of 10 right; one of the misses was a photo of the person in the report. On the first 9 Mandarin clips it got 5 right, left 2 blank, and picked the wrong person twice (a co-anchor, and a politician in the report). On the 10 Turkish clips, picked without the vision check, it got 8 right and picked the wrong person twice (a guest in the studio, and a politician in the report). So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
 
 ### Reviewing clips
 
@@ -124,7 +126,7 @@ make deploy                                    # prints the site's URL
 
 Then:
 
-- `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses, about 8 MB) and uploads it. Run `make audio` first if clips changed.
+- `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses, about 21 MB) and uploads it. Run `make audio` first if clips changed.
 - `make stats` reports players and games, counting only each player's first game, since later games replay familiar clips (`make stats ALL=1` includes replays); Match accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair; Guess-the-clip accuracy per question and per clip; audio health (clips that failed to load, whether the automatic retry saved them, and how long clips take to start, over every game); and players' notes.
 - `make feedback` lists messages sent with the site's feedback form ("Send feedback" on the front and results pages). It asks for no name or contact details, so nobody's email appears on the site, and a hidden field quietly drops simple bot submissions. After pulling this change, run `make db-setup` once to add the feedback table.
 - `make site-dev` runs the deployable site locally with a local database at <http://localhost:8788/?collect=1>; `make stats LOCAL=1` reports on it.
@@ -132,7 +134,7 @@ Then:
 
 ### What the deployed site records
 
-Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used), each finished game's score, and, if a player saves it, the game with their notes. Notes are never shown on the results page. Each browser keeps a random player id, so one person's games can be linked (for example, to tell first plays from replays, which sound easier because the clips are familiar). No names, accounts, or IP addresses are stored; the notes box asks players not to include names or contact details; and the site loads nothing from third parties (its fonts are self-hosted). Cloudflare, as the host, sees visitors' addresses in serving the pages, as any host does; the site adds no analytics. The front page says: "This site records anonymous gameplay results and any notes you send. A random browser ID is kept to tell first plays from replays." Collection is off on `localhost` unless the URL has `?collect=1`.
+Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used; in Guess the language, also the four language buttons shown), each finished game's score, and, if a player saves it, the game with their notes. Notes are never shown on the results page. Each browser keeps a random player id, so one person's games can be linked (for example, to tell first plays from replays, which sound easier because the clips are familiar). No names, accounts, or IP addresses are stored; the notes box asks players not to include names or contact details; and the site loads nothing from third parties (its fonts are self-hosted). Cloudflare, as the host, sees visitors' addresses in serving the pages, as any host does; the site adds no analytics. The front page says: "This site records anonymous gameplay results and any notes you send. A random browser ID is kept to tell first plays from replays." Collection is off on `localhost` unless the URL has `?collect=1`.
 
 Anyone can post to `/api/log`, so the results are only as trustworthy as an open endpoint allows. The server rejects malformed or impossible rounds (unknown difficulty, points that don't match the scoring, answers in under a second), and a game's final score counts in the distribution only when all its rounds arrived and add up to it. A patient script can still post plausible fake games; `make stats` shows the counts to watch.
 
