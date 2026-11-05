@@ -3,7 +3,7 @@
 import {
   GENRES, decadeOptions, countryOptions, stationOptions, scoreRound,
   filterClips, questionsFor, hasBonus, maxScorePerRound, pickRounds, displayAnswer, buttonLabel, pointsNote, guessMark,
-  englishOnly, languageOptions, pickLanguageRounds, roundHint, canReveal,
+  englishOnly, languageOptions, languageChoices, pickLanguageRounds, roundHint, canReveal,
 } from "./quiz-core.js";
 import { LOG_FORMAT, createPlayLog, roundRecord } from "./log-core.js";
 import { $, play, stopAudio, show, clearSpectrogram, renderTimbreSwitch, showEnd, setHeader, resetAudioStart, audioStartMs, onAudioFailure } from "./shared.js";
@@ -65,18 +65,20 @@ function optionsFor(question, clip) {
   const a = clip.answer;
   if (question === "decade") return decadeOptions(a.decade);
   if (question === "country") return countryOptions(a.country, englishOnly(corpus).map((c) => c.answer.country));
-  if (question === "language") return languageOptions(corpus);
+  if (question === "language") return languageChoices(a.language, languageOptions(corpus));
   if (question === "genre") return GENRES;
   // Stations from the clips this game plays: a French or Russian station would be a giveaway.
   return stationOptions(a.station, filterClips(corpus, game).map((c) => c.answer.station));
 }
 
+/** Draws one question's buttons and returns the options shown, for the round record. */
 function renderQuestion(container, question, clip, guess, onChange) {
   const set = document.createElement("fieldset");
   set.className = `question${question === "station" ? " bonus" : ""}`;
   set.innerHTML = `<legend>${LABELS[question]} <span class="pts-note">${pointsNote(question)}</span></legend>` +
     `<div class="options${question === "language" ? " one-row" : ""}"></div>`;
-  for (const opt of optionsFor(question, clip)) {
+  const options = optionsFor(question, clip);
+  for (const opt of options) {
     const b = document.createElement("button");
     b.textContent = buttonLabel(question, opt);
     const name = displayAnswer(question, opt);
@@ -94,6 +96,7 @@ function renderQuestion(container, question, clip, guess, onChange) {
     set.querySelector(".options").append(b);
   }
   container.append(set);
+  return options;
 }
 
 function showRound() {
@@ -142,15 +145,16 @@ function showRound() {
     $("round-hint").textContent = roundHint(answered, questions.length, played);
   }
   onChange();
-  for (const q of questions) renderQuestion(qs, q, clip, guess, onChange);
+  const shown = {};
+  for (const q of questions) shown[q] = renderQuestion(qs, q, clip, guess, onChange);
   if (hasBonus(game.variant)) renderQuestion(bonus, "station", clip, guess, () => {});
 
-  $("reveal").onclick = () => showReveal(clip, guess, heard, plays);
+  $("reveal").onclick = () => showReveal(clip, guess, heard, plays, shown);
   show("round");
   clearSpectrogram($("spectrogram"));
 }
 
-function showReveal(clip, guess, heard, plays) {
+function showReveal(clip, guess, heard, plays, shown) {
   const msToAnswer = plays.msSinceFirstPlay();
   stopAudio();
   const score = scoreRound(clip.answer, guess);
@@ -161,7 +165,8 @@ function showReveal(clip, guess, heard, plays) {
   }, {
     clip_id: clip.id, guess: { ...guess }, score, timbres_heard: [...heard],
     // The language game's stats tally by the answer, which the round record otherwise lacks.
-    ...(game.mode === "language" ? { language: clip.answer.language } : {}),
+    // With four buttons sampled from five languages, a miss can only land on one shown.
+    ...(game.mode === "language" ? { language: clip.answer.language, options: shown.language } : {}),
   });
   game.records.push(record);
   send("round", game.ids, record);

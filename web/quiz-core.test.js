@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  languageChoices, LANGUAGE_CHOICES,
   DECADES, GENRES, seededRng, shuffle, decadeOptions, countryOptions, stationOptions,
   scoreRound, filterClips, questionsFor, clipVariant, pickRounds, maxScorePerRound, initialTimbre, displayAnswer, buttonLabel, pointsNote, guessMark,
   englishOnly, languageOptions, pickLanguageRounds, languageCount, MIN_LANGUAGES, roundHint, canReveal } from "./quiz-core.js";
@@ -191,6 +192,28 @@ test("language buttons: every language in the corpus, in a fixed order, with nam
   assert.equal(displayAnswer("language", "zh"), "Mandarin");
   assert.equal(displayAnswer("language", "en"), "English");
   assert.equal(displayAnswer("language", "tr"), "Turkish");
+});
+
+test("language buttons: four of the five languages, always including the answer, in the fixed order", () => {
+  // Four buttons keep chance at 1 in 4, as it was before Turkish, so old and new games compare.
+  assert.equal(LANGUAGE_CHOICES, 4);
+  const all = languageOptions(MIXED);
+  const shown = new Set();
+  for (let seed = 1; seed <= 50; seed++) {
+    const opts = languageChoices("tr", all, seededRng(seed));
+    assert.equal(opts.length, 4);
+    assert.ok(opts.includes("tr"));
+    assert.deepEqual(opts, all.filter((l) => opts.includes(l)));
+    for (const l of opts) shown.add(l);
+  }
+  // Every wrong answer turns up some of the time.
+  assert.equal(shown.size, 5);
+});
+
+test("language buttons: with four or fewer languages in the corpus, all of them show", () => {
+  const four = ["en", "fr", "ru", "zh"];
+  assert.deepEqual(languageChoices("ru", four, seededRng(1)), four);
+  assert.deepEqual(languageChoices("en", ["en", "fr", "ru"], seededRng(1)), ["en", "fr", "ru"]);
 });
 
 test("language buttons show a short code; other buttons show the usual label", () => {

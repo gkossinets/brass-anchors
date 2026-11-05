@@ -95,10 +95,21 @@ function classicRoundProblem(r) {
   return null;
 }
 
+// The buttons a language round showed (absent before sampling began). The answer and
+// the guess must be among them, or the round couldn't have been played as recorded.
+function optionsProblem(r) {
+  const o = r.options;
+  if (!Array.isArray(o) || o.length < 2 || o.length > LANGUAGES.length) return "bad options";
+  if (!o.every((l) => LANGUAGES.includes(l)) || new Set(o).size !== o.length) return "bad options";
+  if (!o.includes(r.language) || !o.includes(r.guess.language)) return "answer or guess not among the options";
+  return null;
+}
+
 function languageRoundProblem(r) {
   if (!CLIP_ID.test(r.clip_id ?? "")) return "bad clip id";
   if (!LANGUAGES.includes(r.language) || !LANGUAGES.includes(r.guess?.language)) return "unknown language";
   if (r.score?.total !== (r.guess.language === r.language ? 1 : 0)) return "score doesn't match the guess";
+  if (r.options !== undefined && optionsProblem(r)) return optionsProblem(r);
   if (r.ms_first_play_to_answer !== null && !plausibleMs(r.ms_first_play_to_answer)) return "implausible answer time";
   return null;
 }

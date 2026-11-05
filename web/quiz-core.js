@@ -150,6 +150,20 @@ export function languageOptions(clips) {
   return LANGUAGES.filter((l) => present.has(l));
 }
 
+// Buttons per language round. Four kept chance at 1 in 4 when a fifth language
+// arrived, so language games from before and after it still compare.
+export const LANGUAGE_CHOICES = 4;
+
+/**
+ * The answer plus up to LANGUAGE_CHOICES - 1 other languages, sampled, in LANGUAGES
+ * order so a language always sits in the same place relative to the others.
+ */
+export function languageChoices(correct, languages, rng = Math.random) {
+  const others = shuffle(languages.filter((l) => l !== correct), rng).slice(0, LANGUAGE_CHOICES - 1);
+  const picked = new Set([correct, ...others]);
+  return LANGUAGES.filter((l) => picked.has(l));
+}
+
 /**
  * Up to n clips for the language game, taken from each language in turn, so the
  * counts differ by at most one until a language runs out. Drawing from the whole

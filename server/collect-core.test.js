@@ -126,6 +126,17 @@ test("a language round can't claim a point for a wrong guess, or name a language
   assert.equal(parseEvent(body(languageRound({ ms_first_play_to_answer: 10 }))).ok, false);
 });
 
+test("a language round may list the buttons it showed: known languages, the answer and the guess among them", () => {
+  const options = ["en", "fr", "ru", "tr"];
+  assert.equal(parseEvent(body(languageRound({ options }))).ok, true);
+  assert.equal(parseEvent(body(languageRound({ options: ["en", "ru", "zh", "tr"] }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ options: ["en", "fr", "ru", "de"] }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ options: ["fr", "fr", "ru", "tr"] }))).ok, false);
+  assert.equal(parseEvent(body(languageRound({ options: "fr" }))).ok, false);
+  const guessHidden = languageRound({ options, guess: { language: "zh" }, score: { language: 0, total: 0 } });
+  assert.equal(parseEvent(body(guessHidden)).ok, false);
+});
+
 test("clip ids can't be names every object inherits: one such row used to break both stats pages", () => {
   for (const id of ["__proto__", "constructor", "prototype"]) {
     assert.equal(parseEvent(body(languageRound({ clip_id: id }))).ok, false, id);
