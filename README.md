@@ -1,6 +1,6 @@
 # Brass Anchors
 
-A browser game where you guess a news anchor's decade, country, and news vs. opinion from the melody of their voice alone, played on a trombone.
+A browser game where you guess a news anchor's language from the melody of their voice, played on a trombone.
 
 **Play it at [brass-anchors.pages.dev](https://brass-anchors.pages.dev).**
 
