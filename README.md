@@ -1,6 +1,12 @@
 # Brass Anchors
 
+Status: 60 clips in 5 languages, live since October 2026. Progress and decisions are in [PROJECT.md](PROJECT.md).
+
 Can you tell a 1970s newsreader from a 2020s cable host by the melody of their voice alone?
+
+Play it at [brass-anchors.pages.dev](https://brass-anchors.pages.dev).
+
+<img src="docs/screenshot.png" width="480" alt="A round of Guess the clip: the spectrogram draws the trombone's melody as the clip plays, with the decade, country, news-or-opinion, and station questions below.">
 
 Brass Anchors is a browser game built from 10 to 20 second clips of news anchors and commentators. Each voice is replaced by a synthesized instrument (a trombone by default, or a voice-like hum) that follows the speaker's pitch and loudness but carries no words. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
 
