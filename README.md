@@ -1,42 +1,51 @@
 # Brass Anchors
 
-Status: 60 clips in 5 languages, live since October 2026. Progress and decisions are in [PROJECT.md](PROJECT.md).
+A browser game where you guess a news anchor's decade, country, and news vs. opinion from the melody of their voice alone, played on a trombone.
 
-Can you tell a 1970s newsreader from a 2020s cable host by the melody of their voice alone?
-
-Play it at [brass-anchors.pages.dev](https://brass-anchors.pages.dev).
+**Play it at [brass-anchors.pages.dev](https://brass-anchors.pages.dev).**
 
 <img src="docs/screenshot.png" width="480" alt="A round of Guess the clip: the spectrogram draws the trombone's melody as the clip plays, with the decade, country, news-or-opinion, and station questions below.">
 
-Brass Anchors is a browser game built from 10 to 20 second clips of news anchors and commentators. Each voice is replaced by a synthesized instrument (a trombone by default, or a voice-like hum) that follows the speaker's pitch and loudness but carries no words. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
+Can you tell a 1970s newsreader from a 2020s cable host without hearing a single word? Each clip is 10 to 20 seconds of a news anchor or commentator. The voice is replaced by a synthesized instrument (a trombone by default, or a voice-like hum) that follows the speaker's pitch and loudness. A live spectrogram draws the melody as it plays. After each answer you hear the original, with the speaker, programme, and a link to the source.
+
+**Status:** 60 clips in 5 languages, live since October 2026. Progress and decisions are in [PROJECT.md](PROJECT.md).
 
 ## What the game tests
 
-Prosody is how something is said rather than what is said: the rise and fall of pitch, loudness, speed, rhythm, and pauses. The game keeps a speaker's pitch, loudness, and timing and removes everything else: the words, the sounds of vowels and consonants, and the quality of the recording. If players still do better than chance, prosody alone is giving the answer away. The game tests three ideas:
+Prosody is how something is said rather than what is said: the rise and fall of pitch, loudness, speed, rhythm, and pauses. The game keeps a speaker's pitch, loudness, and timing. It removes everything else: the words, the sounds of vowels and consonants, and the quality of the recording. If players still do better than chance, prosody alone is giving the answer away.
+
+The game tests three ideas:
 
 - **Decade**: news delivery has changed over time in how fast presenters speak, how high and how varied their pitch is, and how they pause.
 - **Country**: American and British English have different intonation, the patterns of rising and falling pitch across a sentence.
 - **News vs opinion**: reading the news has a steady rhythm, with pitch drifting down through each sentence and resetting at the next. Arguing an opinion is less regular in speed, pitch, and pauses.
 
-"Stats for geeks" shows some of these measurements for each clip. With 20 English clips, and only one speaker behind each clip, the results are a hint rather than proof; the play data from the deployed site will show which differences people can actually hear.
+"Stats for geeks" shows some of these measurements for each clip. With 20 English clips and one speaker behind each, the results are a hint rather than proof. The play data from the deployed site will show which differences people can actually hear.
 
 ## Game modes
 
-The front page lists them easiest first.
+The front page lists the modes easiest first:
 
-- **Guess the language** (easier): hear one clip and name its language: English, French, Russian, Mandarin, or Turkish (buttons EN, FR, RU, TR, ZH). Each round shows four of the languages, always including the right one, alphabetical by code, so a guess is 1 in 4 however many languages there are. Rounds are spread evenly across languages. It opens once the corpus has clips in at least three languages.
-- **Match the clue** (moderate): read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits. One point per right pick. Behind the scenes, the pairs get closer as the game goes on: early clips differ in country, decade, and news vs opinion, later ones in only one of those. The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
-- **Guess the clip** (advanced): hear one clip and guess its decade, country, and whether it's news or opinion, with a station bonus. The front page picks clips from both countries or just the UK or the US; with one country, the country question is left out.
+- **Guess the language** (easier): hear one clip and name its language: English, French, Russian, Mandarin, or Turkish (buttons EN, FR, RU, TR, ZH). Each round shows four languages, always including the right one, in alphabetical order by code, so a guess is 1 in 4 however many languages there are. Rounds are spread evenly across languages. The mode opens once the corpus has clips in at least three languages.
+- **Match the clue** (moderate): read a description ("Which of these is a **UK news report** from the **1970s**?"), play two clips, and pick the one that fits, for one point per right pick. The pairs get closer as the game goes on: early clips differ in country, decade, and news vs opinion, later ones in only one of those. The reveal shows "Stats for geeks" for both clips: average pitch, pitch range and variation, pauses per minute, and a rough speaking rate.
+- **Guess the clip** (advanced): hear one clip and guess its decade, country, and whether it's news or opinion, with a bonus for the station. You can play clips from both countries or from just the UK or the US; with one country, the country question is left out.
 
-Match and Guess the clip play English clips only, since the language would give their questions away.
+Match the clue and Guess the clip play English clips only, since the language would give their questions away.
 
 The game has 60 clips: 20 in English (10 US, 10 UK) and 10 each in French, Russian, Mandarin, and Turkish, with as many women as men in each language.
 
-The front page also sets the number of rounds (10 by default). The sound can be switched on every round screen. In every game the answer stays hidden until the clip has been played.
+The front page also sets the number of rounds (10 by default). Every round screen has a switch for the sound. In every mode the answer stays hidden until the clip has been played.
 
-On the deployed site, a results page (`stats.html`, linked from the end screen and the front page) shows everyone's results so far: the distribution of final scores with your own marked, accuracy and answer time by how alike the two clips were (Match), and the easiest and hardest comparisons (Match) or clips (Guess the clip), and how often each language is named correctly and what it's mistaken for.
+### Results pages
 
-A clip stats page (`clips.html`, linked from the front page and the results page) compares the clips themselves: average pitch (women and men apart), pitch range and variation, pauses, and time silent, grouped by language, decade, or sex, as a table of medians and a dot chart per measurement with one dot per clip. It names the standouts (widest pitch range, most pauses, and so on) and lists each game's hardest clips, counting every game played.
+The deployed site has two pages of numbers:
+
+- **Results** (`stats.html`, linked from the end screen and the front page) shows everyone's results so far:
+  - the distribution of final scores, with your own marked
+  - accuracy and answer time by how alike the two clips were (Match the clue)
+  - the easiest and hardest comparisons (Match the clue) or clips (Guess the clip)
+  - how often each language is named correctly, and what it's mistaken for
+- **Clip stats** (`clips.html`, linked from the front page and the results page) compares the clips themselves: average pitch (women and men apart), pitch range and variation, pauses, and time silent. It groups them by language, decade, or sex, as a table of medians and a dot chart per measurement with one dot per clip. It names the standouts (widest pitch range, most pauses, and so on) and lists each mode's hardest clips, counting every game played.
 
 ## How it works
 
@@ -45,7 +54,7 @@ A Python pipeline turns a list of YouTube sections (`clips.csv`) into game audio
 1. Cut each section from a cached block of the video's audio (yt-dlp, ffmpeg).
 2. Normalize to mono 22.05 kHz at -23 LUFS, so loudness can't give a clip away.
 3. Track pitch with Praat (parselmouth) and loudness per 10 ms frame.
-4. Resynthesize: an additive engine renders harmonics on the pitch track, shaped by formants (hum) or brass resonances (trombone), brighter as the speaker gets louder, silent wherever the speaker is.
+4. Resynthesize: an additive engine renders harmonics on the pitch track, shaped by formants (hum) or brass resonances (trombone). The sound gets brighter as the speaker gets louder and goes silent wherever the speaker is silent.
 5. Encode MP3s for the browser and write the manifest `web/quiz.json`.
 
 The game is static HTML and vanilla JavaScript modules, with no build step and no framework. The source audio isn't in this repository: clone it, list clips in `clips.csv`, and the pipeline downloads and builds them.
@@ -61,7 +70,8 @@ make audio    # download, cut, analyse, synthesize, encode (a few minutes for 20
 make serve    # then open http://localhost:8000
 ```
 
-`make serve PORT=8001` uses another port. `?mode=match`, `?mode=classic`, or `?mode=language` in the URL skips the front page.
+- `make serve PORT=8001` uses another port.
+- `?mode=match`, `?mode=classic`, or `?mode=language` in the URL skips the front page.
 
 ## Pipeline
 
@@ -77,9 +87,14 @@ Every stage skips outputs that already exist, so reruns are cheap. Pass `-f` to 
 | `pipeline.thumbnails` (`thumbs`) | `thumbnails/<Speaker>.png` | `processed/thumbnails/<id>.jpg` (optional speaker pictures) |
 | `pipeline.build_manifest` (`manifest`) | `clips.csv`, audio, contours | `web/quiz.json`, including each clip's speech stats |
 
-Changing a clip's times in `clips.csv` and running `make audio` re-cuts just that clip from its cached block: each cut records where it came from in `raw/<id>.json`. `sources/` holds the only local copy of each video's audio, and uploads can disappear, so back it up.
+Changing a clip's times in `clips.csv` and running `make audio` re-cuts just that clip from its cached block: each cut records where it came from in `raw/<id>.json`.
 
-`extract_contour` warns about steady tones (pitch held within 10 cents for 0.3 s, which speech never does: usually a censor bleep or music), and `trim_normalize` warns when a cut's length differs from its section, which usually means a keyframe problem.
+> `sources/` holds the only local copy of each video's audio, and uploads can disappear, so back it up.
+
+Two stages warn about likely problems:
+
+- `extract_contour` warns about steady tones: pitch held within 10 cents for 0.3 s, which speech never does. It's usually a censor bleep or music.
+- `trim_normalize` warns when a cut's length differs from its section, which usually means a keyframe problem.
 
 ### clips.csv
 
@@ -100,16 +115,32 @@ The pipeline reads only `clips.csv`; to set a clip aside, move its row to a file
 ### Speaker pictures
 
 Each speaker's picture is `thumbnails/<speaker>.png`, named as in the `speaker` column (`Walter Cronkite.png`). For speakers without one, `make portraits` (part of `make audio`) picks a frame from the clip's video:
+
 - It samples frames from 20 s before the clip to 20 s after.
 - It ranks faces by how often they come back to the same spot. Anchors return to their spot shot after shot, while the people in a report come and go.
-- A local vision model in Ollama (`gemma4:latest`, or set `BRASS_VISION_MODEL`) rejects photos, posters, graphics and footage of newsmakers.
+- A local vision model in Ollama (`gemma4:latest`, or set `BRASS_VISION_MODEL`) rejects photos, posters, graphics, and footage of newsmakers.
 - Without Ollama, it uses the most frequent face, unchecked.
 
-On the English clips it got 15 of 20 right, left 3 blank, and picked the wrong person twice. On the Russian clips it got 8 of 10 right; one of the misses was a photo of the person in the report. On the first 9 Mandarin clips it got 5 right, left 2 blank, and picked the wrong person twice (a co-anchor, and a politician in the report). On the 10 Turkish clips, picked without the vision check, it got 8 right and picked the wrong person twice (a guest in the studio, and a politician in the report). So check each pick on the review page, and replace a wrong one by saving your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
+How well it has done so far:
+
+| Clips | Right | Blank | Wrong person |
+|---|---|---|---|
+| English (20) | 15 | 3 | 2 |
+| Russian (10) | 8 | 0 | 2, one a photo of the person in the report |
+| Mandarin (first 9) | 5 | 2 | 2: a co-anchor, and a politician in the report |
+| Turkish (10, no vision check) | 8 | 0 | 2: a guest in the studio, and a politician in the report |
+
+So check each pick on the review page. To replace a wrong one, save your own screenshot under the same name; your file always wins. `make thumbs` then makes the small JPEGs for the reveal and warns about clips without a picture.
 
 ### Reviewing clips
 
-`make review` serves a review page at <http://localhost:8001/review.html> (localhost only). For each clip: the original and the trombone, the pitch plot, and ±5 s of context around the cut with **Set start/end here** to choose boundaries by ear. Edits and a review status save straight into `clips.csv`; changed times re-cut and rebuild the clip in a few seconds, and the game updates.
+`make review` serves a review page at <http://localhost:8001/review.html> (localhost only). For each clip it shows:
+
+- the original and the trombone
+- the pitch plot
+- ±5 s of context around the cut, with **Set start/end here** to choose boundaries by ear
+
+Edits and a review status save straight into `clips.csv`. Changed times re-cut and rebuild the clip in a few seconds, and the game updates.
 
 `make check-pairs` reports how many easy, medium, and hard pairs the corpus supports for Match the clue.
 
@@ -128,21 +159,34 @@ npx wrangler pages project create brass-anchors --production-branch main
 make deploy                                    # prints the site's URL
 ```
 
-`npm install` reports skipped install scripts for `esbuild` and `workerd`; they only verify binaries npm already installed, and Wrangler works without them.
+`npm install` reports skipped install scripts for `esbuild` and `workerd`. They only verify binaries npm already installed, and Wrangler works without them.
 
-Then:
+After that:
 
 - `make deploy` builds `dist/` (the game plus only the media `quiz.json` uses, about 21 MB) and uploads it. Run `make audio` first if clips changed.
-- `make stats` reports players and games, counting only each player's first game, since later games replay familiar clips (`make stats ALL=1` includes replays); Match accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair; Guess-the-clip accuracy per question and per clip; audio health (clips that failed to load, whether the automatic retry saved them, and how long clips take to start, over every game); and players' notes.
-- `make feedback` lists messages sent with the site's feedback form ("Send feedback" on the front and results pages). It asks for no name or contact details, so nobody's email appears on the site, and a hidden field quietly drops simple bot submissions. After pulling this change, run `make db-setup` once to add the feedback table.
+- `make stats` reports on play data. It counts only each player's first game, since later games replay familiar clips (`make stats ALL=1` includes replays). It covers:
+  - players and games
+  - Match the clue: accuracy and median answer time by difficulty, by what differed in hard rounds, and per clip pair
+  - Guess the clip: accuracy per question and per clip
+  - audio health, over every game: clips that failed to load, whether the automatic retry saved them, and how long clips take to start
+  - players' notes
+- `make feedback` lists messages sent with the site's feedback form ("Send feedback" on the front and results pages). The form asks for no name or contact details, so nobody's email appears on the site, and a hidden field quietly drops simple bot submissions. After pulling this change, run `make db-setup` once to add the feedback table.
 - `make site-dev` runs the deployable site locally with a local database at <http://localhost:8788/?collect=1>; `make stats LOCAL=1` reports on it.
-- Pages answers HTTP Range requests with the whole file, and Safari may not play audio from a server that does, so `functions/audio/[[path]].js` serves `/audio/*` with proper `206` responses. To check a deploy: `curl -sI -H 'Range: bytes=0-1' https://<site>/audio/trombone/<id>.mp3` should say `206`.
+
+Pages answers HTTP Range requests with the whole file, and Safari may not play audio from a server that does. So `functions/audio/[[path]].js` serves `/audio/*` with proper `206` responses. To check a deploy, `curl -sI -H 'Range: bytes=0-1' https://<site>/audio/trombone/<id>.mp3` should say `206`.
 
 ### What the deployed site records
 
-Each answered round (the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used; in Guess the language, also the four language buttons shown), each finished game's score, and, if a player saves it, the game with their notes. Notes are never shown on the results page. Each browser keeps a random player id, so one person's games can be linked (for example, to tell first plays from replays, which sound easier because the clips are familiar). No names, accounts, or IP addresses are stored; the notes box asks players not to include names or contact details; and the site loads nothing from third parties (its fonts are self-hosted). Cloudflare, as the host, sees visitors' addresses in serving the pages, as any host does; the site adds no analytics. The front page says: "This site records anonymous gameplay results and any notes you send. A random browser ID is kept to tell first plays from replays." Collection is off on `localhost` unless the URL has `?collect=1`.
+- **Each answered round**: the clips, the answer, right or wrong, plays per clip, time from first Play to answer, and the sound used. In Guess the language, also the four language buttons shown.
+- **Each finished game's score.**
+- **Saved games**: if a player saves a game, it's stored with their notes. Notes are never shown on the results page.
+- **A random player id** kept by each browser, so one person's games can be linked, for example to tell first plays from replays (replays seem easier because the clips are familiar).
 
-Anyone can post to `/api/log`, so the results are only as trustworthy as an open endpoint allows. The server rejects malformed or impossible rounds (unknown difficulty, points that don't match the scoring, answers in under a second), and a game's final score counts in the distribution only when all its rounds arrived and add up to it. A patient script can still post plausible fake games; `make stats` shows the counts to watch.
+No names, accounts, or IP addresses are stored, and the notes box asks players not to include names or contact details. The site loads nothing from third parties (its fonts are self-hosted) and adds no analytics. Cloudflare, as the host, sees visitors' addresses when serving the pages, as any host does.
+
+The front page says: "This site records anonymous gameplay results and any notes you send. A random browser ID is kept to tell first plays from replays." Collection is off on `localhost` unless the URL has `?collect=1`.
+
+Anyone can post to `/api/log`, so the results are only as trustworthy as an open endpoint allows. The server rejects malformed or impossible rounds (unknown difficulty, points that don't match the scoring, answers in under a second). A game's final score counts in the distribution only when all its rounds arrived and add up to it. A patient script can still post plausible fake games; `make stats` shows the counts to watch.
 
 ## Repository layout
 
